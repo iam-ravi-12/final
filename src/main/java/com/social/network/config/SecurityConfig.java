@@ -33,7 +33,7 @@ public class SecurityConfig {
         return new JwtAuthenticationFilter(jwtTokenProvider(), userDetailsService);
     }
 
-    @Bean
+    @Bean("jwtProviderFromConfig")
     public JwtTokenProvider jwtTokenProvider() {
         return new JwtTokenProvider();
     }
@@ -59,19 +59,28 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                // CSRF protection is disabled because this is a stateless REST API using JWT tokens
-                // for authentication. CSRF protection is primarily needed for browser-based applications
-                // using session cookies. For mobile/Android clients using JWT in Authorization headers,
-                // CSRF attacks are not applicable.
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        // public endpoints
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/posts/**").permitAll()
+                        .requestMatchers("/signup", "/signup.html","/login.html","/home.html", "/login", "/", "/index").permitAll()
+                        .requestMatchers("/signup", "/login", "/","/home").permitAll()
+                        .requestMatchers("/error", "/error/**").permitAll()           // <-- allow error page
+                        .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())
-                .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
+                .exceptionHandling(ex -> ex
+                        // return 401 for API unauthorized rather than default behaviour (optional)
+                        .authenticationEntryPoint(new org.springframework.security.web.authentication.HttpStatusEntryPoint(org.springframework.http.HttpStatus.UNAUTHORIZED))
+                );
 
         return http.build();
     }
+
+
 }
