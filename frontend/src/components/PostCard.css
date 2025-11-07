@@ -35,6 +35,12 @@
   font-size: 20px;
   font-weight: 600;
   flex-shrink: 0;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.post-avatar:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px rgba(102, 126, 234, 0.4);
 }
 
 .post-details {
