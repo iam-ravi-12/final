@@ -10,6 +10,11 @@ A full-stack professional networking application with a Spring Boot backend, MyS
   1. **All Posts Overview**: View all posts from all users
   2. **Professional Posts**: View posts from users in the same profession
   3. **Help Section**: Posts specifically marked for help or assistance
+- **Messaging System**: Direct messaging between users
+  1. **Click to Message**: Click on any user's profile picture to start a conversation
+  2. **Conversation List**: View all conversations with unread message counts
+  3. **Real-time Updates**: Messages update automatically using polling
+  4. **Read Receipts**: Messages are marked as read when viewed
 - **React Frontend**: Modern, responsive user interface
 - **REST API**: Full-featured backend API
 
@@ -189,6 +194,40 @@ Authorization: Bearer <token>
 
 Returns posts where `isHelpSection` is true.
 
+### Messaging Endpoints
+
+For detailed messaging API documentation, see [MESSAGING_API.md](MESSAGING_API.md).
+
+#### Send Message
+```
+POST /api/messages
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "receiverId": 2,
+  "content": "Hello! How are you?"
+}
+```
+
+#### Get Conversations
+```
+GET /api/messages/conversations
+Authorization: Bearer <token>
+```
+
+#### Get Messages with User
+```
+GET /api/messages/with/{userId}
+Authorization: Bearer <token>
+```
+
+#### Mark Messages as Read
+```
+PUT /api/messages/read/{userId}
+Authorization: Bearer <token>
+```
+
 ## User Flow
 
 ### For Web Application (React Frontend)
@@ -200,7 +239,11 @@ Returns posts where `isHelpSection` is true.
    - **Professional**: See posts from users with the same profession
    - **Help Section**: View and create help requests
 4. **Create Post**: Click "Create Post" to share content or request help
-5. **Logout**: Click logout to end the session
+5. **Messaging**: 
+   - Click on any user's profile picture to start a conversation
+   - Click "Messages" button in navbar to view all conversations
+   - Send and receive messages in real-time
+6. **Logout**: Click logout to end the session
 
 ### For Mobile/External Applications
 
@@ -263,6 +306,14 @@ professional-network/
 - `user_profession`: User's profession (cached)
 - `created_at`: Timestamp
 - `updated_at`: Timestamp
+
+### Messages Table
+- `id`: Primary key
+- `sender_id`: Foreign key to users (sender)
+- `receiver_id`: Foreign key to users (receiver)
+- `content`: Message content
+- `is_read`: Boolean flag indicating if message was read
+- `created_at`: Timestamp
 
 ## Integration
 
