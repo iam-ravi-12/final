@@ -13,6 +13,7 @@ const Messages = () => {
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [profilePicture, setProfilePicture] = useState(null);
   const currentUser = authService.getCurrentUser();
   const messagesEndRef = useRef(null);
 
@@ -75,6 +76,22 @@ const Messages = () => {
     scrollToBottom();
   }, [messages]);
 
+  // Load profile picture
+  useEffect(() => {
+    const loadProfilePicture = async () => {
+      try {
+        const profile = await authService.getUserProfile();
+        if (profile.profilePicture) {
+          setProfilePicture(profile.profilePicture);
+        }
+      } catch (err) {
+        console.error('Error loading profile picture:', err);
+      }
+    };
+
+    loadProfilePicture();
+  }, []);
+
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!newMessage.trim() || !selectedUser) return;
@@ -128,6 +145,13 @@ const Messages = () => {
             <button onClick={handleGoToProfile} className="btn-profile">
               👤 Profile
             </button>
+            {profilePicture ? (
+              <img src={profilePicture} alt="Profile" className="navbar-profile-pic" onClick={handleGoToProfile} />
+            ) : (
+              <div className="navbar-profile-placeholder" onClick={handleGoToProfile}>
+                {currentUser?.username?.charAt(0).toUpperCase()}
+              </div>
+            )}
             <span className="username">{currentUser?.username}</span>
             <button onClick={handleLogout} className="btn-logout">
               Logout

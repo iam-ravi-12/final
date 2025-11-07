@@ -13,6 +13,7 @@ const Home = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showCreatePost, setShowCreatePost] = useState(false);
+  const [profilePicture, setProfilePicture] = useState(null);
   const user = authService.getCurrentUser();
 
   useEffect(() => {
@@ -46,6 +47,21 @@ const Home = () => {
 
     loadPosts();
   }, [activeTab]);
+
+  useEffect(() => {
+    const loadProfilePicture = async () => {
+      try {
+        const profile = await authService.getUserProfile();
+        if (profile.profilePicture) {
+          setProfilePicture(profile.profilePicture);
+        }
+      } catch (err) {
+        console.error('Error loading profile picture:', err);
+      }
+    };
+
+    loadProfilePicture();
+  }, []);
 
   const reloadPosts = async () => {
     setLoading(true);
@@ -105,6 +121,13 @@ const Home = () => {
             <button onClick={handleGoToProfile} className="btn-profile">
               👤 Profile
             </button>
+            {profilePicture ? (
+              <img src={profilePicture} alt="Profile" className="navbar-profile-pic" onClick={handleGoToProfile} />
+            ) : (
+              <div className="navbar-profile-placeholder" onClick={handleGoToProfile}>
+                {user?.username?.charAt(0).toUpperCase()}
+              </div>
+            )}
             <span className="username">{user?.username}</span>
             <button onClick={handleLogout} className="btn-logout">
               Logout

@@ -100,6 +100,11 @@ public class AuthService {
 
         user.setProfession(profileRequest.getProfession());
         user.setOrganization(profileRequest.getOrganization());
+        
+        if (profileRequest.getProfilePicture() != null && !profileRequest.getProfilePicture().isEmpty()) {
+            user.setProfilePicture(profileRequest.getProfilePicture());
+        }
+        
         user.setProfileCompleted(true);
 
         userRepository.save(user);
@@ -115,7 +120,8 @@ public class AuthService {
                 user.getEmail(),
                 user.getProfession(),
                 user.getOrganization(),
-                user.getProfileCompleted()
+                user.getProfileCompleted(),
+                user.getProfilePicture()
         );
     }
 }

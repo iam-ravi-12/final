@@ -38,6 +38,9 @@ public class User {
     @Column(name = "profile_completed")
     private Boolean profileCompleted = false;
 
+    @Column(name = "profile_picture", columnDefinition = "TEXT")
+    private String profilePicture;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

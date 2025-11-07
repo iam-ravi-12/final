@@ -10,11 +10,13 @@ const Profile = () => {
     email: '',
     profession: '',
     organization: '',
+    profilePicture: '',
   });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
   const [loadingProfile, setLoadingProfile] = useState(true);
+  const [previewImage, setPreviewImage] = useState(null);
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -25,7 +27,11 @@ const Profile = () => {
           email: profile.email || '',
           profession: profile.profession || '',
           organization: profile.organization || '',
+          profilePicture: profile.profilePicture || '',
         });
+        if (profile.profilePicture) {
+          setPreviewImage(profile.profilePicture);
+        }
       } catch (err) {
         setError('Failed to load profile. Please try again.');
         console.error('Error loading profile:', err);
@@ -44,6 +50,43 @@ const Profile = () => {
     });
   };
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setError('Image size should be less than 5MB');
+        return;
+      }
+
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        setError('Please select a valid image file');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result;
+        setFormData({
+          ...formData,
+          profilePicture: base64String,
+        });
+        setPreviewImage(base64String);
+        setError('');
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setFormData({
+      ...formData,
+      profilePicture: '',
+    });
+    setPreviewImage(null);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -51,7 +94,11 @@ const Profile = () => {
     setLoading(true);
 
     try {
-      await authService.updateProfile(formData.profession, formData.organization);
+      await authService.updateProfile(
+        formData.profession, 
+        formData.organization,
+        formData.profilePicture
+      );
       setSuccess('Profile updated successfully!');
       
       // Update local storage with new profile data
@@ -123,6 +170,45 @@ const Profile = () => {
           {success && <div className="success-message">{success}</div>}
           
           <form onSubmit={handleSubmit}>
+            <div className="form-group profile-picture-section">
+              <label>Profile Picture</label>
+              <div className="profile-picture-container">
+                <div className="profile-picture-preview">
+                  {previewImage ? (
+                    <img src={previewImage} alt="Profile" className="profile-picture-img" />
+                  ) : (
+                    <div className="profile-picture-placeholder">
+                      <span className="placeholder-icon">👤</span>
+                    </div>
+                  )}
+                </div>
+                <div className="profile-picture-actions">
+                  <input
+                    type="file"
+                    id="profilePicture"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    style={{ display: 'none' }}
+                    disabled={loading}
+                  />
+                  <label htmlFor="profilePicture" className="btn-upload">
+                    {previewImage ? 'Change Picture' : 'Upload Picture'}
+                  </label>
+                  {previewImage && (
+                    <button
+                      type="button"
+                      onClick={handleRemoveImage}
+                      className="btn-remove"
+                      disabled={loading}
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
+              </div>
+              <small className="help-text">Max file size: 5MB. Accepted formats: JPG, PNG, GIF</small>
+            </div>
+
             <div className="form-group">
               <label htmlFor="username">Username</label>
               <input

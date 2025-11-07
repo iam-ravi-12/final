@@ -88,6 +88,41 @@
   transform: translateY(-2px);
 }
 
+.navbar-profile-pic {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid white;
+  cursor: pointer;
+  transition: transform 0.3s;
+}
+
+.navbar-profile-pic:hover {
+  transform: scale(1.1);
+}
+
+.navbar-profile-placeholder {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  border: 2px solid white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 18px;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.navbar-profile-placeholder:hover {
+  background: rgba(255, 255, 255, 0.4);
+  transform: scale(1.1);
+}
+
 .home-content {
   max-width: 800px;
   margin: 0 auto;

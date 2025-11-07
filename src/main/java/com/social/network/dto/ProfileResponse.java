@@ -14,4 +14,5 @@ public class ProfileResponse {
     private String profession;
     private String organization;
     private Boolean profileCompleted;
+    private String profilePicture;
 }

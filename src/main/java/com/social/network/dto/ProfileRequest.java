@@ -15,4 +15,6 @@ public class ProfileRequest {
 
     @NotBlank(message = "Organization is required")
     private String organization;
+
+    private String profilePicture;
 }
