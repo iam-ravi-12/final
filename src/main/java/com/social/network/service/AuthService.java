@@ -3,6 +3,7 @@ package com.social.network.service;
 import com.social.network.dto.AuthResponse;
 import com.social.network.dto.LoginRequest;
 import com.social.network.dto.ProfileRequest;
+import com.social.network.dto.ProfileResponse;
 import com.social.network.dto.SignupRequest;
 import com.social.network.entity.User;
 import com.social.network.repository.UserRepository;
@@ -102,5 +103,19 @@ public class AuthService {
         user.setProfileCompleted(true);
 
         userRepository.save(user);
+    }
+
+    public ProfileResponse getUserProfile(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        return new ProfileResponse(
+                user.getId(),
+                user.getUsername(),
+                user.getEmail(),
+                user.getProfession(),
+                user.getOrganization(),
+                user.getProfileCompleted()
+        );
     }
 }

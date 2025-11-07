@@ -84,6 +84,10 @@ const Home = () => {
     navigate('/messages');
   };
 
+  const handleGoToProfile = () => {
+    navigate('/profile');
+  };
+
   const handlePostCreated = () => {
     setShowCreatePost(false);
     reloadPosts();
@@ -97,6 +101,9 @@ const Home = () => {
           <div className="user-info">
             <button onClick={handleGoToMessages} className="btn-messages">
               💬 Messages
+            </button>
+            <button onClick={handleGoToProfile} className="btn-profile">
+              👤 Profile
             </button>
             <span className="username">{user?.username}</span>
             <button onClick={handleLogout} className="btn-logout">

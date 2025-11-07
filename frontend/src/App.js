@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import ProfileSetup from './pages/ProfileSetup';
+import Profile from './pages/Profile';
 import Home from './pages/Home';
 import Messages from './pages/Messages';
 import PostDetail from './pages/PostDetail';
@@ -21,6 +22,14 @@ function App() {
             element={
               <PrivateRoute>
                 <ProfileSetup />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <PrivateRoute>
+                <Profile />
               </PrivateRoute>
             }
           />

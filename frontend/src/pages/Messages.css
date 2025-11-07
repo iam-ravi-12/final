@@ -319,6 +319,24 @@
   color: white;
 }
 
+.btn-profile {
+  padding: 0.5rem 1rem;
+  background: white;
+  color: #667eea;
+  border: 2px solid #667eea;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-right: 1rem;
+}
+
+.btn-profile:hover {
+  background: #667eea;
+  color: white;
+}
+
 .error-message {
   padding: 0.75rem;
   background: #f8d7da;

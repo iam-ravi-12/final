@@ -112,6 +112,10 @@ const Messages = () => {
     navigate('/home');
   };
 
+  const handleGoToProfile = () => {
+    navigate('/profile');
+  };
+
   return (
     <div className="messages-container">
       <header className="messages-header">
@@ -120,6 +124,9 @@ const Messages = () => {
           <div className="user-info">
             <button onClick={handleBackToHome} className="btn-back">
               Back to Home
+            </button>
+            <button onClick={handleGoToProfile} className="btn-profile">
+              👤 Profile
             </button>
             <span className="username">{currentUser?.username}</span>
             <button onClick={handleLogout} className="btn-logout">
