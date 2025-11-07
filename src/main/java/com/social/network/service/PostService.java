@@ -74,6 +74,7 @@ public class PostService {
         response.setId(post.getId());
         response.setContent(post.getContent());
         response.setIsHelpSection(post.getIsHelpSection());
+        response.setUserId(post.getUser().getId());
         response.setUsername(post.getUser().getUsername());
         response.setUserProfession(post.getUserProfession());
         response.setCreatedAt(post.getCreatedAt());

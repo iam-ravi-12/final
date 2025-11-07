@@ -4,6 +4,7 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import ProfileSetup from './pages/ProfileSetup';
 import Home from './pages/Home';
+import Messages from './pages/Messages';
 import PrivateRoute from './components/PrivateRoute';
 import './App.css';
 
@@ -27,6 +28,14 @@ function App() {
             element={
               <PrivateRoute>
                 <Home />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/messages"
+            element={
+              <PrivateRoute>
+                <Messages />
               </PrivateRoute>
             }
           />

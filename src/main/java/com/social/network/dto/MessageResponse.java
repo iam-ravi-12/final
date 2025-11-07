@@ -9,12 +9,14 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class PostResponse {
+public class MessageResponse {
+
     private Long id;
+    private Long senderId;
+    private String senderUsername;
+    private Long receiverId;
+    private String receiverUsername;
     private String content;
-    private Boolean isHelpSection;
-    private Long userId;
-    private String username;
-    private String userProfession;
+    private Boolean isRead;
     private LocalDateTime createdAt;
 }
