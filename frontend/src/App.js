@@ -5,6 +5,7 @@ import Signup from './pages/Signup';
 import ProfileSetup from './pages/ProfileSetup';
 import Home from './pages/Home';
 import Messages from './pages/Messages';
+import PostDetail from './pages/PostDetail';
 import PrivateRoute from './components/PrivateRoute';
 import './App.css';
 
@@ -36,6 +37,14 @@ function App() {
             element={
               <PrivateRoute>
                 <Messages />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/post/:postId"
+            element={
+              <PrivateRoute>
+                <PostDetail />
               </PrivateRoute>
             }
           />

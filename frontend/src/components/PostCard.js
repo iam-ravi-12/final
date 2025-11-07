@@ -1,12 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatDate } from '../utils/dateUtils';
 import { authService } from '../services/authService';
+import { postService } from '../services/postService';
 import './PostCard.css';
 
-const PostCard = ({ post }) => {
+const PostCard = ({ post, onPostUpdate }) => {
   const navigate = useNavigate();
   const currentUser = authService.getCurrentUser();
+  const [isLiked, setIsLiked] = useState(post.likedByCurrentUser);
+  const [likeCount, setLikeCount] = useState(post.likeCount);
+  const [isLiking, setIsLiking] = useState(false);
 
   const handleProfileClick = () => {
     // Don't allow messaging yourself
@@ -21,6 +25,28 @@ const PostCard = ({ post }) => {
         profession: post.userProfession
       }
     });
+  };
+
+  const handleLike = async (e) => {
+    e.stopPropagation();
+    if (isLiking) return;
+
+    setIsLiking(true);
+    try {
+      await postService.toggleLike(post.id);
+      setIsLiked(!isLiked);
+      setLikeCount(isLiked ? likeCount - 1 : likeCount + 1);
+      if (onPostUpdate) onPostUpdate();
+    } catch (error) {
+      console.error('Error toggling like:', error);
+    } finally {
+      setIsLiking(false);
+    }
+  };
+
+  const handleCommentClick = (e) => {
+    e.stopPropagation();
+    navigate(`/post/${post.id}`);
   };
 
   return (
@@ -54,6 +80,24 @@ const PostCard = ({ post }) => {
           <span className="help-badge">Help Request</span>
         </div>
       )}
+
+      <div className="post-actions">
+        <button 
+          className={`action-btn ${isLiked ? 'liked' : ''}`}
+          onClick={handleLike}
+          disabled={isLiking}
+        >
+          <span className="action-icon">{isLiked ? '❤️' : '🤍'}</span>
+          <span className="action-count">{likeCount}</span>
+        </button>
+        <button 
+          className="action-btn"
+          onClick={handleCommentClick}
+        >
+          <span className="action-icon">💬</span>
+          <span className="action-count">{post.commentCount}</span>
+        </button>
+      </div>
     </div>
   );
 };
