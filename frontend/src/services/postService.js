@@ -20,4 +20,24 @@ export const postService = {
     const response = await api.get('/posts/help');
     return response.data;
   },
+
+  getPostById: async (postId) => {
+    const response = await api.get(`/posts/${postId}`);
+    return response.data;
+  },
+
+  toggleLike: async (postId) => {
+    const response = await api.post(`/posts/${postId}/like`);
+    return response.data;
+  },
+
+  addComment: async (postId, content) => {
+    const response = await api.post(`/posts/${postId}/comments`, { content });
+    return response.data;
+  },
+
+  getComments: async (postId) => {
+    const response = await api.get(`/posts/${postId}/comments`);
+    return response.data;
+  },
 };
