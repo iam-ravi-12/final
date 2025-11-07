@@ -19,11 +19,20 @@ export const authService = {
     return response.data;
   },
 
-  updateProfile: async (profession, organization) => {
-    const response = await api.post('/auth/profile', { profession, organization });
+  updateProfile: async (profession, organization, profilePicture = null) => {
+    const requestBody = { profession, organization };
+    if (profilePicture) {
+      requestBody.profilePicture = profilePicture;
+    }
+    const response = await api.post('/auth/profile', requestBody);
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     user.profileCompleted = true;
     localStorage.setItem('user', JSON.stringify(user));
+    return response.data;
+  },
+
+  getUserProfile: async () => {
+    const response = await api.get('/auth/profile');
     return response.data;
   },
 

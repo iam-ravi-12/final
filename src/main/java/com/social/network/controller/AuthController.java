@@ -3,6 +3,7 @@ package com.social.network.controller;
 import com.social.network.dto.AuthResponse;
 import com.social.network.dto.LoginRequest;
 import com.social.network.dto.ProfileRequest;
+import com.social.network.dto.ProfileResponse;
 import com.social.network.dto.SignupRequest;
 import com.social.network.service.AuthService;
 import jakarta.validation.Valid;
@@ -49,6 +50,17 @@ public class AuthController {
             String username = authentication.getName();
             authService.updateProfile(username, profileRequest);
             return ResponseEntity.ok("Profile updated successfully");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/profile")
+    public ResponseEntity<?> getUserProfile(Authentication authentication) {
+        try {
+            String username = authentication.getName();
+            ProfileResponse profile = authService.getUserProfile(username);
+            return ResponseEntity.ok(profile);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }

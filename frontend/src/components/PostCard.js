@@ -59,7 +59,11 @@ const PostCard = ({ post, onPostUpdate }) => {
             style={{ cursor: post.userId !== currentUser?.id ? 'pointer' : 'default' }}
             title={post.userId !== currentUser?.id ? 'Click to message' : ''}
           >
-            {post.username.charAt(0).toUpperCase()}
+            {post.userProfilePicture ? (
+              <img src={post.userProfilePicture} alt={post.username} className="post-avatar-img" />
+            ) : (
+              post.username.charAt(0).toUpperCase()
+            )}
           </div>
           <div className="post-details">
             <h4 className="post-username">{post.username}</h4>

@@ -1,6 +1,5 @@
 package com.social.network.dto;
 
-import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -8,13 +7,12 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ProfileRequest {
-
-    @NotBlank(message = "Profession is required")
+public class ProfileResponse {
+    private Long id;
+    private String username;
+    private String email;
     private String profession;
-
-    @NotBlank(message = "Organization is required")
     private String organization;
-
+    private Boolean profileCompleted;
     private String profilePicture;
 }
