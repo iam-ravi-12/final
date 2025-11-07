@@ -36,7 +36,7 @@
 
 .post-textarea:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: #6366f1;
   box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
 }
 
@@ -76,8 +76,8 @@
 .btn-secondary {
   padding: 12px 24px;
   background: white;
-  color: #667eea;
-  border: 2px solid #667eea;
+  color: #6366f1;
+  border: 2px solid #6366f1;
   border-radius: 12px;
   font-size: 15px;
   font-weight: 700;

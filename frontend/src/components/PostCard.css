@@ -17,7 +17,7 @@
   left: 0;
   right: 0;
   height: 3px;
-  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(90deg, #6366f1 0%, #a855f7 100%);
   transform: scaleX(0);
   transform-origin: left;
   transition: transform 0.3s ease;
@@ -50,7 +50,7 @@
   width: 52px;
   height: 52px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
   color: white;
   display: flex;
   align-items: center;
@@ -106,7 +106,7 @@
 .post-profession {
   margin: 4px 0 0 0;
   font-size: 14px;
-  color: #667eea;
+  color: #6366f1;
   font-weight: 500;
 }
 
@@ -184,7 +184,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
   opacity: 0;
   transition: opacity 0.3s;
   border-radius: 12px;
@@ -192,7 +192,7 @@
 
 .action-btn:hover {
   background-color: #f8f9fa;
-  color: #667eea;
+  color: #6366f1;
   transform: translateY(-2px);
 }
 

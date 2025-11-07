@@ -19,7 +19,7 @@
 }
 
 .home-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
   color: white;
   padding: 20px 0;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
@@ -255,7 +255,7 @@
   left: 50%;
   width: 0;
   height: 3px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
   transform: translateX(-50%);
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -270,7 +270,7 @@
 }
 
 .tab.active {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
   color: white;
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
@@ -286,7 +286,7 @@
 .btn-create-post {
   width: 100%;
   padding: 18px 24px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
   color: white;
   border: none;
   border-radius: 16px;
@@ -339,7 +339,7 @@
 .loading {
   text-align: center;
   padding: 60px 20px;
-  color: #667eea;
+  color: #6366f1;
   font-size: 18px;
   font-weight: 600;
   animation: pulse 2s infinite;
