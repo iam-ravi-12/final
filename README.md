@@ -1,6 +1,6 @@
-# Professional Network - Backend API
+# Professional Network - Full Stack Application
 
-A Spring Boot REST API backend for a professional networking Android application with MySQL database.
+A full-stack professional networking application with a Spring Boot backend, MySQL database, and React frontend.
 
 ## Features
 
@@ -10,9 +10,12 @@ A Spring Boot REST API backend for a professional networking Android application
   1. **All Posts Overview**: View all posts from all users
   2. **Professional Posts**: View posts from users in the same profession
   3. **Help Section**: Posts specifically marked for help or assistance
+- **React Frontend**: Modern, responsive user interface
+- **REST API**: Full-featured backend API
 
 ## Tech Stack
 
+### Backend
 - Java 17
 - Spring Boot 3.1.5
 - Spring Security with JWT
@@ -20,11 +23,19 @@ A Spring Boot REST API backend for a professional networking Android application
 - MySQL Database
 - Maven
 
+### Frontend
+- React 19
+- React Router DOM
+- Axios
+- Modern CSS with responsive design
+
 ## Prerequisites
 
 - Java 17 or higher
 - MySQL 8.0 or higher
 - Maven 3.6 or higher
+- Node.js 14 or higher
+- npm or yarn
 
 ## Database Setup
 
@@ -52,14 +63,42 @@ spring.datasource.password=your_mysql_password
 
 ## Running the Application
 
-1. Clone the repository
-2. Navigate to the project directory
-3. Run the application:
+### Backend
+
+1. Navigate to the project root directory
+2. Run the Spring Boot application:
 ```bash
 mvn spring-boot:run
 ```
 
-The application will start on `http://localhost:8080`
+The backend will start on `http://localhost:8080`
+
+### Frontend
+
+1. Navigate to the frontend directory:
+```bash
+cd frontend
+```
+
+2. Install dependencies (first time only):
+```bash
+npm install
+```
+
+3. Start the development server:
+```bash
+npm start
+```
+
+The frontend will open automatically at `http://localhost:3000`
+
+### Running Both Together
+
+For development, you need to run both the backend and frontend:
+1. Start the backend in one terminal (from project root): `mvn spring-boot:run`
+2. Start the frontend in another terminal (from frontend directory): `npm start`
+
+The React app will automatically proxy API requests to the backend running on port 8080.
 
 ## API Endpoints
 
@@ -152,13 +191,50 @@ Returns posts where `isHelpSection` is true.
 
 ## User Flow
 
-1. **Signup/Login**: User creates an account or logs in
-2. **Profile Setup**: After login, user must complete profile with profession and organization
-3. **Home Page**: User is redirected to home page with three sections:
-   - **All Overview**: See all posts from all users
-   - **Professional**: See posts from same profession
-   - **Help**: See help-related posts
-4. **Create Post**: User can create posts and mark them as help-related or general
+### For Web Application (React Frontend)
+
+1. **Signup/Login**: User creates an account or logs in through the web interface
+2. **Profile Setup**: After login, user completes profile with profession and organization
+3. **Home Page**: User sees the dashboard with three tabs:
+   - **All Posts**: Browse all posts from all users
+   - **Professional**: See posts from users with the same profession
+   - **Help Section**: View and create help requests
+4. **Create Post**: Click "Create Post" to share content or request help
+5. **Logout**: Click logout to end the session
+
+### For Mobile/External Applications
+
+1. **Signup/Login**: User creates an account or logs in via API
+2. **Profile Setup**: Complete profile with profession and organization
+3. **Home Page**: Display three sections using the respective API endpoints
+4. **Create Post**: Post content through the API
+
+## Project Structure
+
+```
+professional-network/
+├── frontend/                 # React frontend application
+│   ├── src/
+│   │   ├── components/      # Reusable components
+│   │   ├── pages/           # Page components
+│   │   ├── services/        # API services
+│   │   └── utils/           # Utility functions
+│   └── package.json
+├── src/                     # Spring Boot backend
+│   ├── main/
+│   │   ├── java/
+│   │   │   └── com/social/network/
+│   │   │       ├── config/
+│   │   │       ├── controller/
+│   │   │       ├── dto/
+│   │   │       ├── entity/
+│   │   │       ├── repository/
+│   │   │       ├── security/
+│   │   │       └── service/
+│   │   └── resources/
+│   │       └── application.properties
+│   └── test/
+└── pom.xml
 
 ## Security
 
@@ -188,9 +264,15 @@ Returns posts where `isHelpSection` is true.
 - `created_at`: Timestamp
 - `updated_at`: Timestamp
 
-## Android Integration
+## Integration
 
-To integrate with an Android app:
+### Web Application (React)
+
+The React frontend is already integrated and configured to work with the backend. Simply run both applications as described in the "Running the Application" section.
+
+### Mobile/External Applications (Android, iOS, etc.)
+
+To integrate with a mobile app or other external application:
 
 1. Use the JWT token from login/signup response
 2. Include the token in Authorization header for all authenticated requests:
