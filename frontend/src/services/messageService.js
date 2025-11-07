@@ -4,7 +4,7 @@ export const messageService = {
   // Send a message
   sendMessage: async (receiverId, content) => {
     try {
-      const response = await api.post('/api/messages', {
+      const response = await api.post('/messages', {
         receiverId,
         content
       });
@@ -18,7 +18,7 @@ export const messageService = {
   // Get all conversations
   getConversations: async () => {
     try {
-      const response = await api.get('/api/messages/conversations');
+      const response = await api.get('/messages/conversations');
       return response.data;
     } catch (error) {
       console.error('Error fetching conversations:', error);
@@ -29,7 +29,7 @@ export const messageService = {
   // Get messages with a specific user
   getMessagesWithUser: async (userId) => {
     try {
-      const response = await api.get(`/api/messages/with/${userId}`);
+      const response = await api.get(`/messages/with/${userId}`);
       return response.data;
     } catch (error) {
       console.error('Error fetching messages:', error);
@@ -40,7 +40,7 @@ export const messageService = {
   // Mark messages as read
   markMessagesAsRead: async (userId) => {
     try {
-      await api.put(`/api/messages/read/${userId}`);
+      await api.put(`/messages/read/${userId}`);
     } catch (error) {
       console.error('Error marking messages as read:', error);
       throw error;
