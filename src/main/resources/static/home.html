@@ -1,0 +1,43 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>Home</title>
+</head>
+<body>
+<h1>Home</h1>
+<p id="welcome">Loading...</p>
+<button onclick="logout()">Logout</button>
+
+<script>
+    async function loadProfile() {
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+            window.location.href = '/login';
+            return;
+        }
+
+        const res = await fetch('/api/me', {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Bearer ' + token,
+                'Accept': 'application/json'
+            }
+        });
+
+        if (!res.ok) {
+            // 401/403 likely — token expired or wrong; clear and redirect
+            localStorage.removeItem('authToken');
+            window.location.href = '/login';
+            return;
+        }
+
+        const profile = await res.json();
+        document.getElementById('welcome').innerText = 'Hello, ' + (profile.username || profile.name || 'User');
+    }
+
+    loadProfile();
+</script>
+
+</body>
+</html>

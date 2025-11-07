@@ -1,0 +1,54 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>Login</title>
+</head>
+<body>
+<h1>Login</h1>
+<form id="login-form" onsubmit="event.preventDefault(); login();">
+    <label>Username: <input id="username" required /></label><br/>
+    <label>Password: <input id="password" type="password" required /></label><br/>
+    <button type="submit">Login</button>
+</form>
+
+<p>Don't have an account? <a href="/signup">Sign up</a></p>
+
+<script>
+    async function login() {
+        const body = {
+            username: document.getElementById('username').value,
+            password: document.getElementById('password').value
+        };
+        const res = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        });
+
+        if (!res.ok) {
+            alert('Login failed: ' + await res.text());
+            return;
+        }
+
+        // Parse JSON response
+        const data = await res.json();
+
+        // Look for common token field names
+        const token = data.token || data.accessToken || data.jwt || data.access_token || (data.data && (data.data.token || data.data.accessToken));
+        if (!token) {
+            console.error('Login response JSON:', data);
+            alert('Login succeeded but token not found in response. Check response JSON in DevTools.');
+            return;
+        }
+
+        // store token (localStorage is fine for simple apps)
+        localStorage.setItem('authToken', token);
+
+        // redirect to home
+        window.location.href = '/home';
+    }
+</script>
+
+</body>
+</html>
