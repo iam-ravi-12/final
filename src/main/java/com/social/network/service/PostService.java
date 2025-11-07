@@ -6,7 +6,6 @@ import com.social.network.entity.Post;
 import com.social.network.entity.User;
 import com.social.network.repository.PostRepository;
 import com.social.network.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,11 +14,13 @@ import java.util.stream.Collectors;
 @Service
 public class PostService {
 
-    @Autowired
-    private PostRepository postRepository;
+    private final PostRepository postRepository;
+    private final UserRepository userRepository;
 
-    @Autowired
-    private UserRepository userRepository;
+    public PostService(PostRepository postRepository, UserRepository userRepository) {
+        this.postRepository = postRepository;
+        this.userRepository = userRepository;
+    }
 
     public PostResponse createPost(String username, PostRequest postRequest) {
         User user = userRepository.findByUsername(username)

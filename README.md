@@ -33,11 +33,22 @@ A Spring Boot REST API backend for a professional networking Android application
 CREATE DATABASE professional_network;
 ```
 
-2. Update database credentials in `src/main/resources/application.properties`:
+2. Configure database credentials using environment variables (recommended for production):
+```bash
+export DATABASE_URL=jdbc:mysql://localhost:3306/professional_network?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+export DATABASE_USERNAME=your_mysql_username
+export DATABASE_PASSWORD=your_mysql_password
+export JWT_SECRET=your_secure_random_secret_key
+export JWT_EXPIRATION=86400000
+```
+
+Or update `src/main/resources/application.properties` for local development (not recommended for production):
 ```properties
 spring.datasource.username=your_mysql_username
 spring.datasource.password=your_mysql_password
 ```
+
+**Note:** The default values in `application.properties` are provided for convenience in local development only. Always use environment variables in production to keep credentials secure.
 
 ## Running the Application
 
