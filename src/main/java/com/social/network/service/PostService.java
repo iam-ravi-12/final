@@ -4,6 +4,8 @@ import com.social.network.dto.PostRequest;
 import com.social.network.dto.PostResponse;
 import com.social.network.entity.Post;
 import com.social.network.entity.User;
+import com.social.network.repository.CommentRepository;
+import com.social.network.repository.LikeRepository;
 import com.social.network.repository.PostRepository;
 import com.social.network.repository.UserRepository;
 import org.springframework.stereotype.Service;
@@ -16,10 +18,15 @@ public class PostService {
 
     private final PostRepository postRepository;
     private final UserRepository userRepository;
+    private final LikeRepository likeRepository;
+    private final CommentRepository commentRepository;
 
-    public PostService(PostRepository postRepository, UserRepository userRepository) {
+    public PostService(PostRepository postRepository, UserRepository userRepository,
+                       LikeRepository likeRepository, CommentRepository commentRepository) {
         this.postRepository = postRepository;
         this.userRepository = userRepository;
+        this.likeRepository = likeRepository;
+        this.commentRepository = commentRepository;
     }
 
     public PostResponse createPost(String username, PostRequest postRequest) {
@@ -38,13 +45,22 @@ public class PostService {
 
         Post savedPost = postRepository.save(post);
 
-        return convertToResponse(savedPost);
+        return convertToResponse(savedPost, user);
     }
 
     public List<PostResponse> getAllPosts() {
         return postRepository.findAllByOrderByCreatedAtDesc()
                 .stream()
-                .map(this::convertToResponse)
+                .map(post -> convertToResponse(post, null))
+                .collect(Collectors.toList());
+    }
+
+    public List<PostResponse> getAllPostsForUser(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return postRepository.findAllByOrderByCreatedAtDesc()
+                .stream()
+                .map(post -> convertToResponse(post, user))
                 .collect(Collectors.toList());
     }
 
@@ -58,18 +74,51 @@ public class PostService {
 
         return postRepository.findByUserProfessionOrderByCreatedAtDesc(user.getProfession())
                 .stream()
-                .map(this::convertToResponse)
+                .map(post -> convertToResponse(post, user))
                 .collect(Collectors.toList());
     }
 
     public List<PostResponse> getHelpPosts() {
         return postRepository.findByIsHelpSectionTrueOrderByCreatedAtDesc()
                 .stream()
-                .map(this::convertToResponse)
+                .map(post -> convertToResponse(post, null))
                 .collect(Collectors.toList());
     }
 
-    private PostResponse convertToResponse(Post post) {
+    public List<PostResponse> getHelpPostsForUser(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return postRepository.findByIsHelpSectionTrueOrderByCreatedAtDesc()
+                .stream()
+                .map(post -> convertToResponse(post, user))
+                .collect(Collectors.toList());
+    }
+
+    public PostResponse getPostById(Long postId, String username) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new RuntimeException("Post not found"));
+        User user = username != null ? userRepository.findByUsername(username).orElse(null) : null;
+        return convertToResponse(post, user);
+    }
+
+    public void toggleLike(Long postId, String username) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new RuntimeException("Post not found"));
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        likeRepository.findByPostAndUser(post, user).ifPresentOrElse(
+                likeRepository::delete,
+                () -> {
+                    com.social.network.entity.Like like = new com.social.network.entity.Like();
+                    like.setPost(post);
+                    like.setUser(user);
+                    likeRepository.save(like);
+                }
+        );
+    }
+
+    private PostResponse convertToResponse(Post post, User currentUser) {
         PostResponse response = new PostResponse();
         response.setId(post.getId());
         response.setContent(post.getContent());
@@ -78,6 +127,10 @@ public class PostService {
         response.setUsername(post.getUser().getUsername());
         response.setUserProfession(post.getUserProfession());
         response.setCreatedAt(post.getCreatedAt());
+        response.setLikeCount(likeRepository.countByPost(post));
+        response.setCommentCount(commentRepository.countByPost(post));
+        response.setLikedByCurrentUser(currentUser != null && likeRepository.existsByPostAndUser(post, currentUser));
         return response;
     }
 }
+
