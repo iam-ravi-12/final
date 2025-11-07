@@ -13,17 +13,17 @@ import java.util.List;
 public interface MessageRepository extends JpaRepository<Message, Long> {
 
     // Get all messages between two users, ordered by creation time
-    @Query("SELECT m FROM Message m WHERE (m.sender = :user1 AND m.receiver = :user2) OR (m.sender = :user2 AND m.receiver = :user1) ORDER BY m.createdAt ASC")
+    @Query("SELECT m FROM Message m JOIN FETCH m.sender JOIN FETCH m.receiver WHERE (m.sender = :user1 AND m.receiver = :user2) OR (m.sender = :user2 AND m.receiver = :user1) ORDER BY m.createdAt ASC")
     List<Message> findMessagesBetweenUsers(@Param("user1") User user1, @Param("user2") User user2);
 
     // Get all messages for a user (sent or received)
-    @Query("SELECT m FROM Message m WHERE m.sender = :user OR m.receiver = :user ORDER BY m.createdAt DESC")
+    @Query("SELECT m FROM Message m JOIN FETCH m.sender JOIN FETCH m.receiver WHERE m.sender = :user OR m.receiver = :user ORDER BY m.createdAt DESC")
     List<Message> findAllMessagesForUser(@Param("user") User user);
 
     // Count unread messages for a receiver from a specific sender
     Long countBySenderAndReceiverAndIsRead(User sender, User receiver, Boolean isRead);
 
     // Get all users that current user has had conversations with
-    @Query("SELECT DISTINCT CASE WHEN m.sender = :user THEN m.receiver ELSE m.sender END FROM Message m WHERE m.sender = :user OR m.receiver = :user")
+    @Query("SELECT DISTINCT CASE WHEN m.sender = :user THEN m.receiver ELSE m.sender END FROM Message m JOIN FETCH m.sender JOIN FETCH m.receiver WHERE m.sender = :user OR m.receiver = :user")
     List<User> findConversationPartners(@Param("user") User user);
 }

@@ -63,12 +63,14 @@ public class MessageService {
         User sender = userRepository.findById(senderId)
                 .orElseThrow(() -> new UsernameNotFoundException("Sender not found"));
 
-        List<Message> messages = messageRepository.findMessagesBetweenUsers(currentUser, sender);
-        messages.stream()
+        List<Message> unreadMessages = messageRepository.findMessagesBetweenUsers(currentUser, sender).stream()
                 .filter(m -> m.getReceiver().getId().equals(currentUser.getId()) && !m.getIsRead())
-                .forEach(m -> m.setIsRead(true));
+                .peek(m -> m.setIsRead(true))
+                .collect(Collectors.toList());
         
-        messageRepository.saveAll(messages);
+        if (!unreadMessages.isEmpty()) {
+            messageRepository.saveAll(unreadMessages);
+        }
     }
 
     @Transactional(readOnly = true)
