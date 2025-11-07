@@ -16,6 +16,7 @@ public class PostResponse {
     private Long userId;
     private String username;
     private String userProfession;
+    private String userProfilePicture;
     private LocalDateTime createdAt;
     private long likeCount;
     private long commentCount;

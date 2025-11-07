@@ -126,6 +126,7 @@ public class PostService {
         response.setUserId(post.getUser().getId());
         response.setUsername(post.getUser().getUsername());
         response.setUserProfession(post.getUserProfession());
+        response.setUserProfilePicture(post.getUser().getProfilePicture());
         response.setCreatedAt(post.getCreatedAt());
         response.setLikeCount(likeRepository.countByPost(post));
         response.setCommentCount(commentRepository.countByPost(post));
