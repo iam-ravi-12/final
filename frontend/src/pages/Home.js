@@ -110,85 +110,114 @@ const Home = () => {
   };
 
   return (
-    <div className="home-container">
-      <header className="home-header">
-        <div className="header-content">
-          <h1>Professional Network</h1>
-          <div className="user-info">
-            <button onClick={handleGoToMessages} className="btn-messages">
-              💬 Messages
-            </button>
-            <button onClick={handleGoToProfile} className="btn-profile">
-              👤 Profile
-            </button>
+    <div className="home-wrapper">
+      {/* Sidebar Navigation */}
+      <aside className="sidebar">
+        <div className="sidebar-header">
+          <h1 className="app-logo">Professional Network</h1>
+        </div>
+        
+        <nav className="sidebar-nav">
+          <button
+            className={`nav-item ${activeTab === 'all' ? 'active' : ''}`}
+            onClick={() => setActiveTab('all')}
+          >
+            <span className="nav-icon">🏠</span>
+            <span className="nav-label">Home</span>
+          </button>
+          <button
+            className={`nav-item ${activeTab === 'professional' ? 'active' : ''}`}
+            onClick={() => setActiveTab('professional')}
+          >
+            <span className="nav-icon">💼</span>
+            <span className="nav-label">Professional</span>
+          </button>
+          <button
+            className={`nav-item ${activeTab === 'help' ? 'active' : ''}`}
+            onClick={() => setActiveTab('help')}
+          >
+            <span className="nav-icon">🆘</span>
+            <span className="nav-label">Help</span>
+          </button>
+          <button className="nav-item" onClick={handleGoToMessages}>
+            <span className="nav-icon">💬</span>
+            <span className="nav-label">Messages</span>
+          </button>
+          <button className="nav-item" onClick={handleGoToProfile}>
+            <span className="nav-icon">👤</span>
+            <span className="nav-label">Profile</span>
+          </button>
+        </nav>
+
+        <div className="sidebar-footer">
+          <div className="user-card" onClick={handleGoToProfile}>
             {profilePicture ? (
-              <img src={profilePicture} alt="Profile" className="navbar-profile-pic" onClick={handleGoToProfile} />
+              <img src={profilePicture} alt="Profile" className="user-avatar" />
             ) : (
-              <div className="navbar-profile-placeholder" onClick={handleGoToProfile}>
+              <div className="user-avatar-placeholder">
                 {user?.username?.charAt(0).toUpperCase()}
               </div>
             )}
-            <span className="username">{user?.username}</span>
-            <button onClick={handleLogout} className="btn-logout">
-              Logout
-            </button>
+            <div className="user-details">
+              <div className="user-name">{user?.username}</div>
+              <div className="user-profession">{user?.profession || 'Professional'}</div>
+            </div>
+          </div>
+          <button onClick={handleLogout} className="btn-logout-sidebar">
+            <span>🚪</span> Logout
+          </button>
+        </div>
+      </aside>
+
+      {/* Main Content Area */}
+      <main className="main-content">
+        <div className="feed-container">
+          {/* Create Post Card */}
+          <div className="create-post-card">
+            {!showCreatePost ? (
+              <button
+                className="btn-create-post-new"
+                onClick={() => setShowCreatePost(true)}
+              >
+                <div className="create-post-avatar">
+                  {profilePicture ? (
+                    <img src={profilePicture} alt="Profile" />
+                  ) : (
+                    <span>{user?.username?.charAt(0).toUpperCase()}</span>
+                  )}
+                </div>
+                <span className="create-post-placeholder">What's on your mind, {user?.username}?</span>
+              </button>
+            ) : (
+              <CreatePost
+                onPostCreated={handlePostCreated}
+                onCancel={() => setShowCreatePost(false)}
+                isHelpSection={activeTab === 'help'}
+              />
+            )}
+          </div>
+
+          {error && <div className="error-message">{error}</div>}
+
+          {/* Posts Feed */}
+          <div className="posts-feed">
+            {loading ? (
+              <div className="loading-state">
+                <div className="loading-spinner"></div>
+                <p>Loading posts...</p>
+              </div>
+            ) : posts.length === 0 ? (
+              <div className="empty-state">
+                <div className="empty-icon">📝</div>
+                <h3>No posts yet</h3>
+                <p>Be the first to create a post and start the conversation!</p>
+              </div>
+            ) : (
+              posts.map((post) => <PostCard key={post.id} post={post} />)
+            )}
           </div>
         </div>
-      </header>
-
-      <div className="home-content">
-        <div className="tabs-container">
-          <button
-            className={`tab ${activeTab === 'all' ? 'active' : ''}`}
-            onClick={() => setActiveTab('all')}
-          >
-            All Posts
-          </button>
-          <button
-            className={`tab ${activeTab === 'professional' ? 'active' : ''}`}
-            onClick={() => setActiveTab('professional')}
-          >
-            Professional
-          </button>
-          <button
-            className={`tab ${activeTab === 'help' ? 'active' : ''}`}
-            onClick={() => setActiveTab('help')}
-          >
-            Help Section
-          </button>
-        </div>
-
-        <div className="create-post-section">
-          {!showCreatePost ? (
-            <button
-              className="btn-create-post"
-              onClick={() => setShowCreatePost(true)}
-            >
-              + Create Post
-            </button>
-          ) : (
-            <CreatePost
-              onPostCreated={handlePostCreated}
-              onCancel={() => setShowCreatePost(false)}
-              isHelpSection={activeTab === 'help'}
-            />
-          )}
-        </div>
-
-        {error && <div className="error-message">{error}</div>}
-
-        <div className="posts-container">
-          {loading ? (
-            <div className="loading">Loading posts...</div>
-          ) : posts.length === 0 ? (
-            <div className="no-posts">
-              <p>No posts yet. Be the first to create one!</p>
-            </div>
-          ) : (
-            posts.map((post) => <PostCard key={post.id} post={post} />)
-          )}
-        </div>
-      </div>
+      </main>
     </div>
   );
 };
