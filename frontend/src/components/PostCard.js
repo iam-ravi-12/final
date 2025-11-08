@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatDate } from '../utils/dateUtils';
+import { parseContentWithMentions } from '../utils/textUtils';
 import { authService } from '../services/authService';
 import { postService } from '../services/postService';
 import './PostCard.css';
@@ -24,6 +25,32 @@ const PostCard = ({ post, onPostUpdate }) => {
         username: post.username,
         profession: post.userProfession
       }
+    });
+  };
+
+  const handleMentionClick = (username) => {
+    // Navigate to user profile - we'll need to search by username
+    // For now, just navigate to home as we need username->userId lookup
+    // In a production app, you'd fetch userId by username first
+    navigate(`/home`);
+  };
+
+  const renderContent = () => {
+    const contentParts = parseContentWithMentions(post.content);
+    
+    return contentParts.map((part, index) => {
+      if (part.type === 'mention') {
+        return (
+          <span
+            key={index}
+            className="mention"
+            onClick={() => handleMentionClick(part.username)}
+          >
+            {part.content}
+          </span>
+        );
+      }
+      return <span key={index}>{part.content}</span>;
     });
   };
 
@@ -76,8 +103,25 @@ const PostCard = ({ post, onPostUpdate }) => {
       </div>
       
       <div className="post-content">
-        <p>{post.content}</p>
+        <p>{renderContent()}</p>
       </div>
+      
+      {post.mediaUrls && post.mediaUrls.length > 0 && (
+        <div className="post-media">
+          {post.mediaUrls.map((url, index) => {
+            const isVideo = url.startsWith('data:video');
+            return (
+              <div key={index} className="post-media-item">
+                {isVideo ? (
+                  <video src={url} controls className="post-media-video" />
+                ) : (
+                  <img src={url} alt={`Post media ${index + 1}`} className="post-media-img" />
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
       
       {post.isHelpSection && (
         <div className="post-badge">

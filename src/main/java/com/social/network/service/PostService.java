@@ -42,6 +42,12 @@ public class PostService {
         post.setIsHelpSection(postRequest.getIsHelpSection());
         post.setUser(user);
         post.setUserProfession(user.getProfession());
+        
+        // Handle media URLs
+        if (postRequest.getMediaUrls() != null && !postRequest.getMediaUrls().isEmpty()) {
+            // Use a delimiter that won't appear in base64 data
+            post.setMediaUrls(String.join("|||MEDIA_SEPARATOR|||", postRequest.getMediaUrls()));
+        }
 
         Post savedPost = postRepository.save(post);
 
@@ -118,11 +124,28 @@ public class PostService {
         );
     }
 
+    public List<PostResponse> getPostsByUserId(Long userId, String currentUsername) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        User currentUser = currentUsername != null ? userRepository.findByUsername(currentUsername).orElse(null) : null;
+        
+        return postRepository.findByUserOrderByCreatedAtDesc(user)
+                .stream()
+                .map(post -> convertToResponse(post, currentUser))
+                .collect(Collectors.toList());
+    }
+
     private PostResponse convertToResponse(Post post, User currentUser) {
         PostResponse response = new PostResponse();
         response.setId(post.getId());
         response.setContent(post.getContent());
         response.setIsHelpSection(post.getIsHelpSection());
+        
+        // Parse media URLs
+        if (post.getMediaUrls() != null && !post.getMediaUrls().isEmpty()) {
+            response.setMediaUrls(List.of(post.getMediaUrls().split("\\|\\|\\|MEDIA_SEPARATOR\\|\\|\\|")));
+        }
+        
         response.setUserId(post.getUser().getId());
         response.setUsername(post.getUser().getUsername());
         response.setUserProfession(post.getUserProfession());

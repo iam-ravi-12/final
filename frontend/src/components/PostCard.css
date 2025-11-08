@@ -130,6 +130,39 @@
   font-weight: 400;
 }
 
+.mention {
+  color: #3b82f6;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+}
+
+.mention:hover {
+  color: #2563eb;
+  text-decoration: underline;
+}
+
+.post-media {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+  margin: 15px 0;
+}
+
+.post-media-item {
+  border-radius: 12px;
+  overflow: hidden;
+  aspect-ratio: 16/9;
+}
+
+.post-media-img,
+.post-media-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .post-badge {
   display: flex;
   justify-content: flex-end;

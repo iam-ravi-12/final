@@ -8,6 +8,7 @@ const ProfileSetup = () => {
   const [formData, setFormData] = useState({
     profession: '',
     organization: '',
+    location: '',
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -25,7 +26,7 @@ const ProfileSetup = () => {
     setLoading(true);
 
     try {
-      await authService.updateProfile(formData.profession, formData.organization);
+      await authService.updateProfile(formData.profession, formData.organization, formData.location);
       navigate('/home');
     } catch (err) {
       setError(err.response?.data || 'Profile update failed. Please try again.');
@@ -66,6 +67,20 @@ const ProfileSetup = () => {
               value={formData.organization}
               onChange={handleChange}
               placeholder="e.g., Tech Corp, ABC Hospital"
+              required
+              disabled={loading}
+            />
+          </div>
+          
+          <div className="form-group">
+            <label htmlFor="location">Location</label>
+            <input
+              type="text"
+              id="location"
+              name="location"
+              value={formData.location}
+              onChange={handleChange}
+              placeholder="e.g., New York, USA"
               required
               disabled={loading}
             />
