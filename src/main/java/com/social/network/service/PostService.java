@@ -45,7 +45,8 @@ public class PostService {
         
         // Handle media URLs
         if (postRequest.getMediaUrls() != null && !postRequest.getMediaUrls().isEmpty()) {
-            post.setMediaUrls(String.join(",", postRequest.getMediaUrls()));
+            // Use a delimiter that won't appear in base64 data
+            post.setMediaUrls(String.join("|||MEDIA_SEPARATOR|||", postRequest.getMediaUrls()));
         }
 
         Post savedPost = postRepository.save(post);
@@ -142,7 +143,7 @@ public class PostService {
         
         // Parse media URLs
         if (post.getMediaUrls() != null && !post.getMediaUrls().isEmpty()) {
-            response.setMediaUrls(List.of(post.getMediaUrls().split(",")));
+            response.setMediaUrls(List.of(post.getMediaUrls().split("\\|\\|\\|MEDIA_SEPARATOR\\|\\|\\|")));
         }
         
         response.setUserId(post.getUser().getId());
