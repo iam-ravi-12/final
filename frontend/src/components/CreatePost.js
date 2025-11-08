@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { postService } from '../services/postService';
+import { compressMediaFile } from '../utils/mediaUtils';
 import './CreatePost.css';
 
 const CreatePost = ({ onPostCreated, onCancel, isHelpSection }) => {
@@ -9,8 +10,9 @@ const CreatePost = ({ onPostCreated, onCancel, isHelpSection }) => {
   const [mediaPreview, setMediaPreview] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [compressing, setCompressing] = useState(false);
 
-  const handleMediaChange = (e) => {
+  const handleMediaChange = async (e) => {
     const files = Array.from(e.target.files);
     
     if (files.length > 4) {
@@ -18,41 +20,47 @@ const CreatePost = ({ onPostCreated, onCancel, isHelpSection }) => {
       return;
     }
 
+    setCompressing(true);
+    setError('');
+    
     const previews = [];
     const base64Files = [];
     
-    files.forEach(file => {
-      // Validate file size (max 10MB)
-      if (file.size > 10 * 1024 * 1024) {
-        setError(`File ${file.name} is too large. Max size is 10MB`);
-        return;
-      }
+    try {
+      for (const file of files) {
+        // Validate file size (max 10MB before compression)
+        if (file.size > 10 * 1024 * 1024) {
+          setError(`File ${file.name} is too large. Max size is 10MB`);
+          setCompressing(false);
+          return;
+        }
 
-      // Validate file type
-      if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
-        setError(`File ${file.name} is not a valid image or video`);
-        return;
-      }
+        // Validate file type
+        if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
+          setError(`File ${file.name} is not a valid image or video`);
+          setCompressing(false);
+          return;
+        }
 
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64String = reader.result;
-        base64Files.push(base64String);
+        // Compress the file
+        const compressedBase64 = await compressMediaFile(file);
+        
+        base64Files.push(compressedBase64);
         previews.push({
           type: file.type.startsWith('image/') ? 'image' : 'video',
-          url: base64String,
+          url: compressedBase64,
           name: file.name
         });
-        
-        if (base64Files.length === files.length) {
-          setMediaFiles(base64Files);
-          setMediaPreview(previews);
-        }
-      };
-      reader.readAsDataURL(file);
-    });
-    
-    setError('');
+      }
+      
+      setMediaFiles(base64Files);
+      setMediaPreview(previews);
+    } catch (err) {
+      setError('Failed to process media files. Please try again.');
+      console.error('Media compression error:', err);
+    } finally {
+      setCompressing(false);
+    }
   };
 
   const handleRemoveMedia = (index) => {
@@ -89,6 +97,7 @@ const CreatePost = ({ onPostCreated, onCancel, isHelpSection }) => {
       <h3>Create a Post</h3>
       
       {error && <div className="error-message">{error}</div>}
+      {compressing && <div className="info-message">Compressing media files...</div>}
       
       <form onSubmit={handleSubmit}>
         <textarea
@@ -141,10 +150,12 @@ const CreatePost = ({ onPostCreated, onCancel, isHelpSection }) => {
                 accept="image/*,video/*"
                 multiple
                 onChange={handleMediaChange}
-                disabled={loading}
+                disabled={loading || compressing}
                 style={{ display: 'none' }}
               />
-              <span className="upload-btn">📎 Add Photo/Video</span>
+              <span className="upload-btn">
+                {compressing ? '⏳ Compressing...' : '📎 Add Photo/Video'}
+              </span>
             </label>
           </div>
           
