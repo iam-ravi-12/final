@@ -45,6 +45,7 @@ public class AuthService {
 
         User user = new User();
         user.setUsername(signupRequest.getUsername());
+        user.setName(signupRequest.getName());
         user.setEmail(signupRequest.getEmail());
         user.setPassword(passwordEncoder.encode(signupRequest.getPassword()));
         user.setProfileCompleted(false);
@@ -100,6 +101,7 @@ public class AuthService {
 
         user.setProfession(profileRequest.getProfession());
         user.setOrganization(profileRequest.getOrganization());
+        user.setLocation(profileRequest.getLocation());
         
         if (profileRequest.getProfilePicture() != null && !profileRequest.getProfilePicture().isEmpty()) {
             user.setProfilePicture(profileRequest.getProfilePicture());
@@ -117,9 +119,11 @@ public class AuthService {
         return new ProfileResponse(
                 user.getId(),
                 user.getUsername(),
+                user.getName(),
                 user.getEmail(),
                 user.getProfession(),
                 user.getOrganization(),
+                user.getLocation(),
                 user.getProfileCompleted(),
                 user.getProfilePicture()
         );

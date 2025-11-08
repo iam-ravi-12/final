@@ -7,6 +7,7 @@ const Signup = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     username: '',
+    name: '',
     email: '',
     password: '',
     confirmPassword: '',
@@ -38,7 +39,7 @@ const Signup = () => {
     setLoading(true);
 
     try {
-      await authService.signup(formData.username, formData.email, formData.password);
+      await authService.signup(formData.username, formData.name, formData.email, formData.password);
       navigate('/profile-setup');
     } catch (err) {
       setError(err.response?.data || 'Signup failed. Please try again.');
@@ -67,6 +68,19 @@ const Signup = () => {
               required
               minLength={3}
               maxLength={50}
+              disabled={loading}
+            />
+          </div>
+          
+          <div className="form-group">
+            <label htmlFor="name">Name</label>
+            <input
+              type="text"
+              id="name"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              required
               disabled={loading}
             />
           </div>

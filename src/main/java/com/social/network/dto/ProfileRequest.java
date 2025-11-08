@@ -16,5 +16,8 @@ public class ProfileRequest {
     @NotBlank(message = "Organization is required")
     private String organization;
 
+    @NotBlank(message = "Location is required")
+    private String location;
+
     private String profilePicture;
 }

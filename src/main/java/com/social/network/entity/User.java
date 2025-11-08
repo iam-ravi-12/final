@@ -29,11 +29,17 @@ public class User {
     @Column(nullable = false)
     private String password;
 
+    @Column(name = "name")
+    private String name;
+
     @Column(name = "profession")
     private String profession;
 
     @Column(name = "organization")
     private String organization;
+
+    @Column(name = "location")
+    private String location;
 
     @Column(name = "profile_completed")
     private Boolean profileCompleted = false;

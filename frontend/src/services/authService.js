@@ -1,8 +1,8 @@
 import api from './api';
 
 export const authService = {
-  signup: async (username, email, password) => {
-    const response = await api.post('/auth/signup', { username, email, password });
+  signup: async (username, name, email, password) => {
+    const response = await api.post('/auth/signup', { username, name, email, password });
     if (response.data.token) {
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('user', JSON.stringify(response.data));
@@ -19,8 +19,8 @@ export const authService = {
     return response.data;
   },
 
-  updateProfile: async (profession, organization, profilePicture = null) => {
-    const requestBody = { profession, organization };
+  updateProfile: async (profession, organization, location, profilePicture = null) => {
+    const requestBody = { profession, organization, location };
     if (profilePicture) {
       requestBody.profilePicture = profilePicture;
     }
