@@ -23,7 +23,7 @@ api.interceptors.request.use(
   }
 );
 
-// Handle 401 responses by clearing token and redirecting to login
+// Handle 401 responses by clearing token and redirecting to //login
 api.interceptors.response.use(
   (response) => response,
   (error) => {

@@ -114,7 +114,8 @@ const Home = () => {
       {/* Sidebar Navigation */}
       <aside className="sidebar">
         <div className="sidebar-header">
-          <h1 className="app-logo">Professional Network</h1>
+          <h1 className="app-logo">Friends</h1>
+            <h2>A social Network</h2>
         </div>
         
         <nav className="sidebar-nav">

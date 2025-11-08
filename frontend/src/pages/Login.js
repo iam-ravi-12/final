@@ -42,7 +42,8 @@ const Login = () => {
   return (
     <div className="auth-container">
       <div className="auth-card">
-        <h1>Professional Network</h1>
+        <h1>Friends</h1>
+          <h2>A social Network</h2>
         <h2>Login</h2>
         
         {error && <div className="error-message">{error}</div>}
