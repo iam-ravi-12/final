@@ -8,14 +8,21 @@ const ChatList = () => {
   const navigate = useNavigate();
   const [conversations, setConversations] = useState([]);
   const [profilePicture, setProfilePicture] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const currentUser = authService.getCurrentUser();
 
   const loadConversations = useCallback(async () => {
     try {
+      setLoading(true);
+      setError('');
       const data = await messageService.getConversations();
       setConversations(data);
     } catch (err) {
       console.error('Error loading conversations:', err);
+      setError('Failed to load conversations. Please try again.');
+    } finally {
+      setLoading(false);
     }
   }, []);
 
@@ -93,7 +100,18 @@ const ChatList = () => {
       <div className="chatlist-content">
         <div className="conversations-container">
           <h2>Conversations</h2>
-          {conversations.length === 0 ? (
+          {error && (
+            <div className="error-message">
+              {error}
+              <button onClick={loadConversations} className="btn-retry">Retry</button>
+            </div>
+          )}
+          {loading ? (
+            <div className="loading-state">
+              <div className="loading-spinner"></div>
+              <p>Loading conversations...</p>
+            </div>
+          ) : conversations.length === 0 ? (
             <div className="no-conversations">
               <p>No conversations yet</p>
               <p className="hint">Click on a user's profile picture from a post to start chatting!</p>
