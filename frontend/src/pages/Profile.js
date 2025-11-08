@@ -10,6 +10,7 @@ const Profile = () => {
     email: '',
     profession: '',
     organization: '',
+    location: '',
     profilePicture: '',
   });
   const [error, setError] = useState('');
@@ -27,6 +28,7 @@ const Profile = () => {
           email: profile.email || '',
           profession: profile.profession || '',
           organization: profile.organization || '',
+          location: profile.location || '',
           profilePicture: profile.profilePicture || '',
         });
         if (profile.profilePicture) {
@@ -97,6 +99,7 @@ const Profile = () => {
       await authService.updateProfile(
         formData.profession, 
         formData.organization,
+        formData.location,
         formData.profilePicture
       );
       setSuccess('Profile updated successfully!');
@@ -258,6 +261,20 @@ const Profile = () => {
                 value={formData.organization}
                 onChange={handleChange}
                 placeholder="e.g., Tech Corp, ABC Hospital"
+                required
+                disabled={loading}
+              />
+            </div>
+            
+            <div className="form-group">
+              <label htmlFor="location">Location</label>
+              <input
+                type="text"
+                id="location"
+                name="location"
+                value={formData.location}
+                onChange={handleChange}
+                placeholder="e.g., New York, USA"
                 required
                 disabled={loading}
               />

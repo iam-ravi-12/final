@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -13,6 +14,7 @@ public class PostResponse {
     private Long id;
     private String content;
     private Boolean isHelpSection;
+    private List<String> mediaUrls;
     private Long userId;
     private String username;
     private String userProfession;

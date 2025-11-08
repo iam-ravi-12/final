@@ -23,6 +23,9 @@ public class Post {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
+    @Column(name = "media_urls", columnDefinition = "TEXT")
+    private String mediaUrls;
+
     @Column(name = "is_help_section")
     private Boolean isHelpSection = false;
 

@@ -4,6 +4,7 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import ProfileSetup from './pages/ProfileSetup';
 import Profile from './pages/Profile';
+import UserProfile from './pages/UserProfile';
 import Home from './pages/Home';
 import ChatList from './pages/ChatList';
 import Chat from './pages/Chat';
@@ -31,6 +32,14 @@ function App() {
             element={
               <PrivateRoute>
                 <Profile />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/user/:userId"
+            element={
+              <PrivateRoute>
+                <UserProfile />
               </PrivateRoute>
             }
           />

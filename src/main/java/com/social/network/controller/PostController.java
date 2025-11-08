@@ -123,5 +123,18 @@ public class PostController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<?> getPostsByUser(
+            @PathVariable Long userId,
+            Authentication authentication) {
+        try {
+            String username = authentication != null ? authentication.getName() : null;
+            List<PostResponse> posts = postService.getPostsByUserId(userId, username);
+            return ResponseEntity.ok(posts);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 }
 

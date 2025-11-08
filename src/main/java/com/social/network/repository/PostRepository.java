@@ -1,6 +1,7 @@
 package com.social.network.repository;
 
 import com.social.network.entity.Post;
+import com.social.network.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -11,4 +12,5 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     List<Post> findAllByOrderByCreatedAtDesc();
     List<Post> findByUserProfessionOrderByCreatedAtDesc(String profession);
     List<Post> findByIsHelpSectionTrueOrderByCreatedAtDesc();
+    List<Post> findByUserOrderByCreatedAtDesc(User user);
 }
