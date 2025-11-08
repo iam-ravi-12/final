@@ -17,10 +17,17 @@ const ChatList = () => {
       setLoading(true);
       setError('');
       const data = await messageService.getConversations();
+      console.log('Loaded conversations:', data);
       setConversations(data);
     } catch (err) {
       console.error('Error loading conversations:', err);
-      setError('Failed to load conversations. Please try again.');
+      const errorMessage = err.response?.data?.message || err.message || 'Failed to load conversations';
+      console.error('Error details:', {
+        status: err.response?.status,
+        data: err.response?.data,
+        message: errorMessage
+      });
+      setError(`Failed to load conversations: ${errorMessage}`);
     } finally {
       setLoading(false);
     }
