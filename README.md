@@ -10,11 +10,12 @@ A full-stack professional networking application with a Spring Boot backend, MyS
   1. **All Posts Overview**: View all posts from all users
   2. **Professional Posts**: View posts from users in the same profession
   3. **Help Section**: Posts specifically marked for help or assistance
-- **Messaging System**: Direct messaging between users
-  1. **Click to Message**: Click on any user's profile picture to start a conversation
-  2. **Conversation List**: View all conversations with unread message counts
-  3. **Real-time Updates**: Messages update automatically using polling
-  4. **Read Receipts**: Messages are marked as read when viewed
+- **Messaging System**: Direct messaging between users with two-page navigation
+  1. **Conversation List Page**: View all conversations with unread message counts at `/messages`
+  2. **Individual Chat Page**: Dedicated page for each conversation at `/chat/:userId`
+  3. **Click to Message**: Click on any user's profile picture to directly open a chat with them
+  4. **Real-time Updates**: Messages update automatically using polling
+  5. **Read Receipts**: Messages are marked as read when viewed
 - **React Frontend**: Modern, responsive user interface
 - **REST API**: Full-featured backend API
 

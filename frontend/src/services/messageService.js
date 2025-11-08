@@ -18,10 +18,13 @@ export const messageService = {
   // Get all conversations
   getConversations: async () => {
     try {
+      console.log('Fetching conversations from API...');
       const response = await api.get('/messages/conversations');
+      console.log('Conversations API response:', response);
       return response.data;
     } catch (error) {
       console.error('Error fetching conversations:', error);
+      console.error('Error response:', error.response);
       throw error;
     }
   },

@@ -5,7 +5,8 @@ import Signup from './pages/Signup';
 import ProfileSetup from './pages/ProfileSetup';
 import Profile from './pages/Profile';
 import Home from './pages/Home';
-import Messages from './pages/Messages';
+import ChatList from './pages/ChatList';
+import Chat from './pages/Chat';
 import PostDetail from './pages/PostDetail';
 import PrivateRoute from './components/PrivateRoute';
 import './App.css';
@@ -45,7 +46,15 @@ function App() {
             path="/messages"
             element={
               <PrivateRoute>
-                <Messages />
+                <ChatList />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/chat/:userId"
+            element={
+              <PrivateRoute>
+                <Chat />
               </PrivateRoute>
             }
           />

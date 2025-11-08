@@ -18,7 +18,7 @@ const PostCard = ({ post, onPostUpdate }) => {
       return;
     }
     
-    navigate('/messages', {
+    navigate(`/chat/${post.userId}`, {
       state: {
         userId: post.userId,
         username: post.username,
