@@ -78,7 +78,7 @@ public class MessageService {
         User currentUser = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
-        List<User> conversationPartners = messageRepository.findConversationPartners(currentUser);
+        List<User> conversationPartners = messageRepository.findConversationPartners(currentUser.getId());
         List<ConversationResponse> conversations = new ArrayList<>();
 
         for (User partner : conversationPartners) {

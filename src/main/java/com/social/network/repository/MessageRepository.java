@@ -54,7 +54,11 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     Long countBySenderAndReceiverAndIsRead(User sender, User receiver, Boolean isRead);
 
     // Get all users that current user has had conversations with
-    // FIXED: Removed JOIN FETCH since we're not selecting the Message entity
-    @Query("SELECT DISTINCT CASE WHEN m.sender = :user THEN m.receiver ELSE m.sender END FROM Message m WHERE m.sender = :user OR m.receiver = :user")
-    List<User> findConversationPartners(@Param("user") User user);
+    // Using native query to avoid JPQL CASE WHEN issues with entity selection
+    @Query(value = "SELECT DISTINCT u.* FROM users u " +
+           "INNER JOIN messages m ON (u.id = m.sender_id OR u.id = m.receiver_id) " +
+           "WHERE (m.sender_id = :userId OR m.receiver_id = :userId) " +
+           "AND u.id != :userId", 
+           nativeQuery = true)
+    List<User> findConversationPartners(@Param("userId") Long userId);
 }
