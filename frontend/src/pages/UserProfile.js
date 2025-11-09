@@ -9,6 +9,7 @@ const UserProfile = () => {
   const { userId } = useParams();
   const navigate = useNavigate();
   const [posts, setPosts] = useState([]);
+  const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const currentUser = authService.getCurrentUser();
@@ -18,6 +19,10 @@ const UserProfile = () => {
       setLoading(true);
       const userPosts = await postService.getPostsByUser(userId);
       setPosts(userPosts);
+      
+      // Fetch user profile data
+      const profile = await authService.getUserProfileById(userId);
+      setUserProfile(profile);
     } catch (err) {
       setError('Failed to load user posts');
       console.error('Error loading user posts:', err);
@@ -40,12 +45,12 @@ const UserProfile = () => {
   };
 
   const handleMessageUser = () => {
-    if (posts.length > 0) {
+    if (userProfile) {
       navigate(`/chat/${userId}`, {
         state: {
-          userId: posts[0].userId,
-          username: posts[0].username,
-          profession: posts[0].userProfession
+          userId: userProfile.id,
+          username: userProfile.username,
+          profession: userProfile.profession
         }
       });
     }
@@ -59,7 +64,6 @@ const UserProfile = () => {
     );
   }
 
-  const userInfo = posts.length > 0 ? posts[0] : null;
   const isOwnProfile = currentUser?.id === parseInt(userId);
 
   return (
@@ -72,20 +76,20 @@ const UserProfile = () => {
 
       {error && <div className="error-message">{error}</div>}
 
-      {userInfo && (
+      {userProfile && (
         <div className="user-profile-info">
           <div className="user-profile-avatar">
-            {userInfo.userProfilePicture ? (
-              <img src={userInfo.userProfilePicture} alt={userInfo.username} />
+            {userProfile.profilePicture ? (
+              <img src={userProfile.profilePicture} alt={userProfile.name || userProfile.username} />
             ) : (
-              <span>{userInfo.username.charAt(0).toUpperCase()}</span>
+              <span>{(userProfile.name || userProfile.username).charAt(0).toUpperCase()}</span>
             )}
           </div>
           <div className="user-profile-details">
             <div className="profile-header-row">
               <div>
-                <h1>{userInfo.username}</h1>
-                <p className="user-username">@{userInfo.username}</p>
+                <h1>{userProfile.name || userProfile.username}</h1>
+                <p className="user-username">@{userProfile.username}</p>
               </div>
               {isOwnProfile ? (
                 <button onClick={handleEditProfile} className="btn-edit">
@@ -97,7 +101,9 @@ const UserProfile = () => {
                 </button>
               )}
             </div>
-            <p className="user-profession">{userInfo.userProfession}</p>
+            {userProfile.profession && (
+              <p className="user-profession">{userProfile.profession}</p>
+            )}
             <p className="user-post-count">
               <strong>{posts.length}</strong> {posts.length === 1 ? 'post' : 'posts'}
             </p>
