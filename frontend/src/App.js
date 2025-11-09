@@ -10,6 +10,8 @@ import Home from './pages/Home';
 import ChatList from './pages/ChatList';
 import Chat from './pages/Chat';
 import PostDetail from './pages/PostDetail';
+import Communities from './pages/Communities';
+import CommunityDetail from './pages/CommunityDetail';
 import PrivateRoute from './components/PrivateRoute';
 import './App.css';
 
@@ -57,6 +59,22 @@ function App() {
             element={
               <PrivateRoute>
                 <Home />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/communities"
+            element={
+              <PrivateRoute>
+                <Communities />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/community/:communityId"
+            element={
+              <PrivateRoute>
+                <CommunityDetail />
               </PrivateRoute>
             }
           />

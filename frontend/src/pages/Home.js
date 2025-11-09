@@ -104,6 +104,10 @@ const Home = () => {
     navigate('/profile');
   };
 
+  const handleGoToCommunities = () => {
+    navigate('/communities');
+  };
+
   const handlePostCreated = () => {
     setShowCreatePost(false);
     reloadPosts();
@@ -139,6 +143,10 @@ const Home = () => {
           >
             <span className="nav-icon">🆘</span>
             <span className="nav-label">Help</span>
+          </button>
+          <button className="nav-item" onClick={handleGoToCommunities}>
+            <span className="nav-icon">👥</span>
+            <span className="nav-label">Communities</span>
           </button>
           <button className="nav-item" onClick={handleGoToMessages}>
             <span className="nav-icon">💬</span>
