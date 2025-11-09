@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { postService } from '../services/postService';
 import { authService } from '../services/authService';
+import { followService } from '../services/followService';
 import PostCard from '../components/PostCard';
 import './UserProfile.css';
 
@@ -10,8 +11,15 @@ const UserProfile = () => {
   const navigate = useNavigate();
   const [posts, setPosts] = useState([]);
   const [userProfile, setUserProfile] = useState(null);
+  const [followStats, setFollowStats] = useState({ 
+    followerCount: 0, 
+    followingCount: 0,
+    isFollowing: false,
+    hasPendingRequest: false
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [actionLoading, setActionLoading] = useState(false);
   const currentUser = authService.getCurrentUser();
 
   const loadUserPosts = async () => {
@@ -23,6 +31,10 @@ const UserProfile = () => {
       // Fetch user profile data
       const profile = await authService.getUserProfileById(userId);
       setUserProfile(profile);
+      
+      // Fetch follow stats
+      const stats = await followService.getFollowStats(userId);
+      setFollowStats(stats);
     } catch (err) {
       setError('Failed to load user posts');
       console.error('Error loading user posts:', err);
@@ -54,6 +66,36 @@ const UserProfile = () => {
         }
       });
     }
+  };
+
+  const handleFollowAction = async () => {
+    if (actionLoading) return;
+    
+    setActionLoading(true);
+    try {
+      if (followStats.isFollowing) {
+        await followService.unfollow(userId);
+      } else if (followStats.hasPendingRequest) {
+        // Cancel pending request
+        await followService.unfollow(userId);
+      } else {
+        await followService.sendFollowRequest(userId);
+      }
+      // Reload stats
+      const stats = await followService.getFollowStats(userId);
+      setFollowStats(stats);
+    } catch (err) {
+      console.error('Error with follow action:', err);
+      setError(err.response?.data || 'Failed to perform action');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const getFollowButtonText = () => {
+    if (followStats.isFollowing) return 'Unfollow';
+    if (followStats.hasPendingRequest) return 'Request Pending';
+    return 'Follow';
   };
 
   if (loading) {
@@ -96,17 +138,37 @@ const UserProfile = () => {
                   ✏️ Edit Profile
                 </button>
               ) : (
-                <button onClick={handleMessageUser} className="btn-message">
-                  💬 Message
-                </button>
+                <div className="action-buttons">
+                  <button 
+                    onClick={handleFollowAction} 
+                    className={`btn-follow ${followStats.isFollowing ? 'following' : ''}`}
+                    disabled={actionLoading}
+                  >
+                    {getFollowButtonText()}
+                  </button>
+                  <button onClick={handleMessageUser} className="btn-message">
+                    💬 Message
+                  </button>
+                </div>
               )}
+            </div>
+            <div className="user-stats">
+              <div className="stat-item">
+                <span className="stat-value">{posts.length}</span>
+                <span className="stat-label">{posts.length === 1 ? 'Post' : 'Posts'}</span>
+              </div>
+              <div className="stat-item">
+                <span className="stat-value">{followStats.followerCount}</span>
+                <span className="stat-label">{followStats.followerCount === 1 ? 'Follower' : 'Followers'}</span>
+              </div>
+              <div className="stat-item">
+                <span className="stat-value">{followStats.followingCount}</span>
+                <span className="stat-label">Following</span>
+              </div>
             </div>
             {userProfile.profession && (
               <p className="user-profession">{userProfile.profession}</p>
             )}
-            <p className="user-post-count">
-              <strong>{posts.length}</strong> {posts.length === 1 ? 'post' : 'posts'}
-            </p>
           </div>
         </div>
       )}

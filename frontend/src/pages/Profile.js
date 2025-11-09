@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authService } from '../services/authService';
 import { postService } from '../services/postService';
+import { followService } from '../services/followService';
 import PostCard from '../components/PostCard';
 import './Profile.css';
 
@@ -9,6 +10,7 @@ const Profile = () => {
   const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
   const [posts, setPosts] = useState([]);
+  const [followStats, setFollowStats] = useState({ followerCount: 0, followingCount: 0 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const currentUser = authService.getCurrentUser();
@@ -22,6 +24,10 @@ const Profile = () => {
       // Load user's posts
       const userPosts = await postService.getPostsByUser(currentUser.id);
       setPosts(userPosts);
+      
+      // Load follow stats
+      const stats = await followService.getFollowStats(currentUser.id);
+      setFollowStats(stats);
     } catch (err) {
       setError('Failed to load profile. Please try again.');
       console.error('Error loading profile:', err);
@@ -123,6 +129,14 @@ const Profile = () => {
                 <div className="stat-item">
                   <span className="stat-value">{posts.length}</span>
                   <span className="stat-label">{posts.length === 1 ? 'Post' : 'Posts'}</span>
+                </div>
+                <div className="stat-item stat-divider">
+                  <span className="stat-value">{followStats.followerCount}</span>
+                  <span className="stat-label">{followStats.followerCount === 1 ? 'Follower' : 'Followers'}</span>
+                </div>
+                <div className="stat-item">
+                  <span className="stat-value">{followStats.followingCount}</span>
+                  <span className="stat-label">Following</span>
                 </div>
               </div>
               {profile.profession && (
