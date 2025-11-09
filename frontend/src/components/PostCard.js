@@ -12,6 +12,10 @@ const PostCard = ({ post, onPostUpdate }) => {
   const [isLiked, setIsLiked] = useState(post.likedByCurrentUser);
   const [likeCount, setLikeCount] = useState(post.likeCount);
   const [isLiking, setIsLiking] = useState(false);
+  const [isSolved, setIsSolved] = useState(post.isSolved || false);
+  const [isMarkingSolved, setIsMarkingSolved] = useState(false);
+
+  const isOwnPost = post.userId === currentUser?.id;
 
   const handleProfileClick = () => {
     // Don't allow messaging yourself
@@ -76,8 +80,35 @@ const PostCard = ({ post, onPostUpdate }) => {
     navigate(`/post/${post.id}`);
   };
 
+  const handleMarkSolved = async (e) => {
+    e.stopPropagation();
+    if (isMarkingSolved) return;
+
+    setIsMarkingSolved(true);
+    try {
+      await postService.markAsSolved(post.id);
+      setIsSolved(!isSolved);
+      if (onPostUpdate) onPostUpdate();
+    } catch (error) {
+      console.error('Error marking as solved:', error);
+    } finally {
+      setIsMarkingSolved(false);
+    }
+  };
+
+  // Determine post background color based on help request status
+  const getPostCardClass = () => {
+    if (post.isHelpSection) {
+      if (isSolved) {
+        return 'post-card post-card-solved';
+      }
+      return 'post-card post-card-help';
+    }
+    return 'post-card';
+  };
+
   return (
-    <div className="post-card">
+    <div className={getPostCardClass()}>
       <div className="post-header">
         <div className="post-user-info">
           <div 
@@ -97,8 +128,15 @@ const PostCard = ({ post, onPostUpdate }) => {
             <p className="post-profession">{post.userProfession}</p>
           </div>
         </div>
-        <div className="post-time">
-          {formatDate(post.createdAt)}
+        <div className="post-time-section">
+          <div className="post-time">
+            {formatDate(post.createdAt)}
+          </div>
+          {post.isHelpSection && (
+            <div className="help-status-badge">
+              {isSolved ? 'Help Request - Solved' : 'Help Request'}
+            </div>
+          )}
         </div>
       </div>
       
@@ -145,6 +183,16 @@ const PostCard = ({ post, onPostUpdate }) => {
           <span className="action-icon">💬</span>
           <span className="action-count">{post.commentCount}</span>
         </button>
+        {post.isHelpSection && isOwnPost && (
+          <button 
+            className={`action-btn solve-btn ${isSolved ? 'solved' : ''}`}
+            onClick={handleMarkSolved}
+            disabled={isMarkingSolved}
+          >
+            <span className="action-icon">{isSolved ? '✅' : '✓'}</span>
+            <span className="action-text">{isSolved ? 'Solved' : 'Mark as Solved'}</span>
+          </button>
+        )}
       </div>
     </div>
   );

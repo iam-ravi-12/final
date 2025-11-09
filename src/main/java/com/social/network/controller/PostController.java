@@ -136,5 +136,18 @@ public class PostController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+    @PostMapping("/{postId}/mark-solved")
+    public ResponseEntity<?> markAsSolved(
+            @PathVariable Long postId,
+            Authentication authentication) {
+        try {
+            String username = authentication.getName();
+            postService.markAsSolved(postId, username);
+            return ResponseEntity.ok("Post marked as solved");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 }
 

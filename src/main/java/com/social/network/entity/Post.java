@@ -29,6 +29,9 @@ public class Post {
     @Column(name = "is_help_section")
     private Boolean isHelpSection = false;
 
+    @Column(name = "is_solved")
+    private Boolean isSolved = false;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
