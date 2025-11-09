@@ -84,6 +84,47 @@ const CommunityDetail = () => {
     }
   };
 
+  const handleShareCommunity = () => {
+    const shareUrl = `${window.location.origin}/community/${communityId}`;
+    
+    // Try to use the Web Share API if available (mobile)
+    if (navigator.share) {
+      navigator.share({
+        title: community.name,
+        text: `Join ${community.name} on our social network!`,
+        url: shareUrl,
+      }).catch((err) => {
+        // If share is cancelled, fallback to copy
+        if (err.name !== 'AbortError') {
+          copyToClipboard(shareUrl);
+        }
+      });
+    } else {
+      // Fallback to copy to clipboard
+      copyToClipboard(shareUrl);
+    }
+  };
+
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text).then(() => {
+      alert('Community link copied to clipboard!');
+    }).catch((err) => {
+      console.error('Failed to copy:', err);
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+      document.body.appendChild(textArea);
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        alert('Community link copied to clipboard!');
+      } catch (err) {
+        alert('Failed to copy link. Please copy manually: ' + text);
+      }
+      document.body.removeChild(textArea);
+    });
+  };
+
   if (loading) {
     return (
       <div className="community-detail-container">
@@ -124,6 +165,9 @@ const CommunityDetail = () => {
             </div>
           </div>
           <div className="community-actions-header">
+            <button className="btn-share" onClick={handleShareCommunity}>
+              🔗 Share
+            </button>
             {!community.isAdmin && (
               <button className="btn-leave" onClick={handleLeaveCommunity}>
                 Leave Community

@@ -108,6 +108,24 @@
 .community-actions-header {
   display: flex;
   align-items: flex-start;
+  gap: 10px;
+}
+
+.btn-share {
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  border: none;
+  color: white;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-share:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
 .btn-leave {
