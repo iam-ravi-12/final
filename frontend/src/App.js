@@ -4,6 +4,7 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import ProfileSetup from './pages/ProfileSetup';
 import Profile from './pages/Profile';
+import ProfileEdit from './pages/ProfileEdit';
 import UserProfile from './pages/UserProfile';
 import Home from './pages/Home';
 import ChatList from './pages/ChatList';
@@ -32,6 +33,14 @@ function App() {
             element={
               <PrivateRoute>
                 <Profile />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/profile-edit"
+            element={
+              <PrivateRoute>
+                <ProfileEdit />
               </PrivateRoute>
             }
           />

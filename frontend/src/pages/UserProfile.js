@@ -35,6 +35,10 @@ const UserProfile = () => {
     navigate('/home');
   };
 
+  const handleEditProfile = () => {
+    navigate('/profile-edit');
+  };
+
   const handleMessageUser = () => {
     if (posts.length > 0) {
       navigate(`/chat/${userId}`, {
@@ -78,16 +82,25 @@ const UserProfile = () => {
             )}
           </div>
           <div className="user-profile-details">
-            <h1>{userInfo.username}</h1>
+            <div className="profile-header-row">
+              <div>
+                <h1>{userInfo.username}</h1>
+                <p className="user-username">@{userInfo.username}</p>
+              </div>
+              {isOwnProfile ? (
+                <button onClick={handleEditProfile} className="btn-edit">
+                  ✏️ Edit Profile
+                </button>
+              ) : (
+                <button onClick={handleMessageUser} className="btn-message">
+                  💬 Message
+                </button>
+              )}
+            </div>
             <p className="user-profession">{userInfo.userProfession}</p>
             <p className="user-post-count">
               <strong>{posts.length}</strong> {posts.length === 1 ? 'post' : 'posts'}
             </p>
-            {!isOwnProfile && (
-              <button onClick={handleMessageUser} className="btn-message">
-                💬 Message
-              </button>
-            )}
           </div>
         </div>
       )}
