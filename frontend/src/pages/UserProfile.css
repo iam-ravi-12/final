@@ -176,6 +176,16 @@
   letter-spacing: 0.5px;
 }
 
+.user-stats .stat-clickable {
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.user-stats .stat-clickable:hover {
+  transform: translateY(-2px);
+  opacity: 0.8;
+}
+
 .btn-edit {
   background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
   color: white;

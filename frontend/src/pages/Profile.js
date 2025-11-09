@@ -130,11 +130,11 @@ const Profile = () => {
                   <span className="stat-value">{posts.length}</span>
                   <span className="stat-label">{posts.length === 1 ? 'Post' : 'Posts'}</span>
                 </div>
-                <div className="stat-item stat-divider">
+                <div className="stat-item stat-divider stat-clickable" onClick={() => navigate('/followers')}>
                   <span className="stat-value">{followStats.followerCount}</span>
                   <span className="stat-label">{followStats.followerCount === 1 ? 'Follower' : 'Followers'}</span>
                 </div>
-                <div className="stat-item">
+                <div className="stat-item stat-clickable" onClick={() => navigate('/following')}>
                   <span className="stat-value">{followStats.followingCount}</span>
                   <span className="stat-label">Following</span>
                 </div>

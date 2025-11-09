@@ -6,6 +6,8 @@ import ProfileSetup from './pages/ProfileSetup';
 import Profile from './pages/Profile';
 import ProfileEdit from './pages/ProfileEdit';
 import UserProfile from './pages/UserProfile';
+import Followers from './pages/Followers';
+import Following from './pages/Following';
 import Home from './pages/Home';
 import ChatList from './pages/ChatList';
 import Chat from './pages/Chat';
@@ -51,6 +53,22 @@ function App() {
             element={
               <PrivateRoute>
                 <UserProfile />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/followers/:userId?"
+            element={
+              <PrivateRoute>
+                <Followers />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/following/:userId?"
+            element={
+              <PrivateRoute>
+                <Following />
               </PrivateRoute>
             }
           />
