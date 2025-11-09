@@ -104,6 +104,10 @@ const Home = () => {
     navigate('/profile');
   };
 
+  const handleGoToCommunities = () => {
+    navigate('/communities');
+  };
+
   const handlePostCreated = () => {
     setShowCreatePost(false);
     reloadPosts();
@@ -111,64 +115,83 @@ const Home = () => {
 
   return (
     <div className="home-wrapper">
-      {/* Sidebar Navigation */}
-      <aside className="sidebar">
-        <div className="sidebar-header">
-          <h1 className="app-logo">Friends</h1>
-            <h2>A social Network</h2>
+      {/* Top Navigation Bar */}
+      <nav className="top-navbar">
+        <div className="navbar-container">
+          {/* Left: Brand Title */}
+          <div className="navbar-brand">
+            <h1 className="brand-title">Friends</h1>
+            <span className="brand-tagline">Social Network</span>
+          </div>
+          
+          {/* Center: Navigation Links */}
+          <div className="navbar-center">
+            <button
+              className={`navbar-link ${activeTab === 'all' ? 'active' : ''}`}
+              onClick={() => setActiveTab('all')}
+            >
+              <span className="link-icon">🏠</span>
+              <span className="link-text">Home</span>
+            </button>
+            <button className="navbar-link" onClick={handleGoToMessages}>
+              <span className="link-icon">💬</span>
+              <span className="link-text">Messages</span>
+            </button>
+            <button className="navbar-link" onClick={handleGoToCommunities}>
+              <span className="link-icon">👥</span>
+              <span className="link-text">Communities</span>
+            </button>
+            <button className="navbar-link">
+              <span className="link-icon">ℹ️</span>
+              <span className="link-text">About</span>
+            </button>
+          </div>
+          
+          {/* Right: User Profile & Logout */}
+          <div className="navbar-right">
+            <div className="navbar-user" onClick={handleGoToProfile}>
+              {profilePicture ? (
+                <img src={profilePicture} alt="Profile" className="navbar-avatar" />
+              ) : (
+                <div className="navbar-avatar-placeholder">
+                  {user?.username?.charAt(0).toUpperCase()}
+                </div>
+              )}
+              <span className="navbar-username">{user?.username}</span>
+            </div>
+            <button onClick={handleLogout} className="navbar-logout-btn">
+              <span>🚪</span> Logout
+            </button>
+          </div>
         </div>
-        
-        <nav className="sidebar-nav">
+      </nav>
+
+      {/* Tab Bar for Post Sections */}
+      <div className="tab-bar">
+        <div className="tab-container">
           <button
-            className={`nav-item ${activeTab === 'all' ? 'active' : ''}`}
+            className={`tab-button ${activeTab === 'all' ? 'active' : ''}`}
             onClick={() => setActiveTab('all')}
           >
-            <span className="nav-icon">🏠</span>
-            <span className="nav-label">Home</span>
+            <span className="tab-icon">🌐</span>
+            <span>All Posts</span>
           </button>
           <button
-            className={`nav-item ${activeTab === 'professional' ? 'active' : ''}`}
+            className={`tab-button ${activeTab === 'professional' ? 'active' : ''}`}
             onClick={() => setActiveTab('professional')}
           >
-            <span className="nav-icon">💼</span>
-            <span className="nav-label">Professional</span>
+            <span className="tab-icon">💼</span>
+            <span>Professional</span>
           </button>
           <button
-            className={`nav-item ${activeTab === 'help' ? 'active' : ''}`}
+            className={`tab-button ${activeTab === 'help' ? 'active' : ''}`}
             onClick={() => setActiveTab('help')}
           >
-            <span className="nav-icon">🆘</span>
-            <span className="nav-label">Help</span>
-          </button>
-          <button className="nav-item" onClick={handleGoToMessages}>
-            <span className="nav-icon">💬</span>
-            <span className="nav-label">Messages</span>
-          </button>
-          <button className="nav-item" onClick={handleGoToProfile}>
-            <span className="nav-icon">👤</span>
-            <span className="nav-label">Profile</span>
-          </button>
-        </nav>
-
-        <div className="sidebar-footer">
-          <div className="user-card" onClick={handleGoToProfile}>
-            {profilePicture ? (
-              <img src={profilePicture} alt="Profile" className="user-avatar" />
-            ) : (
-              <div className="user-avatar-placeholder">
-                {user?.username?.charAt(0).toUpperCase()}
-              </div>
-            )}
-            <div className="user-details">
-              <div className="user-name">{user?.username}</div>
-              <div className="user-profession">{user?.profession || 'Professional'}</div>
-            </div>
-          </div>
-          <button onClick={handleLogout} className="btn-logout-sidebar">
-            <span>🚪</span> Logout
+            <span className="tab-icon">🆘</span>
+            <span>Help</span>
           </button>
         </div>
-      </aside>
+      </div>
 
       {/* Main Content Area */}
       <main className="main-content">

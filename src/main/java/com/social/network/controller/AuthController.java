@@ -65,4 +65,14 @@ public class AuthController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+    @GetMapping("/profile/{userId}")
+    public ResponseEntity<?> getUserProfileById(@PathVariable Long userId) {
+        try {
+            ProfileResponse profile = authService.getUserProfileById(userId);
+            return ResponseEntity.ok(profile);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 }

@@ -295,6 +295,55 @@
   transform: none;
 }
 
+.profile-stats {
+  display: flex;
+  gap: 30px;
+  margin: 20px 0;
+  padding: 20px 0;
+  border-top: 2px solid #f0f0f0;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.stat-divider {
+  border-left: 2px solid #e0e0e0;
+  border-right: 2px solid #e0e0e0;
+  padding: 0 30px;
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.stat-label {
+  font-size: 13px;
+  color: #666;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-clickable {
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.stat-clickable:hover {
+  transform: translateY(-2px);
+  opacity: 0.8;
+}
+
 .error-message {
   background-color: #fee;
   color: #c33;
@@ -348,4 +397,177 @@
 .btn-messages:hover,
 .btn-logout:hover {
   background: rgba(255, 255, 255, 0.3);
+}
+
+/* Profile View Styles */
+.profile-view-card {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+  padding: 40px;
+  margin-bottom: 30px;
+  animation: scaleIn 0.5s ease-out 0.2s backwards;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.profile-info-section {
+  display: flex;
+  gap: 30px;
+  align-items: flex-start;
+}
+
+.profile-avatar-large {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+  border: 4px solid #6366f1;
+}
+
+.profile-avatar-large img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-avatar-large .avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 60px;
+  font-weight: 700;
+  color: white;
+}
+
+.profile-details-section {
+  flex: 1;
+}
+
+.profile-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.profile-name {
+  margin: 0 0 5px 0;
+  font-size: 32px;
+  font-weight: 700;
+  color: #333;
+}
+
+.profile-username {
+  margin: 0 0 20px 0;
+  font-size: 18px;
+  color: #6366f1;
+  font-weight: 500;
+}
+
+.btn-edit-profile {
+  padding: 12px 28px;
+  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-edit-profile:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.profile-stats {
+  display: flex;
+  gap: 30px;
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #e8e8e8;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.stat-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: #6366f1;
+}
+
+.stat-label {
+  font-size: 14px;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.profile-profession,
+.profile-organization,
+.profile-location {
+  margin: 8px 0;
+  font-size: 15px;
+  color: #555;
+}
+
+.profile-posts-section {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+  padding: 30px;
+  animation: scaleIn 0.5s ease-out 0.3s backwards;
+}
+
+.profile-posts-section h3 {
+  margin: 0 0 20px 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: #333;
+}
+
+.posts-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.no-posts {
+  text-align: center;
+  color: #999;
+  padding: 40px;
+  font-size: 16px;
+}
+
+@media (max-width: 768px) {
+  .profile-info-section {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .profile-header-row {
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+  }
+
+  .profile-name {
+    font-size: 24px;
+  }
+
+  .profile-avatar-large {
+    width: 120px;
+    height: 120px;
+  }
 }

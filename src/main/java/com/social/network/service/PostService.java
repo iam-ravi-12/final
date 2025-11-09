@@ -135,11 +135,32 @@ public class PostService {
                 .collect(Collectors.toList());
     }
 
+    public void markAsSolved(Long postId, String username) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new RuntimeException("Post not found"));
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Only the post author can mark as solved
+        if (!post.getUser().getId().equals(user.getId())) {
+            throw new RuntimeException("Only post author can mark as solved");
+        }
+
+        // Only help section posts can be marked as solved
+        if (post.getIsHelpSection() == null || !post.getIsHelpSection()) {
+            throw new RuntimeException("Only help request posts can be marked as solved");
+        }
+
+        post.setIsSolved(!post.getIsSolved()); // Toggle solved status
+        postRepository.save(post);
+    }
+
     private PostResponse convertToResponse(Post post, User currentUser) {
         PostResponse response = new PostResponse();
         response.setId(post.getId());
         response.setContent(post.getContent());
         response.setIsHelpSection(post.getIsHelpSection());
+        response.setIsSolved(post.getIsSolved());
         
         // Parse media URLs
         if (post.getMediaUrls() != null && !post.getMediaUrls().isEmpty()) {

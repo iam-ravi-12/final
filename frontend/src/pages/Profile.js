@@ -1,125 +1,45 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authService } from '../services/authService';
+import { postService } from '../services/postService';
+import { followService } from '../services/followService';
+import PostCard from '../components/PostCard';
 import './Profile.css';
 
 const Profile = () => {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    username: '',
-    email: '',
-    profession: '',
-    organization: '',
-    location: '',
-    profilePicture: '',
-  });
+  const [profile, setProfile] = useState(null);
+  const [posts, setPosts] = useState([]);
+  const [followStats, setFollowStats] = useState({ followerCount: 0, followingCount: 0 });
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [loadingProfile, setLoadingProfile] = useState(true);
-  const [previewImage, setPreviewImage] = useState(null);
+  const currentUser = authService.getCurrentUser();
 
-  useEffect(() => {
-    const loadProfile = async () => {
-      try {
-        const profile = await authService.getUserProfile();
-        setFormData({
-          username: profile.username || '',
-          email: profile.email || '',
-          profession: profile.profession || '',
-          organization: profile.organization || '',
-          location: profile.location || '',
-          profilePicture: profile.profilePicture || '',
-        });
-        if (profile.profilePicture) {
-          setPreviewImage(profile.profilePicture);
-        }
-      } catch (err) {
-        setError('Failed to load profile. Please try again.');
-        console.error('Error loading profile:', err);
-      } finally {
-        setLoadingProfile(false);
-      }
-    };
-
-    loadProfile();
-  }, []);
-
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
-
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      // Validate file size (max 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        setError('Image size should be less than 5MB');
-        return;
-      }
-
-      // Validate file type
-      if (!file.type.startsWith('image/')) {
-        setError('Please select a valid image file');
-        return;
-      }
-
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64String = reader.result;
-        setFormData({
-          ...formData,
-          profilePicture: base64String,
-        });
-        setPreviewImage(base64String);
-        setError('');
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleRemoveImage = () => {
-    setFormData({
-      ...formData,
-      profilePicture: '',
-    });
-    setPreviewImage(null);
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setSuccess('');
-    setLoading(true);
-
+  const loadProfile = async () => {
     try {
-      await authService.updateProfile(
-        formData.profession, 
-        formData.organization,
-        formData.location,
-        formData.profilePicture
-      );
-      setSuccess('Profile updated successfully!');
+      setLoading(true);
+      const profileData = await authService.getUserProfile();
+      setProfile(profileData);
       
-      // Update local storage with new profile data
-      const user = authService.getCurrentUser();
-      user.profession = formData.profession;
-      user.organization = formData.organization;
-      localStorage.setItem('user', JSON.stringify(user));
+      // Load user's posts
+      const userPosts = await postService.getPostsByUser(currentUser.id);
+      setPosts(userPosts);
+      
+      // Load follow stats
+      const stats = await followService.getFollowStats(currentUser.id);
+      setFollowStats(stats);
     } catch (err) {
-      setError(err.response?.data || 'Profile update failed. Please try again.');
+      setError('Failed to load profile. Please try again.');
+      console.error('Error loading profile:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleLogout = () => {
-    authService.logout();
-    navigate('/login');
-  };
+  useEffect(() => {
+    loadProfile();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleBackToHome = () => {
     navigate('/home');
@@ -129,7 +49,16 @@ const Profile = () => {
     navigate('/messages');
   };
 
-  if (loadingProfile) {
+  const handleEditProfile = () => {
+    navigate('/profile-edit');
+  };
+
+  const handleLogout = () => {
+    authService.logout();
+    navigate('/login');
+  };
+
+  if (loading) {
     return (
       <div className="profile-container">
         <header className="profile-header">
@@ -140,6 +69,14 @@ const Profile = () => {
         <div className="profile-content">
           <div className="loading">Loading profile...</div>
         </div>
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <div className="profile-container">
+        <div className="error-message">Profile not found</div>
       </div>
     );
   }
@@ -156,7 +93,7 @@ const Profile = () => {
             <button onClick={handleGoToMessages} className="btn-messages">
               💬 Messages
             </button>
-            <span className="username">{formData.username}</span>
+            <span className="username">{profile.username}</span>
             <button onClick={handleLogout} className="btn-logout">
               Logout
             </button>
@@ -165,125 +102,77 @@ const Profile = () => {
       </header>
 
       <div className="profile-content">
-        <div className="profile-card">
-          <h2>Edit Your Profile</h2>
-          <p className="subtitle">Update your professional information</p>
-          
-          {error && <div className="error-message">{error}</div>}
-          {success && <div className="success-message">{success}</div>}
-          
-          <form onSubmit={handleSubmit}>
-            <div className="form-group profile-picture-section">
-              <label>Profile Picture</label>
-              <div className="profile-picture-container">
-                <div className="profile-picture-preview">
-                  {previewImage ? (
-                    <img src={previewImage} alt="Profile" className="profile-picture-img" />
-                  ) : (
-                    <div className="profile-picture-placeholder">
-                      <span className="placeholder-icon">👤</span>
-                    </div>
-                  )}
+        {error && <div className="error-message">{error}</div>}
+        
+        <div className="profile-view-card">
+          <div className="profile-info-section">
+            <div className="profile-avatar-large">
+              {profile.profilePicture ? (
+                <img src={profile.profilePicture} alt={profile.name || profile.username} />
+              ) : (
+                <div className="avatar-placeholder">
+                  <span>{(profile.name || profile.username).charAt(0).toUpperCase()}</span>
                 </div>
-                <div className="profile-picture-actions">
-                  <input
-                    type="file"
-                    id="profilePicture"
-                    accept="image/*"
-                    onChange={handleImageChange}
-                    style={{ display: 'none' }}
-                    disabled={loading}
-                  />
-                  <label htmlFor="profilePicture" className="btn-upload">
-                    {previewImage ? 'Change Picture' : 'Upload Picture'}
-                  </label>
-                  {previewImage && (
-                    <button
-                      type="button"
-                      onClick={handleRemoveImage}
-                      className="btn-remove"
-                      disabled={loading}
-                    >
-                      Remove
-                    </button>
-                  )}
+              )}
+            </div>
+            <div className="profile-details-section">
+              <div className="profile-header-row">
+                <div>
+                  <h2 className="profile-name">{profile.name || profile.username}</h2>
+                  <p className="profile-username">@{profile.username}</p>
+                </div>
+                <button onClick={handleEditProfile} className="btn-edit-profile">
+                  ✏️ Edit Profile
+                </button>
+              </div>
+              <div className="profile-stats">
+                <div className="stat-item">
+                  <span className="stat-value">{posts.length}</span>
+                  <span className="stat-label">{posts.length === 1 ? 'Post' : 'Posts'}</span>
+                </div>
+                <div className="stat-item stat-divider stat-clickable" onClick={() => navigate('/followers')}>
+                  <span className="stat-value">{followStats.followerCount}</span>
+                  <span className="stat-label">{followStats.followerCount === 1 ? 'Follower' : 'Followers'}</span>
+                </div>
+                <div className="stat-item stat-clickable" onClick={() => navigate('/following')}>
+                  <span className="stat-value">{followStats.followingCount}</span>
+                  <span className="stat-label">Following</span>
                 </div>
               </div>
-              <small className="help-text">Max file size: 5MB. Accepted formats: JPG, PNG, GIF</small>
+              {profile.profession && (
+                <p className="profile-profession">
+                  <strong>Profession:</strong> {profile.profession}
+                </p>
+              )}
+              {profile.organization && (
+                <p className="profile-organization">
+                  <strong>Organization:</strong> {profile.organization}
+                </p>
+              )}
+              {profile.location && (
+                <p className="profile-location">
+                  <strong>Location:</strong> {profile.location}
+                </p>
+              )}
             </div>
+          </div>
+        </div>
 
-            <div className="form-group">
-              <label htmlFor="username">Username</label>
-              <input
-                type="text"
-                id="username"
-                name="username"
-                value={formData.username}
-                disabled
-                className="input-disabled"
-              />
-              <small className="help-text">Username cannot be changed</small>
+        <div className="profile-posts-section">
+          <h3>My Posts</h3>
+          {posts.length === 0 ? (
+            <p className="no-posts">You haven't created any posts yet</p>
+          ) : (
+            <div className="posts-grid">
+              {posts.map(post => (
+                <PostCard 
+                  key={post.id} 
+                  post={post} 
+                  onPostUpdate={loadProfile}
+                />
+              ))}
             </div>
-            
-            <div className="form-group">
-              <label htmlFor="email">Email</label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                value={formData.email}
-                disabled
-                className="input-disabled"
-              />
-              <small className="help-text">Email cannot be changed</small>
-            </div>
-            
-            <div className="form-group">
-              <label htmlFor="profession">Profession</label>
-              <input
-                type="text"
-                id="profession"
-                name="profession"
-                value={formData.profession}
-                onChange={handleChange}
-                placeholder="e.g., Software Engineer, Doctor, Teacher"
-                required
-                disabled={loading}
-              />
-            </div>
-            
-            <div className="form-group">
-              <label htmlFor="organization">Organization</label>
-              <input
-                type="text"
-                id="organization"
-                name="organization"
-                value={formData.organization}
-                onChange={handleChange}
-                placeholder="e.g., Tech Corp, ABC Hospital"
-                required
-                disabled={loading}
-              />
-            </div>
-            
-            <div className="form-group">
-              <label htmlFor="location">Location</label>
-              <input
-                type="text"
-                id="location"
-                name="location"
-                value={formData.location}
-                onChange={handleChange}
-                placeholder="e.g., New York, USA"
-                required
-                disabled={loading}
-              />
-            </div>
-            
-            <button type="submit" className="btn-primary" disabled={loading}>
-              {loading ? 'Saving...' : 'Update Profile'}
-            </button>
-          </form>
+          )}
         </div>
       </div>
     </div>

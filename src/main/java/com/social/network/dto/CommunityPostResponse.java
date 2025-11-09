@@ -10,18 +10,15 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class PostResponse {
+public class CommunityPostResponse {
     private Long id;
     private String content;
-    private Boolean isHelpSection;
-    private Boolean isSolved;
     private List<String> mediaUrls;
+    private Long communityId;
+    private String communityName;
     private Long userId;
     private String username;
-    private String userProfession;
     private String userProfilePicture;
+    private Boolean isApproved;
     private LocalDateTime createdAt;
-    private long likeCount;
-    private long commentCount;
-    private boolean likedByCurrentUser;
 }

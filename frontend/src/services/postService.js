@@ -45,4 +45,9 @@ export const postService = {
     const response = await api.get(`/posts/${postId}/comments`);
     return response.data;
   },
+
+  markAsSolved: async (postId) => {
+    const response = await api.post(`/posts/${postId}/mark-solved`);
+    return response.data;
+  },
 };

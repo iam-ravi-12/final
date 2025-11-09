@@ -10,6 +10,16 @@
   overflow: hidden;
 }
 
+.post-card-help {
+  background: linear-gradient(135deg, #ffe5e5 0%, #ffd5d5 100%);
+  border: 2px solid #ff6b6b;
+}
+
+.post-card-solved {
+  background: linear-gradient(135deg, #d4f4dd 0%, #c8f0d4 100%);
+  border: 2px solid #51cf66;
+}
+
 .post-card::before {
   content: '';
   position: absolute;
@@ -114,6 +124,30 @@
   font-size: 13px;
   color: #999;
   font-weight: 400;
+}
+
+.post-time-section {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.help-status-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 6px rgba(238, 90, 111, 0.3);
+}
+
+.post-card-solved .help-status-badge {
+  background: linear-gradient(135deg, #51cf66 0%, #40c057 100%);
+  box-shadow: 0 2px 6px rgba(81, 207, 102, 0.3);
 }
 
 .post-content {
@@ -269,4 +303,28 @@
   color: inherit;
   font-weight: 700;
   min-width: 24px;
+}
+
+.solve-btn {
+  background: linear-gradient(135deg, #51cf66 0%, #40c057 100%);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 12px;
+  margin-left: auto;
+}
+
+.solve-btn:hover {
+  background: linear-gradient(135deg, #40c057 0%, #37b24d 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(81, 207, 102, 0.4);
+}
+
+.solve-btn.solved {
+  background: linear-gradient(135deg, #37b24d 0%, #2f9e44 100%);
+}
+
+.solve-btn .action-text {
+  font-size: 14px;
+  font-weight: 600;
 }
