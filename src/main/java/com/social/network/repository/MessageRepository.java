@@ -55,6 +55,11 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
 
     // Get all users that current user has had conversations with
     // FIXED: Removed JOIN FETCH since we're not selecting the Message entity
-    @Query("SELECT DISTINCT CASE WHEN m.sender = :user THEN m.receiver ELSE m.sender END FROM Message m WHERE m.sender = :user OR m.receiver = :user")
-    List<User> findConversationPartners(@Param("user") User user);
+//    @Query("SELECT DISTINCT CASE WHEN m.sender = :user THEN m.receiver ELSE m.sender END FROM Message m WHERE m.sender = :user OR m.receiver = :user")
+    @Query("""
+      SELECT DISTINCT CASE WHEN m.sender.id = :userId THEN m.receiver.id ELSE m.sender.id END
+      FROM Message m
+      WHERE m.sender.id = :userId OR m.receiver.id = :userId
+    """)
+    List<Long> findConversationPartnerIds(@Param("userId") Long userId);
 }

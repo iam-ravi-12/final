@@ -14,6 +14,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -77,13 +79,54 @@ public class MessageService {
     public List<ConversationResponse> getConversations(String username) {
         User currentUser = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        List<Long> partnerIds = messageRepository.findConversationPartnerIds(currentUser.getId());
+        if (partnerIds.isEmpty()) {
+            return List.of();
+        }
 
-        List<User> conversationPartners = messageRepository.findConversationPartners(currentUser);
+//        List<User> conversationPartners = messageRepository.findConversationPartnerIds(currentUser.getId());
+//        List<ConversationResponse> conversations = new ArrayList<>();
+        List<User> partners = userRepository.findAllById(partnerIds);
+        // map id -> User for quick lookup
+        Map<Long, User> partnerMap = partners.stream()
+                .collect(Collectors.toMap(User::getId, Function.identity()));
+
         List<ConversationResponse> conversations = new ArrayList<>();
 
-        for (User partner : conversationPartners) {
+//        for (User partner : conversationPartners) {
+//            List<Message> messages = messageRepository.findMessagesBetweenUsers(currentUser, partner);
+//
+//            if (!messages.isEmpty()) {
+//                Message lastMessage = messages.get(messages.size() - 1);
+//                Long unreadCount = messageRepository.countBySenderAndReceiverAndIsRead(
+//                        partner, currentUser, false);
+//
+//                ConversationResponse conversation = new ConversationResponse();
+//                conversation.setUserId(partner.getId());
+//                conversation.setUsername(partner.getUsername());
+//                conversation.setProfession(partner.getProfession());
+//                conversation.setLastMessage(lastMessage.getContent());
+//                conversation.setLastMessageTime(lastMessage.getCreatedAt());
+//                conversation.setUnreadCount(unreadCount);
+//
+//                conversations.add(conversation);
+//            }
+//        }
+//
+//        // Sort by last message time, most recent first
+//        conversations.sort((c1, c2) -> c2.getLastMessageTime().compareTo(c1.getLastMessageTime()));
+//
+//        return conversations;
+        for (Long partnerId : partnerIds) {
+            User partner = partnerMap.get(partnerId);
+            if (partner == null) {
+                // partner might have been deleted — skip
+                continue;
+            }
+
+            // get messages between currentUser and partner (this still fetches and orders)
             List<Message> messages = messageRepository.findMessagesBetweenUsers(currentUser, partner);
-            
+
             if (!messages.isEmpty()) {
                 Message lastMessage = messages.get(messages.size() - 1);
                 Long unreadCount = messageRepository.countBySenderAndReceiverAndIsRead(
