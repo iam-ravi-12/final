@@ -17,7 +17,7 @@ A full-stack professional networking application with a Spring Boot backend, MyS
   4. **Real-time Updates**: Messages update automatically using polling
   5. **Read Receipts**: Messages are marked as read when viewed
 - **React Frontend**: Modern, responsive user interface
-- **REST API**: Full-featured backend API
+- **REST API**: Full-featured backend APII
 
 ## Tech Stack
 
