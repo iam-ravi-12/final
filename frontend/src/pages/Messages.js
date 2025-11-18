@@ -135,8 +135,8 @@ const Messages = () => {
 
   return (
     <div className="messages-wrapper">
-      {/* Sidebar Navigation */}
-      <aside className="sidebar">
+      {/* Sidebar with Conversations */}
+      <aside className="sidebar messages-sidebar">
         <div className="sidebar-header">
           <h1 className="app-logo">Friends</h1>
           <h2 style={{fontSize: '12px', color: '#9ca3af', marginTop: '4px', marginBottom: 0}}>A social Network</h2>
@@ -147,15 +147,49 @@ const Messages = () => {
             <span className="nav-icon">🏠</span>
             <span className="nav-label">Back to Home</span>
           </button>
-          <button className="nav-item active">
-            <span className="nav-icon">💬</span>
-            <span className="nav-label">Messages</span>
-          </button>
           <button className="nav-item" onClick={handleGoToProfile}>
             <span className="nav-icon">👤</span>
             <span className="nav-label">Profile</span>
           </button>
         </nav>
+
+        {/* Conversations Section in Sidebar */}
+        <div className="sidebar-conversations">
+          <h3 className="conversations-title">Messages</h3>
+          {conversations.length === 0 ? (
+            <div className="no-conversations-sidebar">
+              <p>No messages yet</p>
+            </div>
+          ) : (
+            <div className="conversations-list-sidebar">
+              {conversations.map((conversation) => (
+                <div
+                  key={conversation.userId}
+                  className={`conversation-item-sidebar ${
+                    selectedUser?.userId === conversation.userId ? 'active' : ''
+                  }`}
+                  onClick={() => handleSelectConversation(conversation)}
+                >
+                  <div className="conversation-avatar-sidebar">
+                    {conversation.username.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="conversation-info-sidebar">
+                    <div className="conversation-name-sidebar">
+                      {conversation.username}
+                      {conversation.unreadCount > 0 && (
+                        <span className="unread-badge-sidebar">{conversation.unreadCount}</span>
+                      )}
+                    </div>
+                    <p className="conversation-preview-sidebar">
+                      {conversation.lastMessage?.substring(0, 30)}
+                      {conversation.lastMessage?.length > 30 ? '...' : ''}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
         <div className="sidebar-footer">
           <div className="user-card" onClick={handleGoToProfile}>
@@ -177,49 +211,9 @@ const Messages = () => {
         </div>
       </aside>
 
-      {/* Main Content Area */}
+      {/* Main Chat Area */}
       <div className="messages-main-content">
-        <div className="messages-content">
-        <div className="conversations-panel">
-          <h2>Conversations</h2>
-          {conversations.length === 0 ? (
-            <div className="no-conversations">
-              <p>No conversations yet</p>
-              <p className="hint">Click on a user's profile picture from a post to start chatting!</p>
-            </div>
-          ) : (
-            <div className="conversations-list">
-              {conversations.map((conversation) => (
-                <div
-                  key={conversation.userId}
-                  className={`conversation-item ${
-                    selectedUser?.userId === conversation.userId ? 'active' : ''
-                  }`}
-                  onClick={() => handleSelectConversation(conversation)}
-                >
-                  <div className="conversation-avatar">
-                    {conversation.username.charAt(0).toUpperCase()}
-                  </div>
-                  <div className="conversation-info">
-                    <div className="conversation-header">
-                      <span className="conversation-username">{conversation.username}</span>
-                      {conversation.unreadCount > 0 && (
-                        <span className="unread-badge">{conversation.unreadCount}</span>
-                      )}
-                    </div>
-                    <p className="conversation-profession">{conversation.profession}</p>
-                    <p className="conversation-last-message">
-                      {conversation.lastMessage?.substring(0, 50)}
-                      {conversation.lastMessage?.length > 50 ? '...' : ''}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        <div className="chat-panel">
+        <div className="chat-panel-full">
           {selectedUser ? (
             <>
               <div className="chat-header">
@@ -278,12 +272,11 @@ const Messages = () => {
               </form>
             </>
           ) : (
-            <div className="no-chat-selected">
-              <p>Select a conversation to start chatting</p>
+            <div className="no-chat-selected-full">
+              <p>Select a conversation from the sidebar to start chatting</p>
             </div>
           )}
         </div>
-      </div>
       </div>
     </div>
   );

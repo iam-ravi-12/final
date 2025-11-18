@@ -11,7 +11,7 @@
   left: 0;
   top: 0;
   bottom: 0;
-  width: 220px;
+  width: 280px;
   background: white;
   border-right: 1px solid #e5e7eb;
   display: flex;
@@ -34,9 +34,8 @@
 }
 
 .messages-wrapper .sidebar-nav {
-  flex: 1;
   padding: 12px 8px;
-  overflow-y: auto;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .messages-wrapper .nav-item {
@@ -174,7 +173,7 @@
 
 /* Main Content Area */
 .messages-main-content {
-  margin-left: 220px;
+  margin-left: 280px;
   flex: 1;
   min-height: 100vh;
   display: flex;
@@ -615,6 +614,187 @@
 
 @media (max-width: 768px) {
   .messages-wrapper .sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s;
+  }
+
+  .messages-wrapper .sidebar.mobile-open {
+    transform: translateX(0);
+  }
+
+  .messages-main-content {
+    margin-left: 0;
+  }
+}
+
+/* Conversations Section in Sidebar */
+.messages-wrapper .sidebar-conversations {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 12px 8px;
+}
+
+.messages-wrapper .conversations-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 12px 8px;
+}
+
+.messages-wrapper .no-conversations-sidebar {
+  text-align: center;
+  padding: 20px 10px;
+  color: #9ca3af;
+  font-size: 13px;
+}
+
+.messages-wrapper .conversations-list-sidebar {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.messages-wrapper .conversation-item-sidebar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: transparent;
+}
+
+.messages-wrapper .conversation-item-sidebar:hover {
+  background: #f3f4f6;
+}
+
+.messages-wrapper .conversation-item-sidebar.active {
+  background: #6b7280;
+  color: white;
+}
+
+.messages-wrapper .conversation-avatar-sidebar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #9ca3af;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.messages-wrapper .conversation-item-sidebar.active .conversation-avatar-sidebar {
+  background: white;
+  color: #6b7280;
+}
+
+.messages-wrapper .conversation-info-sidebar {
+  flex: 1;
+  min-width: 0;
+}
+
+.messages-wrapper .conversation-name-sidebar {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2px;
+}
+
+.messages-wrapper .conversation-item-sidebar.active .conversation-name-sidebar {
+  color: white;
+}
+
+.messages-wrapper .conversation-preview-sidebar {
+  font-size: 12px;
+  color: #6b7280;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.messages-wrapper .conversation-item-sidebar.active .conversation-preview-sidebar {
+  color: #e5e7eb;
+}
+
+.messages-wrapper .unread-badge-sidebar {
+  background: #ef4444;
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 10px;
+  min-width: 18px;
+  text-align: center;
+}
+
+.messages-wrapper .conversation-item-sidebar.active .unread-badge-sidebar {
+  background: #dc2626;
+}
+
+/* Full Width Chat Panel */
+.chat-panel-full {
+  flex: 1;
+  background: white;
+  border-radius: 12px;
+  margin: 1rem;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.no-chat-selected-full {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9ca3af;
+  font-size: 16px;
+  padding: 40px;
+  text-align: center;
+}
+
+/* Hide old conversations panel */
+.conversations-panel {
+  display: none;
+}
+
+.messages-content {
+  display: flex;
+  height: 100vh;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  gap: 0;
+}
+
+/* Update Responsive Design for Sidebar */
+@media (max-width: 1024px) {
+  .messages-wrapper .sidebar {
+    width: 260px;
+  }
+
+  .messages-main-content {
+    margin-left: 260px;
+  }
+}
+
+@media (max-width: 768px) {
+  .messages-wrapper .sidebar {
+    width: 280px;
     transform: translateX(-100%);
     transition: transform 0.3s;
   }
