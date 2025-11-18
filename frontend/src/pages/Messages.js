@@ -134,33 +134,52 @@ const Messages = () => {
   };
 
   return (
-    <div className="messages-container">
-      <header className="messages-header">
-        <div className="header-content">
-          <h1>Messages</h1>
-          <div className="user-info">
-            <button onClick={handleBackToHome} className="btn-back">
-              Back to Home
-            </button>
-            <button onClick={handleGoToProfile} className="btn-profile">
-              👤 Profile
-            </button>
+    <div className="messages-wrapper">
+      {/* Sidebar Navigation */}
+      <aside className="sidebar">
+        <div className="sidebar-header">
+          <h1 className="app-logo">Friends</h1>
+          <h2 style={{fontSize: '12px', color: '#9ca3af', marginTop: '4px', marginBottom: 0}}>A social Network</h2>
+        </div>
+        
+        <nav className="sidebar-nav">
+          <button className="nav-item" onClick={handleBackToHome}>
+            <span className="nav-icon">🏠</span>
+            <span className="nav-label">Back to Home</span>
+          </button>
+          <button className="nav-item active">
+            <span className="nav-icon">💬</span>
+            <span className="nav-label">Messages</span>
+          </button>
+          <button className="nav-item" onClick={handleGoToProfile}>
+            <span className="nav-icon">👤</span>
+            <span className="nav-label">Profile</span>
+          </button>
+        </nav>
+
+        <div className="sidebar-footer">
+          <div className="user-card" onClick={handleGoToProfile}>
             {profilePicture ? (
-              <img src={profilePicture} alt="Profile" className="navbar-profile-pic" onClick={handleGoToProfile} />
+              <img src={profilePicture} alt="Profile" className="user-avatar" />
             ) : (
-              <div className="navbar-profile-placeholder" onClick={handleGoToProfile}>
+              <div className="user-avatar-placeholder">
                 {currentUser?.username?.charAt(0).toUpperCase()}
               </div>
             )}
-            <span className="username">{currentUser?.username}</span>
-            <button onClick={handleLogout} className="btn-logout">
-              Logout
-            </button>
+            <div className="user-details">
+              <div className="user-name">{currentUser?.username}</div>
+              <div className="user-profession">{currentUser?.profession || 'Professional'}</div>
+            </div>
           </div>
+          <button onClick={handleLogout} className="btn-logout-sidebar">
+            <span>🚪</span> Logout
+          </button>
         </div>
-      </header>
+      </aside>
 
-      <div className="messages-content">
+      {/* Main Content Area */}
+      <div className="messages-main-content">
+        <div className="messages-content">
         <div className="conversations-panel">
           <h2>Conversations</h2>
           {conversations.length === 0 ? (
@@ -264,6 +283,7 @@ const Messages = () => {
             </div>
           )}
         </div>
+      </div>
       </div>
     </div>
   );
