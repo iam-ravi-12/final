@@ -11,12 +11,12 @@
 }
 
 .post-card-help {
-  background: linear-gradient(135deg, #ffe5e5 0%, #ffd5d5 100%);
+  background: #e5e7eb;
   border: 2px solid #ff6b6b;
 }
 
 .post-card-solved {
-  background: linear-gradient(135deg, #d4f4dd 0%, #c8f0d4 100%);
+  background: #e5e7eb;
   border: 2px solid #51cf66;
 }
 
@@ -27,7 +27,7 @@
   left: 0;
   right: 0;
   height: 3px;
-  background: linear-gradient(90deg, #6366f1 0%, #a855f7 100%);
+  background: #6b7280;
   transform: scaleX(0);
   transform-origin: left;
   transition: transform 0.3s ease;
@@ -60,7 +60,7 @@
   width: 52px;
   height: 52px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  background: #6b7280;
   color: white;
   display: flex;
   align-items: center;
@@ -80,7 +80,7 @@
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
+  background: rgba(255,255,255,0.3);
   opacity: 0;
   transition: opacity 0.3s;
 }
@@ -138,7 +138,7 @@
   font-weight: 700;
   padding: 4px 10px;
   border-radius: 8px;
-  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+  background: #9ca3af;
   color: white;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -146,7 +146,7 @@
 }
 
 .post-card-solved .help-status-badge {
-  background: linear-gradient(135deg, #51cf66 0%, #40c057 100%);
+  background: #6b7280;
   box-shadow: 0 2px 6px rgba(81, 207, 102, 0.3);
 }
 
@@ -207,7 +207,7 @@
   align-items: center;
   gap: 6px;
   padding: 8px 16px;
-  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+  background: #9ca3af;
   color: white;
   border-radius: 20px;
   font-size: 13px;
@@ -251,7 +251,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  background: #6b7280;
   opacity: 0;
   transition: opacity 0.3s;
   border-radius: 12px;
@@ -306,7 +306,7 @@
 }
 
 .solve-btn {
-  background: linear-gradient(135deg, #51cf66 0%, #40c057 100%);
+  background: #6b7280;
   color: white;
   border: none;
   padding: 10px 20px;
@@ -315,13 +315,13 @@
 }
 
 .solve-btn:hover {
-  background: linear-gradient(135deg, #40c057 0%, #37b24d 100%);
+  background: #6b7280;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(81, 207, 102, 0.4);
 }
 
 .solve-btn.solved {
-  background: linear-gradient(135deg, #37b24d 0%, #2f9e44 100%);
+  background: #6b7280;
 }
 
 .solve-btn .action-text {

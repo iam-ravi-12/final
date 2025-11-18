@@ -1,6 +1,6 @@
 .user-profile-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #6b7280;
   padding: 20px;
 }
 
@@ -40,7 +40,7 @@
   width: 120px;
   height: 120px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  background: #6b7280;
   color: white;
   display: flex;
   align-items: center;
@@ -96,7 +96,7 @@
 }
 
 .btn-message {
-  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  background: #6b7280;
   color: white;
   border: none;
   padding: 12px 28px;
@@ -118,7 +118,7 @@
 }
 
 .btn-follow {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  background: #6b7280;
   color: white;
   border: none;
   padding: 12px 28px;
@@ -135,7 +135,7 @@
 }
 
 .btn-follow.following {
-  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+  background: #6b7280;
 }
 
 .btn-follow:disabled {
@@ -162,7 +162,7 @@
 .user-stats .stat-value {
   font-size: 22px;
   font-weight: 800;
-  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  background: #6b7280;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -187,7 +187,7 @@
 }
 
 .btn-edit {
-  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  background: #6b7280;
   color: white;
   border: none;
   padding: 12px 28px;

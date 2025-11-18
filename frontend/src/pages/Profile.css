@@ -1,6 +1,6 @@
 .profile-container {
   min-height: 100vh;
-  background: linear-gradient(to bottom, #f8f9fa 0%, #e9ecef 100%);
+  background: #f3f4f6;
   position: relative;
 }
 
@@ -12,14 +12,14 @@
   right: 0;
   bottom: 0;
   background: 
-    radial-gradient(circle at 20% 50%, rgba(102, 126, 234, 0.05) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(118, 75, 162, 0.05) 0%, transparent 50%);
+    rgba(255, 255, 255, 0.05),
+    rgba(255, 255, 255, 0.05);
   pointer-events: none;
   z-index: 0;
 }
 
 .profile-header {
-  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  background: #6b7280;
   color: white;
   padding: 20px 0;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
@@ -63,7 +63,7 @@
 }
 
 .profile-card h2 {
-  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  background: #6b7280;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -160,7 +160,7 @@
 .profile-picture-placeholder {
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  background: #6b7280;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -179,7 +179,7 @@
 
 .btn-upload {
   padding: 12px 24px;
-  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  background: #6b7280;
   color: white;
   border: none;
   border-radius: 10px;
@@ -200,12 +200,7 @@
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.3),
-    transparent
-  );
+  background: rgba(255, 255, 255, 0.3);
   transition: left 0.5s;
 }
 
@@ -220,7 +215,7 @@
 
 .btn-remove {
   padding: 12px 24px;
-  background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+  background: #9ca3af;
   color: white;
   border: none;
   border-radius: 10px;
@@ -246,7 +241,7 @@
 .btn-primary {
   width: 100%;
   padding: 16px;
-  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  background: #6b7280;
   color: white;
   border: none;
   border-radius: 12px;
@@ -267,12 +262,7 @@
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.3),
-    transparent
-  );
+  background: rgba(255, 255, 255, 0.3);
   transition: left 0.5s;
 }
 
@@ -320,7 +310,7 @@
 .stat-value {
   font-size: 24px;
   font-weight: 800;
-  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  background: #6b7280;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -435,7 +425,7 @@
 .profile-avatar-large .avatar-placeholder {
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  background: #6b7280;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -471,7 +461,7 @@
 
 .btn-edit-profile {
   padding: 12px 28px;
-  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  background: #6b7280;
   color: white;
   border: none;
   border-radius: 12px;

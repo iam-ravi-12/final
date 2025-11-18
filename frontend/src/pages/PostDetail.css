@@ -1,6 +1,6 @@
 .post-detail-container {
   min-height: 100vh;
-  background: linear-gradient(to bottom, #f8f9fa 0%, #e9ecef 100%);
+  background: #f3f4f6;
   padding: 30px 20px;
   position: relative;
 }
@@ -13,8 +13,8 @@
   right: 0;
   bottom: 0;
   background: 
-    radial-gradient(circle at 20% 50%, rgba(102, 126, 234, 0.05) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(118, 75, 162, 0.05) 0%, transparent 50%);
+    rgba(255, 255, 255, 0.05),
+    rgba(255, 255, 255, 0.05);
   pointer-events: none;
   z-index: 0;
 }
@@ -35,7 +35,7 @@
 
 .btn-back {
   padding: 12px 24px;
-  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  background: #6b7280;
   color: white;
   border: none;
   border-radius: 12px;
@@ -55,12 +55,7 @@
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.3),
-    transparent
-  );
+  background: rgba(255, 255, 255, 0.3);
   transition: left 0.5s;
 }
 
@@ -113,7 +108,7 @@
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  background: #6b7280;
   color: white;
   display: flex;
   align-items: center;
@@ -272,7 +267,7 @@
 .btn-submit-comment {
   margin-top: 12px;
   padding: 12px 28px;
-  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  background: #6b7280;
   color: white;
   border: none;
   border-radius: 12px;
@@ -292,12 +287,7 @@
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.3),
-    transparent
-  );
+  background: rgba(255, 255, 255, 0.3);
   transition: left 0.5s;
 }
 
@@ -360,7 +350,7 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  background: #6b7280;
   color: white;
   display: flex;
   align-items: center;

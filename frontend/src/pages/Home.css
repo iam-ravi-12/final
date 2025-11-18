@@ -28,7 +28,7 @@
 .app-logo {
   font-size: 24px;
   font-weight: 800;
-  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  background: #6b7280;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -67,7 +67,7 @@
 }
 
 .nav-item.active {
-  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  background: #6b7280;
   color: white;
   box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
 }
@@ -121,7 +121,7 @@
 }
 
 .user-avatar-placeholder {
-  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  background: #6b7280;
   color: white;
   display: flex;
   align-items: center;
@@ -226,7 +226,7 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  background: #6b7280;
   color: white;
   display: flex;
   align-items: center;
@@ -325,7 +325,7 @@
 
 /* Error Message */
 .error-message {
-  background: linear-gradient(135deg, #fff5f5 0%, #ffe5e5 100%);
+  background: #f3f4f6;
   color: #ef4444;
   padding: 16px 20px;
   border-radius: 12px;
