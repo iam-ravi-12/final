@@ -11,7 +11,7 @@
   left: 0;
   top: 0;
   bottom: 0;
-  width: 280px;
+  width: 220px;
   background: white;
   border-right: 1px solid #e5e7eb;
   display: flex;
@@ -21,12 +21,12 @@
 }
 
 .sidebar-header {
-  padding: 24px 20px;
+  padding: 16px 16px;
   border-bottom: 1px solid #e5e7eb;
 }
 
 .app-logo {
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 800;
   background: #6b7280;
   -webkit-background-clip: text;
@@ -38,22 +38,22 @@
 
 .sidebar-nav {
   flex: 1;
-  padding: 16px 12px;
+  padding: 12px 8px;
   overflow-y: auto;
 }
 
 .nav-item {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   width: 100%;
-  padding: 14px 16px;
-  margin-bottom: 6px;
+  padding: 10px 12px;
+  margin-bottom: 4px;
   background: transparent;
   border: none;
-  border-radius: 12px;
+  border-radius: 10px;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 600;
   color: #6b7280;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -73,8 +73,8 @@
 }
 
 .nav-icon {
-  font-size: 22px;
-  width: 28px;
+  font-size: 18px;
+  width: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -86,18 +86,18 @@
 
 /* Sidebar Footer */
 .sidebar-footer {
-  padding: 16px;
+  padding: 12px;
   border-top: 1px solid #e5e7eb;
 }
 
 .user-card {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px;
+  gap: 10px;
+  padding: 10px;
   background: #f9fafb;
-  border-radius: 12px;
-  margin-bottom: 12px;
+  border-radius: 10px;
+  margin-bottom: 10px;
   cursor: pointer;
   transition: all 0.3s;
 }
@@ -109,8 +109,8 @@
 
 .user-avatar,
 .user-avatar-placeholder {
-  width: 48px;
-  height: 48px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   flex-shrink: 0;
 }
@@ -126,7 +126,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
+  font-size: 16px;
   font-weight: 700;
 }
 
@@ -136,7 +136,7 @@
 }
 
 .user-name {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 700;
   color: #1f2937;
   margin-bottom: 2px;
@@ -146,7 +146,7 @@
 }
 
 .user-profession {
-  font-size: 13px;
+  font-size: 12px;
   color: #6b7280;
   white-space: nowrap;
   overflow: hidden;
@@ -155,11 +155,11 @@
 
 .btn-logout-sidebar {
   width: 100%;
-  padding: 12px 16px;
+  padding: 10px 12px;
   background: white;
   border: 2px solid #e5e7eb;
-  border-radius: 12px;
-  font-size: 15px;
+  border-radius: 10px;
+  font-size: 14px;
   font-weight: 600;
   color: #6b7280;
   cursor: pointer;
@@ -178,7 +178,7 @@
 
 /* Main Content */
 .main-content {
-  margin-left: 280px;
+  margin-left: 220px;
   flex: 1;
   min-height: 100vh;
   display: flex;
@@ -340,15 +340,15 @@
 /* Responsive Design */
 @media (max-width: 1024px) {
   .sidebar {
-    width: 240px;
+    width: 200px;
   }
 
   .main-content {
-    margin-left: 240px;
+    margin-left: 200px;
   }
 
   .nav-label {
-    font-size: 14px;
+    font-size: 13px;
   }
 }
 
