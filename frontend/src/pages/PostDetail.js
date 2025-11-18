@@ -153,6 +153,23 @@ const PostDetail = () => {
             <p>{post.content}</p>
           </div>
 
+          {post.mediaUrls && post.mediaUrls.length > 0 && (
+            <div className="post-media">
+              {post.mediaUrls.map((url, index) => {
+                const isVideo = url.startsWith('data:video');
+                return (
+                  <div key={index} className="post-media-item">
+                    {isVideo ? (
+                      <video src={url} controls className="post-media-video" />
+                    ) : (
+                      <img src={url} alt={`Post media ${index + 1}`} className="post-media-img" />
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
           {post.isHelpSection && (
             <div className="post-badge">
               <span className="help-badge">Help Request</span>

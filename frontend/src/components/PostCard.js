@@ -17,7 +17,8 @@ const PostCard = ({ post, onPostUpdate }) => {
 
   const isOwnPost = post.userId === currentUser?.id;
 
-  const handleProfileClick = () => {
+  const handleProfileClick = (e) => {
+    e.stopPropagation();
     // Don't allow messaging yourself
     if (post.userId === currentUser?.id) {
       return;
@@ -107,8 +108,12 @@ const PostCard = ({ post, onPostUpdate }) => {
     return 'post-card';
   };
 
+  const handlePostClick = () => {
+    navigate(`/post/${post.id}`);
+  };
+
   return (
-    <div className={getPostCardClass()}>
+    <div className={getPostCardClass()} onClick={handlePostClick} style={{ cursor: 'pointer' }}>
       <div className="post-header">
         <div className="post-user-info">
           <div 
