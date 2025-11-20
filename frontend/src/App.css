@@ -5,12 +5,7 @@
 
 /* Loading skeleton */
 .skeleton {
-  background: linear-gradient(
-    90deg,
-    #f0f0f0 25%,
-    #e0e0e0 50%,
-    #f0f0f0 75%
-  );
+  background: #e5e7eb;
   background-size: 1000px 100%;
   animation: shimmer 2s infinite;
   border-radius: var(--border-radius-md);
@@ -99,7 +94,7 @@
   width: 60px;
   height: 60px;
   border-radius: 50%;
-  background: var(--primary-gradient);
+  background: #6b7280;
   color: white;
   border: none;
   box-shadow: var(--shadow-lg);

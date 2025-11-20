@@ -60,13 +60,8 @@ const Profile = () => {
 
   if (loading) {
     return (
-      <div className="profile-container">
-        <header className="profile-header">
-          <div className="header-content">
-            <h1>Profile</h1>
-          </div>
-        </header>
-        <div className="profile-content">
+      <div className="profile-wrapper">
+        <div className="profile-main-content">
           <div className="loading">Loading profile...</div>
         </div>
       </div>
@@ -75,33 +70,61 @@ const Profile = () => {
 
   if (!profile) {
     return (
-      <div className="profile-container">
-        <div className="error-message">Profile not found</div>
+      <div className="profile-wrapper">
+        <div className="profile-main-content">
+          <div className="error-message">Profile not found</div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="profile-container">
-      <header className="profile-header">
-        <div className="header-content">
-          <h1>Profile</h1>
-          <div className="user-info">
-            <button onClick={handleBackToHome} className="btn-back">
-              🏠 Home
-            </button>
-            <button onClick={handleGoToMessages} className="btn-messages">
-              💬 Messages
-            </button>
-            <span className="username">{profile.username}</span>
-            <button onClick={handleLogout} className="btn-logout">
-              Logout
-            </button>
-          </div>
+    <div className="profile-wrapper">
+      {/* Sidebar Navigation */}
+      <aside className="sidebar">
+        <div className="sidebar-header">
+          <h1 className="app-logo">Friends</h1>
+          <h2 style={{fontSize: '12px', color: '#9ca3af', marginTop: '4px', marginBottom: 0}}>A social Network</h2>
         </div>
-      </header>
+        
+        <nav className="sidebar-nav">
+          <button className="nav-item" onClick={handleBackToHome}>
+            <span className="nav-icon">🏠</span>
+            <span className="nav-label">Back to Home</span>
+          </button>
+          <button className="nav-item" onClick={handleGoToMessages}>
+            <span className="nav-icon">💬</span>
+            <span className="nav-label">Messages</span>
+          </button>
+          <button className="nav-item active">
+            <span className="nav-icon">👤</span>
+            <span className="nav-label">Profile</span>
+          </button>
+        </nav>
 
-      <div className="profile-content">
+        <div className="sidebar-footer">
+          <div className="user-card">
+            {profile?.profilePicture ? (
+              <img src={profile.profilePicture} alt="Profile" className="user-avatar" />
+            ) : (
+              <div className="user-avatar-placeholder">
+                {currentUser?.username?.charAt(0).toUpperCase()}
+              </div>
+            )}
+            <div className="user-details">
+              <div className="user-name">{currentUser?.username}</div>
+              <div className="user-profession">{profile?.profession || 'Professional'}</div>
+            </div>
+          </div>
+          <button onClick={handleLogout} className="btn-logout-sidebar">
+            <span>🚪</span> Logout
+          </button>
+        </div>
+      </aside>
+
+      {/* Main Content Area */}
+      <div className="profile-main-content">
+        <div className="profile-content">
         {error && <div className="error-message">{error}</div>}
         
         <div className="profile-view-card">
@@ -174,6 +197,7 @@ const Profile = () => {
             </div>
           )}
         </div>
+      </div>
       </div>
     </div>
   );

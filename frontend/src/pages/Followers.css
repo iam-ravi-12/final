@@ -1,6 +1,6 @@
 .followers-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #6b7280;
   padding: 20px;
 }
 
@@ -97,7 +97,7 @@
   width: 60px;
   height: 60px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  background: #6b7280;
   display: flex;
   align-items: center;
   justify-content: center;
