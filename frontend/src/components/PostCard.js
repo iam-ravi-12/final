@@ -195,15 +195,10 @@ const PostCard = ({ post, onPostUpdate }) => {
             <p className="post-profession">{post.userProfession}</p>
           </div>
         </div>
-        <div className="post-time-section">
+        <div className="post-right-section">
           <div className="post-time">
             {formatDate(post.createdAt)}
           </div>
-          {post.isHelpSection && (
-            <div className="help-status-badge">
-              {isSolved ? 'Help Request - Solved' : 'Help Request'}
-            </div>
-          )}
           {isOwnPost && (
             <div className="post-menu-container">
               <button className="post-menu-btn" onClick={handleMenuToggle}>
@@ -219,6 +214,11 @@ const PostCard = ({ post, onPostUpdate }) => {
                   </button>
                 </div>
               )}
+            </div>
+          )}
+          {post.isHelpSection && (
+            <div className="help-status-badge">
+              {isSolved ? '✅ Solved' : '🆘 Help Request'}
             </div>
           )}
         </div>
@@ -242,12 +242,6 @@ const PostCard = ({ post, onPostUpdate }) => {
               </div>
             );
           })}
-        </div>
-      )}
-      
-      {post.isHelpSection && (
-        <div className="post-badge">
-          <span className="help-badge">Help Request</span>
         </div>
       )}
 

@@ -11,13 +11,23 @@
 }
 
 .post-card-help {
-  background: #e5e7eb;
-  border: 2px solid #ff6b6b;
+  background: #ffe5e5;
+  border: 1px solid #ffcccc;
+}
+
+[data-theme="dark"] .post-card-help {
+  background: #4a2020;
+  border: 1px solid #6b2020;
 }
 
 .post-card-solved {
-  background: #e5e7eb;
-  border: 2px solid #51cf66;
+  background: #e5ffe5;
+  border: 1px solid #ccffcc;
+}
+
+[data-theme="dark"] .post-card-solved {
+  background: #204a20;
+  border: 1px solid #206b20;
 }
 
 .post-card::before {
@@ -124,30 +134,32 @@
   font-size: 13px;
   color: #999;
   font-weight: 400;
+  text-align: right;
 }
 
-.post-time-section {
+.post-right-section {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 6px;
+  gap: 8px;
 }
 
 .help-status-badge {
   font-size: 11px;
   font-weight: 700;
-  padding: 4px 10px;
-  border-radius: 8px;
-  background: #9ca3af;
+  padding: 5px 12px;
+  border-radius: 12px;
+  background: #ff6b6b;
   color: white;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  box-shadow: 0 2px 6px rgba(238, 90, 111, 0.3);
+  box-shadow: 0 2px 4px rgba(255, 107, 107, 0.3);
+  white-space: nowrap;
 }
 
 .post-card-solved .help-status-badge {
-  background: #6b7280;
-  box-shadow: 0 2px 6px rgba(81, 207, 102, 0.3);
+  background: #51cf66;
+  box-shadow: 0 2px 4px rgba(81, 207, 102, 0.3);
 }
 
 .post-content {
@@ -332,18 +344,18 @@
 /* Post Menu Styles */
 .post-menu-container {
   position: relative;
-  margin-left: 10px;
 }
 
 .post-menu-btn {
   background: none;
   border: none;
-  font-size: 24px;
+  font-size: 20px;
   color: var(--text-secondary);
   cursor: pointer;
-  padding: 5px 10px;
+  padding: 4px 8px;
   border-radius: 4px;
   transition: all 0.2s;
+  line-height: 1;
 }
 
 .post-menu-btn:hover {
