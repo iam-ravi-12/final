@@ -81,6 +81,7 @@ public class PostService {
 
         return postRepository.findByUserProfessionOrderByCreatedAtDesc(user.getProfession())
                 .stream()
+                .filter(post -> post.getIsHelpSection() == null || !post.getIsHelpSection()) // Exclude help posts
                 .map(post -> convertToResponse(post, user))
                 .collect(Collectors.toList());
     }
