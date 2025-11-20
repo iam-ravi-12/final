@@ -2,7 +2,8 @@
 .profile-wrapper {
   display: flex;
   min-height: 100vh;
-  background: #f5f7fa;
+  background: var(--bg-tertiary);
+  transition: background-color var(--transition-base);
 }
 
 /* Sidebar Styles (same as Home page) */
@@ -12,25 +13,28 @@
   top: 0;
   bottom: 0;
   width: 220px;
-  background: white;
-  border-right: 1px solid #e5e7eb;
+  background: var(--bg-primary);
+  border-right: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
   z-index: 100;
   animation: slideInLeft 0.4s ease-out;
+  transition: background-color var(--transition-base), border-color var(--transition-base);
 }
 
 .profile-wrapper .sidebar-header {
   padding: 16px 16px;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--border-color);
+  transition: border-color var(--transition-base);
 }
 
 .profile-wrapper .app-logo {
   font-size: 20px;
   font-weight: 800;
-  color: #6b7280;
+  color: var(--text-secondary);
   margin: 0;
   letter-spacing: -0.5px;
+  transition: color var(--transition-base);
 }
 
 .profile-wrapper .sidebar-nav {
@@ -52,14 +56,14 @@
   cursor: pointer;
   font-size: 14px;
   font-weight: 600;
-  color: #6b7280;
+  color: var(--text-secondary);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   text-align: left;
 }
 
 .profile-wrapper .nav-item:hover {
-  background: #f3f4f6;
-  color: #374151;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
   transform: translateX(4px);
 }
 
@@ -83,7 +87,8 @@
 
 .profile-wrapper .sidebar-footer {
   padding: 12px;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--border-color);
+  transition: border-color var(--transition-base);
 }
 
 .profile-wrapper .user-card {
@@ -91,7 +96,7 @@
   align-items: center;
   gap: 10px;
   padding: 10px;
-  background: #f9fafb;
+  background: var(--bg-secondary);
   border-radius: 10px;
   margin-bottom: 10px;
   cursor: pointer;
@@ -99,7 +104,7 @@
 }
 
 .profile-wrapper .user-card:hover {
-  background: #f3f4f6;
+  background: var(--bg-tertiary);
   transform: scale(1.02);
 }
 
@@ -113,7 +118,8 @@
 
 .profile-wrapper .user-avatar {
   object-fit: cover;
-  border: 2px solid #e5e7eb;
+  border: 2px solid var(--border-color);
+  transition: border-color var(--transition-base);
 }
 
 .profile-wrapper .user-avatar-placeholder {
@@ -134,30 +140,32 @@
 .profile-wrapper .user-name {
   font-size: 14px;
   font-weight: 700;
-  color: #1f2937;
+  color: var(--text-primary);
   margin-bottom: 2px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  transition: color var(--transition-base);
 }
 
 .profile-wrapper .user-profession {
   font-size: 12px;
-  color: #6b7280;
+  color: var(--text-secondary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  transition: color var(--transition-base);
 }
 
 .profile-wrapper .btn-logout-sidebar {
   width: 100%;
   padding: 10px 12px;
-  background: white;
-  border: 2px solid #e5e7eb;
+  background: var(--bg-primary);
+  border: 2px solid var(--border-color);
   border-radius: 10px;
   font-size: 14px;
   font-weight: 600;
-  color: #6b7280;
+  color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.3s;
   display: flex;
@@ -191,12 +199,13 @@
 }
 
 .profile-card {
-  background: white;
+  background: var(--bg-primary);
   border-radius: 20px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 30px var(--shadow-color);
   padding: 50px;
   animation: scaleIn 0.5s ease-out 0.2s backwards;
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--border-color);
+  transition: background-color var(--transition-base), border-color var(--transition-base);
 }
 
 .profile-card h2 {
@@ -211,9 +220,10 @@
 }
 
 .profile-card .subtitle {
-  color: #666;
+  color: var(--text-secondary);
   margin-bottom: 30px;
   font-size: 14px;
+  transition: color var(--transition-base);
 }
 
 .form-group {
@@ -223,20 +233,23 @@
 .form-group label {
   display: block;
   margin-bottom: 8px;
-  color: #333;
+  color: var(--text-primary);
   font-weight: 500;
   font-size: 14px;
+  transition: color var(--transition-base);
 }
 
 .form-group input {
   width: 100%;
   padding: 14px 16px;
-  border: 2px solid #e8e8e8;
+  border: 2px solid var(--border-color);
   border-radius: 12px;
   font-size: 15px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-sizing: border-box;
   font-family: inherit;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
 }
 
 .form-group input:focus {
@@ -247,22 +260,25 @@
 }
 
 .input-disabled {
-  background-color: #f5f5f5 !important;
+  background-color: var(--bg-tertiary) !important;
   cursor: not-allowed !important;
-  color: #999 !important;
+  color: var(--text-tertiary) !important;
+  opacity: 0.6;
 }
 
 .help-text {
   display: block;
   margin-top: 4px;
-  color: #999;
+  color: var(--text-tertiary);
   font-size: 12px;
+  transition: color var(--transition-base);
 }
 
 .profile-picture-section {
   margin-bottom: 30px;
   padding-bottom: 20px;
-  border-bottom: 2px solid #e0e0e0;
+  border-bottom: 2px solid var(--border-color);
+  transition: border-color var(--transition-base);
 }
 
 .profile-picture-container {
