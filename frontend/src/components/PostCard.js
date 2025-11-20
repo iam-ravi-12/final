@@ -14,6 +14,10 @@ const PostCard = ({ post, onPostUpdate }) => {
   const [isLiking, setIsLiking] = useState(false);
   const [isSolved, setIsSolved] = useState(post.isSolved || false);
   const [isMarkingSolved, setIsMarkingSolved] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editContent, setEditContent] = useState(post.content);
+  const [isEditing, setIsEditing] = useState(false);
 
   const isOwnPost = post.userId === currentUser?.id;
 
@@ -97,6 +101,64 @@ const PostCard = ({ post, onPostUpdate }) => {
     }
   };
 
+  const handleMenuToggle = (e) => {
+    e.stopPropagation();
+    setShowMenu(!showMenu);
+  };
+
+  const handleEdit = (e) => {
+    e.stopPropagation();
+    setShowMenu(false);
+    setShowEditModal(true);
+  };
+
+  const handleDelete = async (e) => {
+    e.stopPropagation();
+    setShowMenu(false);
+    if (window.confirm('Are you sure you want to delete this post?')) {
+      try {
+        await postService.deletePost(post.id);
+        if (onPostUpdate) onPostUpdate();
+      } catch (error) {
+        console.error('Error deleting post:', error);
+        alert('Failed to delete post. Please try again.');
+      }
+    }
+  };
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!editContent.trim()) {
+      alert('Post content cannot be empty');
+      return;
+    }
+
+    setIsEditing(true);
+    try {
+      await postService.updatePost(
+        post.id,
+        editContent,
+        post.isHelpSection,
+        post.mediaUrls || [],
+        post.showInHome
+      );
+      setShowEditModal(false);
+      if (onPostUpdate) onPostUpdate();
+    } catch (error) {
+      console.error('Error updating post:', error);
+      alert('Failed to update post. Please try again.');
+    } finally {
+      setIsEditing(false);
+    }
+  };
+
+  const handleCancelEdit = (e) => {
+    e.stopPropagation();
+    setEditContent(post.content);
+    setShowEditModal(false);
+  };
+
   // Determine post background color based on help request status
   const getPostCardClass = () => {
     if (post.isHelpSection) {
@@ -140,6 +202,23 @@ const PostCard = ({ post, onPostUpdate }) => {
           {post.isHelpSection && (
             <div className="help-status-badge">
               {isSolved ? 'Help Request - Solved' : 'Help Request'}
+            </div>
+          )}
+          {isOwnPost && (
+            <div className="post-menu-container">
+              <button className="post-menu-btn" onClick={handleMenuToggle}>
+                ⋮
+              </button>
+              {showMenu && (
+                <div className="post-menu-dropdown">
+                  <button className="post-menu-item" onClick={handleEdit}>
+                    ✏️ Edit
+                  </button>
+                  <button className="post-menu-item delete" onClick={handleDelete}>
+                    🗑️ Delete
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -199,6 +278,41 @@ const PostCard = ({ post, onPostUpdate }) => {
           </button>
         )}
       </div>
+
+      {showEditModal && (
+        <div className="edit-modal-overlay" onClick={handleCancelEdit}>
+          <div className="edit-modal" onClick={(e) => e.stopPropagation()}>
+            <h3>Edit Post</h3>
+            <form onSubmit={handleEditSubmit}>
+              <textarea
+                className="edit-textarea"
+                value={editContent}
+                onChange={(e) => setEditContent(e.target.value)}
+                rows="5"
+                disabled={isEditing}
+                required
+              />
+              <div className="edit-modal-actions">
+                <button
+                  type="button"
+                  className="btn-cancel"
+                  onClick={handleCancelEdit}
+                  disabled={isEditing}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="btn-save"
+                  disabled={isEditing}
+                >
+                  {isEditing ? 'Saving...' : 'Save'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
