@@ -40,6 +40,7 @@ public class PostService {
         Post post = new Post();
         post.setContent(postRequest.getContent());
         post.setIsHelpSection(postRequest.getIsHelpSection());
+        post.setShowInHome(postRequest.getShowInHome());
         post.setUser(user);
         post.setUserProfession(user.getProfession());
         
@@ -55,7 +56,7 @@ public class PostService {
     }
 
     public List<PostResponse> getAllPosts() {
-        return postRepository.findAllByOrderByCreatedAtDesc()
+        return postRepository.findByShowInHomeTrueOrderByCreatedAtDesc()
                 .stream()
                 .map(post -> convertToResponse(post, null))
                 .collect(Collectors.toList());
@@ -64,7 +65,7 @@ public class PostService {
     public List<PostResponse> getAllPostsForUser(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        return postRepository.findAllByOrderByCreatedAtDesc()
+        return postRepository.findByShowInHomeTrueOrderByCreatedAtDesc()
                 .stream()
                 .map(post -> convertToResponse(post, user))
                 .collect(Collectors.toList());
@@ -161,6 +162,7 @@ public class PostService {
         response.setContent(post.getContent());
         response.setIsHelpSection(post.getIsHelpSection());
         response.setIsSolved(post.getIsSolved());
+        response.setShowInHome(post.getShowInHome());
         
         // Parse media URLs
         if (post.getMediaUrls() != null && !post.getMediaUrls().isEmpty()) {

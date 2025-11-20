@@ -6,6 +6,7 @@ import './CreatePost.css';
 const CreatePost = ({ onPostCreated, onCancel, isHelpSection }) => {
   const [content, setContent] = useState('');
   const [isHelp, setIsHelp] = useState(isHelpSection || false);
+  const [showInHome, setShowInHome] = useState(true);
   const [mediaFiles, setMediaFiles] = useState([]);
   const [mediaPreview, setMediaPreview] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -80,7 +81,7 @@ const CreatePost = ({ onPostCreated, onCancel, isHelpSection }) => {
     setError('');
 
     try {
-      await postService.createPost(content, isHelp, mediaFiles);
+      await postService.createPost(content, isHelp, mediaFiles, showInHome);
       setContent('');
       setMediaFiles([]);
       setMediaPreview([]);
@@ -142,6 +143,16 @@ const CreatePost = ({ onPostCreated, onCancel, isHelpSection }) => {
                 disabled={loading}
               />
               Mark as Help Request
+            </label>
+            
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                checked={showInHome}
+                onChange={(e) => setShowInHome(e.target.checked)}
+                disabled={loading}
+              />
+              Show in Home Page
             </label>
             
             <label className="file-upload-label">
