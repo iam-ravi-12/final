@@ -119,8 +119,9 @@
   margin: 0;
   font-size: 17px;
   font-weight: 700;
-  color: #1a1a1a;
+  color: var(--text-primary);
   letter-spacing: -0.3px;
+  transition: color var(--transition-base);
 }
 
 .post-profession {
@@ -132,9 +133,10 @@
 
 .post-time {
   font-size: 13px;
-  color: #999;
+  color: var(--text-secondary);
   font-weight: 400;
   text-align: right;
+  transition: color var(--transition-base);
 }
 
 .post-right-section {
@@ -169,11 +171,12 @@
 .post-content p {
   margin: 0;
   line-height: 1.7;
-  color: #333;
+  color: var(--text-primary);
   font-size: 15px;
   white-space: pre-wrap;
   word-wrap: break-word;
   font-weight: 400;
+  transition: color var(--transition-base);
 }
 
 .mention {
@@ -254,7 +257,7 @@
   font-size: 15px;
   font-weight: 600;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  color: #666;
+  color: var(--text-secondary);
   position: relative;
   overflow: hidden;
 }
@@ -270,7 +273,7 @@
 }
 
 .action-btn:hover {
-  background-color: #f8f9fa;
+  background-color: var(--bg-secondary);
   color: #6366f1;
   transform: translateY(-2px);
 }
