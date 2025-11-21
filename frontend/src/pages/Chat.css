@@ -226,10 +226,29 @@
   color: #999;
   margin-top: 0.25rem;
   padding: 0 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
 }
 
 .message.sent .message-time {
   text-align: right;
+  justify-content: flex-end;
+}
+
+.message-status {
+  font-size: 0.9rem;
+  margin-left: 0.3rem;
+  display: inline-block;
+}
+
+.message-status.sent {
+  color: #999;
+}
+
+.message-status.read {
+  color: #4a90e2;
+  font-weight: 600;
 }
 
 .message-input-form {
