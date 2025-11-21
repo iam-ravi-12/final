@@ -2,7 +2,8 @@
 .messages-wrapper {
   display: flex;
   min-height: 100vh;
-  background: #f5f7fa;
+  background: var(--bg-tertiary);
+  transition: background-color var(--transition-base);
 }
 
 /* Sidebar Styles (same as Home page) */
@@ -12,30 +13,34 @@
   top: 0;
   bottom: 0;
   width: 280px;
-  background: white;
-  border-right: 1px solid #e5e7eb;
+  background: var(--bg-primary);
+  border-right: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
   z-index: 100;
   animation: slideInLeft 0.4s ease-out;
+  transition: background-color var(--transition-base), border-color var(--transition-base);
 }
 
 .messages-wrapper .sidebar-header {
   padding: 16px 16px;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--border-color);
+  transition: border-color var(--transition-base);
 }
 
 .messages-wrapper .app-logo {
   font-size: 20px;
   font-weight: 800;
-  color: #6b7280;
+  color: var(--text-secondary);
   margin: 0;
   letter-spacing: -0.5px;
+  transition: color var(--transition-base);
 }
 
 .messages-wrapper .sidebar-nav {
   padding: 12px 8px;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--border-color);
+  transition: border-color var(--transition-base);
 }
 
 .messages-wrapper .nav-item {
@@ -51,14 +56,14 @@
   cursor: pointer;
   font-size: 14px;
   font-weight: 600;
-  color: #6b7280;
+  color: var(--text-secondary);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   text-align: left;
 }
 
 .messages-wrapper .nav-item:hover {
-  background: #f3f4f6;
-  color: #374151;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
   transform: translateX(4px);
 }
 
@@ -82,7 +87,8 @@
 
 .messages-wrapper .sidebar-footer {
   padding: 12px;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--border-color);
+  transition: border-color var(--transition-base);
 }
 
 .messages-wrapper .user-card {
@@ -90,7 +96,7 @@
   align-items: center;
   gap: 10px;
   padding: 10px;
-  background: #f9fafb;
+  background: var(--bg-secondary);
   border-radius: 10px;
   margin-bottom: 10px;
   cursor: pointer;
@@ -98,7 +104,7 @@
 }
 
 .messages-wrapper .user-card:hover {
-  background: #f3f4f6;
+  background: var(--bg-tertiary);
   transform: scale(1.02);
 }
 
@@ -112,7 +118,9 @@
 
 .messages-wrapper .user-avatar {
   object-fit: cover;
-  border: 2px solid #e5e7eb;
+  border: 2px solid var(--border-color);
+  transition: border-color var(--transition-base);
+}
 }
 
 .messages-wrapper .user-avatar-placeholder {

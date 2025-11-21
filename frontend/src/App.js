@@ -15,15 +15,17 @@ import PostDetail from './pages/PostDetail';
 import Communities from './pages/Communities';
 import CommunityDetail from './pages/CommunityDetail';
 import PrivateRoute from './components/PrivateRoute';
+import { ThemeProvider } from './contexts/ThemeContext';
 import './App.css';
 
 function App() {
   return (
-    <Router>
-      <div className="App">
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
+    <ThemeProvider>
+      <Router>
+        <div className="App">
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
           <Route
             path="/profile-setup"
             element={
@@ -124,6 +126,7 @@ function App() {
         </Routes>
       </div>
     </Router>
+    </ThemeProvider>
   );
 }
 

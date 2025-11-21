@@ -1,20 +1,22 @@
 .community-detail-container {
   min-height: 100vh;
-  background: #f5f7fa;
+  background: var(--bg-tertiary);
   padding: 20px;
+  transition: background-color var(--transition-base);
 }
 
 .community-header-banner {
-  background: white;
+  background: var(--bg-primary);
   border-radius: 16px;
   padding: 30px;
   margin-bottom: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 8px var(--shadow-color);
+  transition: background-color var(--transition-base);
 }
 
 .btn-back {
-  background: white;
-  border: 2px solid #e5e7eb;
+  background: var(--bg-primary);
+  border: 2px solid var(--border-color);
   color: #6366f1;
   padding: 10px 20px;
   border-radius: 10px;
@@ -26,7 +28,7 @@
 }
 
 .btn-back:hover {
-  background: #f9fafb;
+  background: var(--bg-secondary);
   border-color: #6366f1;
 }
 

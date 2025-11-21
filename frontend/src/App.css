@@ -1,11 +1,12 @@
 .App {
   min-height: 100vh;
-  background: #f8f9fa;
+  background: var(--bg-secondary);
+  transition: background-color var(--transition-base);
 }
 
 /* Loading skeleton */
 .skeleton {
-  background: #e5e7eb;
+  background: var(--gray-300);
   background-size: 1000px 100%;
   animation: shimmer 2s infinite;
   border-radius: var(--border-radius-md);
@@ -43,7 +44,7 @@
 }
 
 .toast {
-  background: white;
+  background: var(--bg-primary);
   padding: 16px 20px;
   border-radius: var(--border-radius-md);
   box-shadow: var(--shadow-lg);
@@ -77,12 +78,12 @@
 .toast-title {
   font-weight: 600;
   margin: 0 0 4px 0;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .toast-message {
   margin: 0;
-  color: #666;
+  color: var(--text-secondary);
   font-size: 14px;
 }
 
