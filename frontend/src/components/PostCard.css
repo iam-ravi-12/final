@@ -13,6 +13,7 @@
 .post-card-help {
   background: #ffe5e5;
   border: 1px solid #ffcccc;
+  transition: background-color var(--transition-base), border-color var(--transition-base);
 }
 
 [data-theme="dark"] .post-card-help {
@@ -23,6 +24,7 @@
 .post-card-solved {
   background: #e5ffe5;
   border: 1px solid #ccffcc;
+  transition: background-color var(--transition-base), border-color var(--transition-base);
 }
 
 [data-theme="dark"] .post-card-solved {
@@ -48,7 +50,7 @@
 }
 
 .post-card:hover {
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 8px 30px var(--shadow-color);
   transform: translateY(-4px);
   border-color: rgba(102, 126, 234, 0.2);
 }
