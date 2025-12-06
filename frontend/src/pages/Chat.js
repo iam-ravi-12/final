@@ -181,6 +181,11 @@ const Chat = () => {
                   <div className="message-content">{message.content}</div>
                   <div className="message-time">
                     {new Date(message.createdAt).toLocaleString()}
+                    {message.senderId === currentUser?.id && (
+                      <span className={`message-status ${message.isRead ? 'read' : 'sent'}`}>
+                        {message.isRead ? '✓✓' : '✓'}
+                      </span>
+                    )}
                   </div>
                 </div>
               ))

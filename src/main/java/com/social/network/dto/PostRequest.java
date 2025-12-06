@@ -17,5 +17,7 @@ public class PostRequest {
 
     private Boolean isHelpSection = false;
     
+    private Boolean showInHome = true;
+    
     private List<String> mediaUrls;
 }
