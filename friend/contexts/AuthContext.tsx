@@ -7,7 +7,7 @@ interface AuthContextType {
   login: (username: string, password: string) => Promise<void>;
   signup: (username: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
-  updateUserProfile: (profession: string, organization: string) => Promise<void>;
+  updateUserProfile: (profession: string, organization: string, location: string) => Promise<void>;
   refreshUser: () => Promise<void>;
 }
 
@@ -47,8 +47,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(null);
   };
 
-  const updateUserProfile = async (profession: string, organization: string) => {
-    await authService.updateProfile({ profession, organization });
+  const updateUserProfile = async (profession: string, organization: string, location: string) => {
+    await authService.updateProfile({ profession, organization, location });
     // Refresh user data
     const updatedUser = await authService.getCurrentUser();
     setUser(updatedUser);

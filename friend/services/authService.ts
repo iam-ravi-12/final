@@ -15,6 +15,8 @@ export interface LoginData {
 export interface ProfileData {
   profession: string;
   organization: string;
+  location: string;
+  profilePicture?: string;
 }
 
 export interface AuthResponse {
@@ -24,16 +26,22 @@ export interface AuthResponse {
   username: string;
   email: string;
   profileCompleted: boolean;
+  name?: string;
   profession?: string;
   organization?: string;
+  location?: string;
+  profilePicture?: string;
 }
 
 export interface ProfileResponse {
   id: number;
   username: string;
   email: string;
+  name?: string;
   profession: string;
   organization: string;
+  location?: string;
+  profilePicture?: string;
   profileCompleted: boolean;
 }
 
@@ -64,6 +72,10 @@ const authService = {
       const user = JSON.parse(userStr);
       user.profession = data.profession;
       user.organization = data.organization;
+      user.location = data.location;
+      if (data.profilePicture) {
+        user.profilePicture = data.profilePicture;
+      }
       user.profileCompleted = true;
       await AsyncStorage.setItem('user', JSON.stringify(user));
     }

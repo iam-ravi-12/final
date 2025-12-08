@@ -15,18 +15,19 @@ import { useAuth } from '../contexts/AuthContext';
 export default function ProfileSetupScreen() {
   const [profession, setProfession] = useState('');
   const [organization, setOrganization] = useState('');
+  const [location, setLocation] = useState('');
   const [loading, setLoading] = useState(false);
   const { updateUserProfile } = useAuth();
 
   const handleSubmit = async () => {
-    if (!profession || !organization) {
+    if (!profession || !organization || !location) {
       Alert.alert('Error', 'Please fill in all fields');
       return;
     }
 
     setLoading(true);
     try {
-      await updateUserProfile(profession, organization);
+      await updateUserProfile(profession, organization, location);
       Alert.alert('Success', 'Profile completed successfully!');
     } catch (error: any) {
       Alert.alert('Error', error.response?.data || 'Could not update profile');
@@ -63,6 +64,15 @@ export default function ProfileSetupScreen() {
               placeholder="e.g., Tech Corp, Startup Inc"
               value={organization}
               onChangeText={setOrganization}
+              editable={!loading}
+            />
+
+            <Text style={styles.label}>Location</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="e.g., San Francisco, CA"
+              value={location}
+              onChangeText={setLocation}
               editable={!loading}
             />
 
