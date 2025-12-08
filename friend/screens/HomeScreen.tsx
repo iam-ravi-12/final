@@ -60,10 +60,24 @@ export default function HomeScreen() {
 
   const handleLike = async (postId: number) => {
     try {
+      // Optimistically update UI
+      setPosts(prevPosts =>
+        prevPosts.map(post =>
+          post.id === postId
+            ? {
+                ...post,
+                isLiked: !post.isLiked,
+                likeCount: post.isLiked ? post.likeCount - 1 : post.likeCount + 1,
+              }
+            : post
+        )
+      );
+      
       await postService.toggleLike(postId);
-      loadPosts(); // Reload to get updated like status
     } catch (error) {
       Alert.alert('Error', 'Failed to like post');
+      // Revert on error
+      loadPosts();
     }
   };
 

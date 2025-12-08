@@ -56,7 +56,7 @@ const authService = {
     return response.data;
   },
 
-  updateProfile: async (data: ProfileData): Promise<void> => {
+  updateProfile: async (data: ProfileData): Promise<string> => {
     const response = await api.post('/api/auth/profile', data);
     // Update stored user data
     const userStr = await AsyncStorage.getItem('user');

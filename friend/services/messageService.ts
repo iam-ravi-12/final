@@ -35,13 +35,13 @@ const messageService = {
     return response.data;
   },
 
-  getMessagesWithUser: async (userId: number): Promise<MessageResponse[]> => {
-    const response = await api.get(`/api/messages/with/${userId}`);
+  getMessagesWithUser: async (otherUserId: number): Promise<MessageResponse[]> => {
+    const response = await api.get(`/api/messages/with/${otherUserId}`);
     return response.data;
   },
 
-  markAsRead: async (userId: number): Promise<void> => {
-    await api.put(`/api/messages/read/${userId}`);
+  markAsRead: async (otherUserId: number): Promise<void> => {
+    await api.put(`/api/messages/read/${otherUserId}`);
   },
 };
 

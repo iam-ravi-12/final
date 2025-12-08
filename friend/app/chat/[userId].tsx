@@ -10,8 +10,9 @@ import {
   Platform,
   ActivityIndicator,
   Alert,
+  AppState,
 } from 'react-native';
-import { useLocalSearchParams, Stack } from 'expo-router';
+import { useLocalSearchParams, Stack, useFocusEffect } from 'expo-router';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import messageService, { MessageResponse } from '../../services/messageService';
 import { useAuth } from '../../contexts/AuthContext';
@@ -24,12 +25,24 @@ export default function ChatScreen() {
   const [sending, setSending] = useState(false);
   const { user } = useAuth();
   const flatListRef = useRef<FlatList>(null);
+  const pollingInterval = useRef<NodeJS.Timeout | null>(null);
 
-  useEffect(() => {
-    loadMessages();
-    const interval = setInterval(loadMessages, 5000); // Poll every 5 seconds
-    return () => clearInterval(interval);
-  }, [userId]);
+  // Load messages when screen is focused
+  useFocusEffect(
+    React.useCallback(() => {
+      loadMessages();
+      
+      // Start polling when screen is focused
+      pollingInterval.current = setInterval(loadMessages, 5000);
+      
+      // Cleanup: stop polling when screen loses focus
+      return () => {
+        if (pollingInterval.current) {
+          clearInterval(pollingInterval.current);
+        }
+      };
+    }, [userId])
+  );
 
   const loadMessages = async () => {
     try {
