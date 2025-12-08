@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,13 +6,48 @@ import {
   StyleSheet,
   ScrollView,
   Alert,
+  ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useAuth } from '../contexts/AuthContext';
 import { router } from 'expo-router';
+import authService, { ProfileResponse } from '../services/authService';
+import followService, { FollowStatsResponse } from '../services/followService';
 
 export default function ProfileScreen() {
-  const { user, logout } = useAuth();
+  const { user, logout, refreshUser } = useAuth();
+  const [profileData, setProfileData] = useState<ProfileResponse | null>(null);
+  const [followStats, setFollowStats] = useState<FollowStatsResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  useEffect(() => {
+    loadProfileData();
+  }, [user?.id]);
+
+  const loadProfileData = async () => {
+    if (!user?.id) return;
+
+    try {
+      const [profile, stats] = await Promise.all([
+        authService.getProfile(),
+        followService.getFollowStats(user.id),
+      ]);
+      setProfileData(profile);
+      setFollowStats(stats);
+    } catch (error) {
+      console.error('Failed to load profile data:', error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await Promise.all([loadProfileData(), refreshUser()]);
+  };
 
   const handleLogout = async () => {
     Alert.alert(
@@ -31,16 +66,42 @@ export default function ProfileScreen() {
     );
   };
 
+  if (loading) {
+    return (
+      <View style={styles.centerContainer}>
+        <ActivityIndicator size="large" color="#007AFF" />
+      </View>
+    );
+  }
+
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView
+      style={styles.container}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+      }
+    >
       <View style={styles.header}>
         <View style={styles.avatarLarge}>
           <Text style={styles.avatarTextLarge}>
-            {user?.username?.charAt(0).toUpperCase() || 'U'}
+            {profileData?.username?.charAt(0).toUpperCase() || user?.username?.charAt(0).toUpperCase() || 'U'}
           </Text>
         </View>
-        <Text style={styles.name}>{user?.username}</Text>
-        <Text style={styles.email}>{user?.email}</Text>
+        <Text style={styles.name}>{profileData?.username || user?.username}</Text>
+        <Text style={styles.email}>{profileData?.email || user?.email}</Text>
+
+        {/* Followers/Following Stats */}
+        <View style={styles.statsContainer}>
+          <View style={styles.statItem}>
+            <Text style={styles.statValue}>{followStats?.followersCount || 0}</Text>
+            <Text style={styles.statLabel}>Followers</Text>
+          </View>
+          <View style={styles.statDivider} />
+          <View style={styles.statItem}>
+            <Text style={styles.statValue}>{followStats?.followingCount || 0}</Text>
+            <Text style={styles.statLabel}>Following</Text>
+          </View>
+        </View>
       </View>
 
       <View style={styles.infoSection}>
@@ -49,7 +110,7 @@ export default function ProfileScreen() {
           <View style={styles.infoTextContainer}>
             <Text style={styles.infoLabel}>Profession</Text>
             <Text style={styles.infoValue}>
-              {user?.profession || 'Not set'}
+              {profileData?.profession || user?.profession || 'Not set'}
             </Text>
           </View>
         </View>
@@ -59,7 +120,7 @@ export default function ProfileScreen() {
           <View style={styles.infoTextContainer}>
             <Text style={styles.infoLabel}>Organization</Text>
             <Text style={styles.infoValue}>
-              {user?.organization || 'Not set'}
+              {profileData?.organization || user?.organization || 'Not set'}
             </Text>
           </View>
         </View>
@@ -87,6 +148,12 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#f5f5f5',
+  },
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
     backgroundColor: '#f5f5f5',
   },
   header: {
@@ -119,6 +186,31 @@ const styles = StyleSheet.create({
   email: {
     fontSize: 14,
     color: '#666',
+    marginBottom: 20,
+  },
+  statsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  statItem: {
+    alignItems: 'center',
+    paddingHorizontal: 24,
+  },
+  statValue: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  statLabel: {
+    fontSize: 13,
+    color: '#666',
+    marginTop: 4,
+  },
+  statDivider: {
+    width: 1,
+    height: 40,
+    backgroundColor: '#e0e0e0',
   },
   infoSection: {
     padding: 16,
