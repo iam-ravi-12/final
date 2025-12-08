@@ -8,6 +8,7 @@ import {
   RefreshControl,
   ActivityIndicator,
   Alert,
+  Image,
 } from 'react-native';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import postService, { PostResponse } from '../services/postService';
@@ -85,11 +86,18 @@ export default function HomeScreen() {
     <View style={styles.postCard}>
       <View style={styles.postHeader}>
         <View style={styles.userInfo}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>
-              {item.username.charAt(0).toUpperCase()}
-            </Text>
-          </View>
+          {item.userProfilePicture ? (
+            <Image
+              source={{ uri: item.userProfilePicture }}
+              style={styles.avatar}
+            />
+          ) : (
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>
+                {item.username.charAt(0).toUpperCase()}
+              </Text>
+            </View>
+          )}
           <View>
             <Text style={styles.username}>{item.username}</Text>
             <Text style={styles.profession}>{item.userProfession}</Text>

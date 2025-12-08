@@ -8,6 +8,7 @@ import {
   Alert,
   ActivityIndicator,
   RefreshControl,
+  Image,
 } from 'react-native';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useAuth } from '../contexts/AuthContext';
@@ -82,12 +83,24 @@ export default function ProfileScreen() {
       }
     >
       <View style={styles.header}>
-        <View style={styles.avatarLarge}>
-          <Text style={styles.avatarTextLarge}>
-            {profileData?.username?.charAt(0).toUpperCase() || user?.username?.charAt(0).toUpperCase() || 'U'}
-          </Text>
-        </View>
-        <Text style={styles.name}>{profileData?.username || user?.username}</Text>
+        {profileData?.profilePicture || user?.profilePicture ? (
+          <Image
+            source={{ uri: profileData?.profilePicture || user?.profilePicture }}
+            style={styles.avatarLarge}
+            defaultSource={require('../assets/images/partial-react-logo.png')}
+          />
+        ) : (
+          <View style={styles.avatarLarge}>
+            <Text style={styles.avatarTextLarge}>
+              {profileData?.name?.charAt(0).toUpperCase() || 
+               profileData?.username?.charAt(0).toUpperCase() || 
+               user?.username?.charAt(0).toUpperCase() || 'U'}
+            </Text>
+          </View>
+        )}
+        <Text style={styles.name}>
+          {profileData?.name || user?.name || profileData?.username || user?.username}
+        </Text>
         <Text style={styles.email}>{profileData?.email || user?.email}</Text>
 
         {/* Followers/Following Stats */}
@@ -130,6 +143,18 @@ export default function ProfileScreen() {
             </Text>
           </View>
         </View>
+
+        {(profileData?.location || user?.location) && (
+          <View style={styles.infoCard}>
+            <IconSymbol name="location.fill" size={24} color="#007AFF" />
+            <View style={styles.infoTextContainer}>
+              <Text style={styles.infoLabel}>Location</Text>
+              <Text style={styles.infoValue}>
+                {profileData?.location || user?.location}
+              </Text>
+            </View>
+          </View>
+        )}
       </View>
 
       <View style={styles.menuSection}>

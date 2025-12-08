@@ -16,6 +16,7 @@ export interface PostResponse {
   userId: number;
   username: string;
   userProfession: string;
+  userProfilePicture?: string;
   likeCount: number;
   commentCount: number;
   isLiked: boolean;
@@ -28,6 +29,7 @@ export interface CommentResponse {
   content: string;
   userId: number;
   username: string;
+  userProfilePicture?: string;
   createdAt: string;
 }
 
