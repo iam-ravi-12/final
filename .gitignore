@@ -47,3 +47,14 @@ frontend/.env.production.local
 frontend/npm-debug.log*
 frontend/yarn-debug.log*
 frontend/yarn-error.log*
+
+### Friend App ###
+friend/node_modules/
+friend/build/
+friend/.env.local
+friend/.env.development.local
+friend/.env.test.local
+friend/.env.production.local
+friend/npm-debug.log*
+friend/yarn-debug.log*
+friend/yarn-error.log*
