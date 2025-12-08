@@ -35,7 +35,9 @@ const Login = () => {
       }
       navigate('/');
     } catch (err) {
-      setError(err.response?.data || 'An error occurred');
+      const errorMessage = err.response?.data?.message || err.response?.data || 
+        (isLogin ? 'Invalid username or password' : 'Failed to create account. Username or email may already exist.');
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

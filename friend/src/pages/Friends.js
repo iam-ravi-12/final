@@ -56,7 +56,8 @@ const Friends = () => {
       await followService.acceptFollowRequest(followId);
       await loadData();
     } catch (err) {
-      setError('Failed to accept request');
+      const errorMessage = err.response?.data?.message || err.response?.data || 'Failed to accept request';
+      setError(errorMessage);
       console.error('Error accepting request:', err);
     } finally {
       setActionLoading(null);
@@ -69,7 +70,8 @@ const Friends = () => {
       await followService.rejectFollowRequest(followId);
       await loadData();
     } catch (err) {
-      setError('Failed to reject request');
+      const errorMessage = err.response?.data?.message || err.response?.data || 'Failed to reject request';
+      setError(errorMessage);
       console.error('Error rejecting request:', err);
     } finally {
       setActionLoading(null);
@@ -82,7 +84,8 @@ const Friends = () => {
       await followService.unfollow(userId);
       await loadData();
     } catch (err) {
-      setError('Failed to unfollow');
+      const errorMessage = err.response?.data?.message || err.response?.data || 'Failed to unfollow';
+      setError(errorMessage);
       console.error('Error unfollowing:', err);
     } finally {
       setActionLoading(null);
@@ -113,6 +116,7 @@ const Friends = () => {
       <div className="user-actions">
         {type === 'pending' && (
           <>
+            {/* user.id here is the follow request ID, not the user ID */}
             <button
               className="btn-accept"
               onClick={() => handleAccept(user.id)}
