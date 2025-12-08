@@ -42,7 +42,21 @@ export default function SignupScreen() {
       await signup(username, email, password);
       // Navigation will be handled by the root layout
     } catch (error: any) {
-      Alert.alert('Signup Failed', error.response?.data || 'Could not create account');
+      console.error('Signup error:', error);
+      let errorMessage = 'Could not create account';
+      
+      if (error.response) {
+        // Server responded with error
+        errorMessage = error.response.data?.message || error.response.data || errorMessage;
+      } else if (error.request) {
+        // Request made but no response
+        errorMessage = 'Cannot connect to server. Please check:\n1. Backend is running on port 8080\n2. API URL is correct in .env file\n3. Network connection';
+      } else {
+        // Other error
+        errorMessage = error.message || errorMessage;
+      }
+      
+      Alert.alert('Signup Failed', errorMessage);
     } finally {
       setLoading(false);
     }
