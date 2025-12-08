@@ -92,15 +92,21 @@ export default function ProfileScreen() {
 
         {/* Followers/Following Stats */}
         <View style={styles.statsContainer}>
-          <View style={styles.statItem}>
+          <TouchableOpacity
+            style={styles.statItem}
+            onPress={() => router.push(`/follows/${user?.id}?type=followers`)}
+          >
             <Text style={styles.statValue}>{followStats?.followersCount || 0}</Text>
             <Text style={styles.statLabel}>Followers</Text>
-          </View>
+          </TouchableOpacity>
           <View style={styles.statDivider} />
-          <View style={styles.statItem}>
+          <TouchableOpacity
+            style={styles.statItem}
+            onPress={() => router.push(`/follows/${user?.id}?type=following`)}
+          >
             <Text style={styles.statValue}>{followStats?.followingCount || 0}</Text>
             <Text style={styles.statLabel}>Following</Text>
-          </View>
+          </TouchableOpacity>
         </View>
       </View>
 
