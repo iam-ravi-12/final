@@ -158,6 +158,14 @@ export default function PostDetailScreen() {
 
           <Text style={styles.timestamp}>{formatDate(post.createdAt)}</Text>
           <Text style={styles.postContent}>{post.content}</Text>
+          
+          {post.mediaUrl && (
+            <Image
+              source={{ uri: post.mediaUrl }}
+              style={styles.postImage}
+              resizeMode="cover"
+            />
+          )}
 
           <View style={styles.postActions}>
             <TouchableOpacity
@@ -342,6 +350,12 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 22,
     color: '#000',
+    marginBottom: 16,
+  },
+  postImage: {
+    width: '100%',
+    height: 250,
+    borderRadius: 8,
     marginBottom: 16,
   },
   postActions: {

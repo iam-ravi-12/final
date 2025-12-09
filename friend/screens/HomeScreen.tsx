@@ -217,6 +217,14 @@ export default function HomeScreen() {
         activeOpacity={0.7}
       >
         <Text style={styles.postContent}>{item.content}</Text>
+        
+        {item.mediaUrl && (
+          <Image
+            source={{ uri: item.mediaUrl }}
+            style={styles.postImage}
+            resizeMode="cover"
+          />
+        )}
       </TouchableOpacity>
 
       <View style={styles.postActions}>
@@ -469,6 +477,13 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#333',
     lineHeight: 22,
+    marginBottom: 12,
+  },
+  postImage: {
+    width: '100%',
+    height: 250,
+    borderRadius: 8,
+    marginTop: 8,
     marginBottom: 12,
   },
   postActions: {

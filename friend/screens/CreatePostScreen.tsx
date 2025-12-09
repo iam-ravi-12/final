@@ -10,14 +10,51 @@ import {
   Platform,
   ScrollView,
   Switch,
+  Image,
+  ActivityIndicator,
 } from 'react-native';
 import { router } from 'expo-router';
+import * as ImagePicker from 'expo-image-picker';
+import { Ionicons } from '@expo/vector-icons';
 import postService from '../services/postService';
 
 export default function CreatePostScreen() {
   const [content, setContent] = useState('');
   const [isHelpSection, setIsHelpSection] = useState(false);
+  const [imageUri, setImageUri] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+
+  const pickImage = async () => {
+    try {
+      // Request permission
+      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      
+      if (!permissionResult.granted) {
+        Alert.alert('Permission Required', 'Please grant camera roll permission to upload images.');
+        return;
+      }
+
+      // Launch image picker
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        setImageUri(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error('Error picking image:', error);
+      Alert.alert('Error', 'Failed to pick image');
+    }
+  };
+
+  const removeImage = () => {
+    setImageUri(null);
+  };
 
   const handleSubmit = async () => {
     if (!content.trim()) {
@@ -27,7 +64,15 @@ export default function CreatePostScreen() {
 
     setLoading(true);
     try {
-      await postService.createPost({ content, isHelpSection });
+      // For now, we'll use the image URI directly as mediaUrl
+      // In a real app, you would upload the image to a server first
+      const postData = {
+        content,
+        isHelpSection,
+        mediaUrl: imageUri || undefined,
+      };
+      
+      await postService.createPost(postData);
       Alert.alert('Success', 'Post created successfully!');
       router.back();
     } catch (error: any) {
@@ -70,6 +115,30 @@ export default function CreatePostScreen() {
           textAlignVertical="top"
           editable={!loading}
         />
+
+        {imageUri && (
+          <View style={styles.imageContainer}>
+            <Image source={{ uri: imageUri }} style={styles.image} />
+            <TouchableOpacity
+              style={styles.removeImageButton}
+              onPress={removeImage}
+              disabled={loading}
+            >
+              <Ionicons name="close-circle" size={28} color="#fff" />
+            </TouchableOpacity>
+          </View>
+        )}
+
+        <TouchableOpacity
+          style={styles.addPhotoButton}
+          onPress={pickImage}
+          disabled={loading || uploadingImage}
+        >
+          <Ionicons name="image-outline" size={24} color="#007AFF" />
+          <Text style={styles.addPhotoText}>
+            {imageUri ? 'Change Photo' : 'Add Photo'}
+          </Text>
+        </TouchableOpacity>
 
         <View style={styles.option}>
           <View>
@@ -130,6 +199,42 @@ const styles = StyleSheet.create({
     minHeight: 200,
     borderBottomWidth: 1,
     borderBottomColor: '#e0e0e0',
+  },
+  imageContainer: {
+    position: 'relative',
+    backgroundColor: '#fff',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+  },
+  image: {
+    width: '100%',
+    height: 250,
+    borderRadius: 12,
+    resizeMode: 'cover',
+  },
+  removeImageButton: {
+    position: 'absolute',
+    top: 24,
+    right: 24,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    borderRadius: 14,
+  },
+  addPhotoButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#fff',
+    padding: 16,
+    marginTop: 12,
+    borderRadius: 8,
+    marginHorizontal: 12,
+  },
+  addPhotoText: {
+    fontSize: 16,
+    color: '#007AFF',
+    marginLeft: 8,
+    fontWeight: '500',
   },
   option: {
     flexDirection: 'row',
