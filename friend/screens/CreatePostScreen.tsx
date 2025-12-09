@@ -64,19 +64,32 @@ export default function CreatePostScreen() {
 
     setLoading(true);
     try {
-      // For now, we'll use the image URI directly as mediaUrl
-      // In a real app, you would upload the image to a server first
+      let mediaUrl = undefined;
+      
+      // If there's an image, convert it to base64 or upload it
+      if (imageUri) {
+        // For local file URIs, we need to convert to a format the backend can handle
+        // Since the backend expects a URL string, we'll use the imageUri as-is
+        // Note: This will only work if the backend is updated to handle file uploads
+        // or if you provide public URLs for images
+        mediaUrl = imageUri;
+      }
+      
       const postData = {
         content,
         isHelpSection,
-        mediaUrl: imageUri || undefined,
+        mediaUrl,
       };
       
       await postService.createPost(postData);
       Alert.alert('Success', 'Post created successfully!');
+      setContent('');
+      setImageUri(null);
+      setIsHelpSection(false);
       router.back();
     } catch (error: any) {
-      Alert.alert('Error', error.response?.data || 'Failed to create post');
+      console.error('Error creating post:', error);
+      Alert.alert('Error', error.response?.data?.message || error.message || 'Failed to create post');
     } finally {
       setLoading(false);
     }
