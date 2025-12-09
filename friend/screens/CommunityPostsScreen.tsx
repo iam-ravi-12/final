@@ -66,7 +66,11 @@ export default function CommunityPostsScreen() {
     const initial = item.username.charAt(0).toUpperCase();
 
     return (
-      <View style={styles.postCard}>
+      <TouchableOpacity 
+        style={styles.postCard}
+        onPress={() => router.push(`/post/${item.id}`)}
+        activeOpacity={0.7}
+      >
         <View style={styles.postHeader}>
           {item.userProfilePicture ? (
             <Image source={{ uri: item.userProfilePicture }} style={styles.profilePic} />
@@ -100,7 +104,7 @@ export default function CommunityPostsScreen() {
             ))}
           </View>
         )}
-      </View>
+      </TouchableOpacity>
     );
   };
 

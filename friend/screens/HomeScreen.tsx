@@ -110,7 +110,12 @@ export default function HomeScreen() {
         )}
       </View>
 
-      <Text style={styles.postContent}>{item.content}</Text>
+      <TouchableOpacity
+        onPress={() => router.push(`/post/${item.id}`)}
+        activeOpacity={0.7}
+      >
+        <Text style={styles.postContent}>{item.content}</Text>
+      </TouchableOpacity>
 
       <View style={styles.postActions}>
         <TouchableOpacity
