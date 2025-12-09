@@ -9,6 +9,8 @@ import {
   ActivityIndicator,
   Alert,
   Image,
+  Modal,
+  Pressable,
 } from 'react-native';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import postService, { PostResponse } from '../services/postService';
@@ -22,6 +24,7 @@ export default function HomeScreen() {
   const [posts, setPosts] = useState<PostResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [menuVisible, setMenuVisible] = useState<number | null>(null);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -82,6 +85,52 @@ export default function HomeScreen() {
     }
   };
 
+  const formatTimeAgo = (dateString: string): string => {
+    const now = new Date();
+    const postDate = new Date(dateString);
+    const diffInMs = now.getTime() - postDate.getTime();
+    const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
+    const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
+    const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+
+    if (diffInMinutes < 1) return 'just now';
+    if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+    if (diffInHours < 24) return `${diffInHours}h ago`;
+    if (diffInDays < 7) return `${diffInDays}d ago`;
+    
+    return postDate.toLocaleDateString();
+  };
+
+  const handleDeletePost = async (postId: number) => {
+    Alert.alert(
+      'Delete Post',
+      'Are you sure you want to delete this post?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await postService.deletePost(postId);
+              setPosts(prevPosts => prevPosts.filter(post => post.id !== postId));
+              setMenuVisible(null);
+              Alert.alert('Success', 'Post deleted successfully');
+            } catch (error) {
+              Alert.alert('Error', 'Failed to delete post');
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleEditPost = (postId: number) => {
+    setMenuVisible(null);
+    // Navigate to edit post screen (you can implement this later)
+    Alert.alert('Edit Post', 'Edit functionality will be implemented');
+  };
+
   const renderPost = ({ item }: { item: PostResponse }) => (
     <View style={styles.postCard}>
       <View style={styles.postHeader}>
@@ -98,17 +147,65 @@ export default function HomeScreen() {
               </Text>
             </View>
           )}
-          <View>
+          <View style={styles.userInfoText}>
             <Text style={styles.username}>{item.username}</Text>
             <Text style={styles.profession}>{item.userProfession}</Text>
           </View>
         </View>
+        
+        <View style={styles.postHeaderRight}>
+          <Text style={styles.timestamp}>{formatTimeAgo(item.createdAt)}</Text>
+          {user?.userId === item.userId && (
+            <TouchableOpacity
+              onPress={() => setMenuVisible(menuVisible === item.id ? null : item.id)}
+              style={styles.menuButton}
+            >
+              <IconSymbol name="ellipsis" size={20} color="#666" />
+            </TouchableOpacity>
+          )}
+        </View>
+
         {item.isHelpSection && (
           <View style={styles.helpBadge}>
             <Text style={styles.helpBadgeText}>Help</Text>
           </View>
         )}
       </View>
+
+      {/* Menu Modal */}
+      {menuVisible === item.id && (
+        <Modal
+          transparent
+          visible={menuVisible === item.id}
+          animationType="fade"
+          onRequestClose={() => setMenuVisible(null)}
+        >
+          <Pressable
+            style={styles.menuOverlay}
+            onPress={() => setMenuVisible(null)}
+          >
+            <View style={styles.menuContainer}>
+              <TouchableOpacity
+                style={styles.menuItem}
+                onPress={() => handleEditPost(item.id)}
+              >
+                <IconSymbol name="pencil" size={20} color="#007AFF" />
+                <Text style={styles.menuItemText}>Edit Post</Text>
+              </TouchableOpacity>
+              <View style={styles.menuDivider} />
+              <TouchableOpacity
+                style={styles.menuItem}
+                onPress={() => handleDeletePost(item.id)}
+              >
+                <IconSymbol name="trash" size={20} color="#FF3B30" />
+                <Text style={[styles.menuItemText, { color: '#FF3B30' }]}>
+                  Delete Post
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </Pressable>
+        </Modal>
+      )}
 
       <TouchableOpacity
         onPress={() => router.push(`/post/${item.id}`)}
@@ -296,6 +393,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flex: 1,
   },
+  userInfoText: {
+    flex: 1,
+  },
+  postHeaderRight: {
+    alignItems: 'flex-end',
+    gap: 4,
+  },
+  timestamp: {
+    fontSize: 12,
+    color: '#999',
+    marginBottom: 4,
+  },
+  menuButton: {
+    padding: 4,
+  },
   avatar: {
     width: 40,
     height: 40,
@@ -378,5 +490,35 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 8,
+  },
+  menuOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  menuContainer: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    width: 200,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    gap: 12,
+  },
+  menuItemText: {
+    fontSize: 16,
+    color: '#333',
+  },
+  menuDivider: {
+    height: 1,
+    backgroundColor: '#e0e0e0',
   },
 });
