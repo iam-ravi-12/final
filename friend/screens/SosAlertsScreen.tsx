@@ -157,14 +157,20 @@ const SosAlertsScreen = () => {
 
   const handleOpenMaps = (url: string) => {
     Linking.openURL(url).catch(err => {
-      Alert.alert('Error', 'Failed to open maps');
+      Alert.alert(
+        'Unable to Open Maps', 
+        'Could not open Google Maps. Please check if the app is installed or try opening the location manually.'
+      );
       console.error('Failed to open maps:', err);
     });
   };
 
   const handleCallEmergency = (phoneNumber: string) => {
     Linking.openURL(`tel:${phoneNumber}`).catch(err => {
-      Alert.alert('Error', 'Failed to make call');
+      Alert.alert(
+        'Unable to Make Call', 
+        `Could not initiate the call. Please dial manually: ${phoneNumber}`
+      );
       console.error('Failed to make call:', err);
     });
   };
