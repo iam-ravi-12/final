@@ -244,7 +244,9 @@ export default function PostDetailScreen() {
           {submitting ? (
             <ActivityIndicator size="small" color="#fff" />
           ) : (
-            <IconSymbol name="arrow.up.circle.fill" size={32} color="#007AFF" />
+            <View style={styles.sendIconContainer}>
+              <IconSymbol name="paperplane.fill" size={18} color="#fff" />
+            </View>
           )}
         </TouchableOpacity>
       </View>
@@ -446,8 +448,18 @@ const styles = StyleSheet.create({
   sendButton: {
     justifyContent: 'center',
     alignItems: 'center',
+    width: 40,
+    height: 40,
   },
   sendButtonDisabled: {
     opacity: 0.5,
+  },
+  sendIconContainer: {
+    backgroundColor: '#007AFF',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
