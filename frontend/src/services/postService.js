@@ -1,8 +1,8 @@
 import api from './api';
 
 export const postService = {
-  createPost: async (content, isHelpSection, mediaUrls = []) => {
-    const response = await api.post('/posts', { content, isHelpSection, mediaUrls });
+  createPost: async (content, isHelpSection, mediaUrls = [], showInHome = true) => {
+    const response = await api.post('/posts', { content, isHelpSection, mediaUrls, showInHome });
     return response.data;
   },
 
@@ -43,6 +43,21 @@ export const postService = {
 
   getComments: async (postId) => {
     const response = await api.get(`/posts/${postId}/comments`);
+    return response.data;
+  },
+
+  markAsSolved: async (postId) => {
+    const response = await api.post(`/posts/${postId}/mark-solved`);
+    return response.data;
+  },
+
+  updatePost: async (postId, content, isHelpSection, mediaUrls = [], showInHome = true) => {
+    const response = await api.put(`/posts/${postId}`, { content, isHelpSection, mediaUrls, showInHome });
+    return response.data;
+  },
+
+  deletePost: async (postId) => {
+    const response = await api.delete(`/posts/${postId}`);
     return response.data;
   },
 };

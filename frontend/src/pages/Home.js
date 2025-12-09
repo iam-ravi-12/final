@@ -4,10 +4,12 @@ import { authService } from '../services/authService';
 import { postService } from '../services/postService';
 import PostCard from '../components/PostCard';
 import CreatePost from '../components/CreatePost';
+import { useTheme } from '../contexts/ThemeContext';
 import './Home.css';
 
 const Home = () => {
   const navigate = useNavigate();
+  const { theme, toggleTheme } = useTheme();
   const [activeTab, setActiveTab] = useState('all');
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -104,6 +106,10 @@ const Home = () => {
     navigate('/profile');
   };
 
+  const handleGoToCommunities = () => {
+    navigate('/communities');
+  };
+
   const handlePostCreated = () => {
     setShowCreatePost(false);
     reloadPosts();
@@ -140,6 +146,10 @@ const Home = () => {
             <span className="nav-icon">🆘</span>
             <span className="nav-label">Help</span>
           </button>
+          <button className="nav-item" onClick={handleGoToCommunities}>
+            <span className="nav-icon">👥</span>
+            <span className="nav-label">Communities</span>
+          </button>
           <button className="nav-item" onClick={handleGoToMessages}>
             <span className="nav-icon">💬</span>
             <span className="nav-label">Messages</span>
@@ -164,6 +174,10 @@ const Home = () => {
               <div className="user-profession">{user?.profession || 'Professional'}</div>
             </div>
           </div>
+          <button onClick={toggleTheme} className="btn-theme-toggle">
+            <span>{theme === 'light' ? '🌙' : '☀️'}</span>
+            {theme === 'light' ? 'Dark Mode' : 'Light Mode'}
+          </button>
           <button onClick={handleLogout} className="btn-logout-sidebar">
             <span>🚪</span> Logout
           </button>

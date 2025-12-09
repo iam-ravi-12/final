@@ -12,8 +12,17 @@ const PostCard = ({ post, onPostUpdate }) => {
   const [isLiked, setIsLiked] = useState(post.likedByCurrentUser);
   const [likeCount, setLikeCount] = useState(post.likeCount);
   const [isLiking, setIsLiking] = useState(false);
+  const [isSolved, setIsSolved] = useState(post.isSolved || false);
+  const [isMarkingSolved, setIsMarkingSolved] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editContent, setEditContent] = useState(post.content);
+  const [isEditing, setIsEditing] = useState(false);
 
-  const handleProfileClick = () => {
+  const isOwnPost = post.userId === currentUser?.id;
+
+  const handleProfileClick = (e) => {
+    e.stopPropagation();
     // Don't allow messaging yourself
     if (post.userId === currentUser?.id) {
       return;
@@ -76,8 +85,97 @@ const PostCard = ({ post, onPostUpdate }) => {
     navigate(`/post/${post.id}`);
   };
 
+  const handleMarkSolved = async (e) => {
+    e.stopPropagation();
+    if (isMarkingSolved) return;
+
+    setIsMarkingSolved(true);
+    try {
+      await postService.markAsSolved(post.id);
+      setIsSolved(!isSolved);
+      if (onPostUpdate) onPostUpdate();
+    } catch (error) {
+      console.error('Error marking as solved:', error);
+    } finally {
+      setIsMarkingSolved(false);
+    }
+  };
+
+  const handleMenuToggle = (e) => {
+    e.stopPropagation();
+    setShowMenu(!showMenu);
+  };
+
+  const handleEdit = (e) => {
+    e.stopPropagation();
+    setShowMenu(false);
+    setShowEditModal(true);
+  };
+
+  const handleDelete = async (e) => {
+    e.stopPropagation();
+    setShowMenu(false);
+    if (window.confirm('Are you sure you want to delete this post?')) {
+      try {
+        await postService.deletePost(post.id);
+        if (onPostUpdate) onPostUpdate();
+      } catch (error) {
+        console.error('Error deleting post:', error);
+        alert('Failed to delete post. Please try again.');
+      }
+    }
+  };
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!editContent.trim()) {
+      alert('Post content cannot be empty');
+      return;
+    }
+
+    setIsEditing(true);
+    try {
+      await postService.updatePost(
+        post.id,
+        editContent,
+        post.isHelpSection,
+        post.mediaUrls || [],
+        post.showInHome
+      );
+      setShowEditModal(false);
+      if (onPostUpdate) onPostUpdate();
+    } catch (error) {
+      console.error('Error updating post:', error);
+      alert('Failed to update post. Please try again.');
+    } finally {
+      setIsEditing(false);
+    }
+  };
+
+  const handleCancelEdit = (e) => {
+    e.stopPropagation();
+    setEditContent(post.content);
+    setShowEditModal(false);
+  };
+
+  // Determine post background color based on help request status
+  const getPostCardClass = () => {
+    if (post.isHelpSection) {
+      if (isSolved) {
+        return 'post-card post-card-solved';
+      }
+      return 'post-card post-card-help';
+    }
+    return 'post-card';
+  };
+
+  const handlePostClick = () => {
+    navigate(`/post/${post.id}`);
+  };
+
   return (
-    <div className="post-card">
+    <div className={getPostCardClass()} onClick={handlePostClick} style={{ cursor: 'pointer' }}>
       <div className="post-header">
         <div className="post-user-info">
           <div 
@@ -97,8 +195,32 @@ const PostCard = ({ post, onPostUpdate }) => {
             <p className="post-profession">{post.userProfession}</p>
           </div>
         </div>
-        <div className="post-time">
-          {formatDate(post.createdAt)}
+        <div className="post-right-section">
+          <div className="post-time">
+            {formatDate(post.createdAt)}
+          </div>
+          {isOwnPost && (
+            <div className="post-menu-container">
+              <button className="post-menu-btn" onClick={handleMenuToggle}>
+                ⋮
+              </button>
+              {showMenu && (
+                <div className="post-menu-dropdown">
+                  <button className="post-menu-item" onClick={handleEdit}>
+                    ✏️ Edit
+                  </button>
+                  <button className="post-menu-item delete" onClick={handleDelete}>
+                    🗑️ Delete
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+          {post.isHelpSection && (
+            <div className="help-status-badge">
+              {isSolved ? '✅ Solved' : '🆘 Help Request'}
+            </div>
+          )}
         </div>
       </div>
       
@@ -122,12 +244,6 @@ const PostCard = ({ post, onPostUpdate }) => {
           })}
         </div>
       )}
-      
-      {post.isHelpSection && (
-        <div className="post-badge">
-          <span className="help-badge">Help Request</span>
-        </div>
-      )}
 
       <div className="post-actions">
         <button 
@@ -145,7 +261,52 @@ const PostCard = ({ post, onPostUpdate }) => {
           <span className="action-icon">💬</span>
           <span className="action-count">{post.commentCount}</span>
         </button>
+        {post.isHelpSection && isOwnPost && (
+          <button 
+            className={`action-btn solve-btn ${isSolved ? 'solved' : ''}`}
+            onClick={handleMarkSolved}
+            disabled={isMarkingSolved}
+          >
+            <span className="action-icon">{isSolved ? '✅' : '✓'}</span>
+            <span className="action-text">{isSolved ? 'Solved' : 'Mark as Solved'}</span>
+          </button>
+        )}
       </div>
+
+      {showEditModal && (
+        <div className="edit-modal-overlay" onClick={handleCancelEdit}>
+          <div className="edit-modal" onClick={(e) => e.stopPropagation()}>
+            <h3>Edit Post</h3>
+            <form onSubmit={handleEditSubmit}>
+              <textarea
+                className="edit-textarea"
+                value={editContent}
+                onChange={(e) => setEditContent(e.target.value)}
+                rows="5"
+                disabled={isEditing}
+                required
+              />
+              <div className="edit-modal-actions">
+                <button
+                  type="button"
+                  className="btn-cancel"
+                  onClick={handleCancelEdit}
+                  disabled={isEditing}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="btn-save"
+                  disabled={isEditing}
+                >
+                  {isEditing ? 'Saving...' : 'Save'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

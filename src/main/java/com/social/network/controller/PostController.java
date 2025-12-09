@@ -136,5 +136,45 @@ public class PostController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+    @PostMapping("/{postId}/mark-solved")
+    public ResponseEntity<?> markAsSolved(
+            @PathVariable Long postId,
+            Authentication authentication) {
+        try {
+            String username = authentication.getName();
+            postService.markAsSolved(postId, username);
+            return ResponseEntity.ok("Post marked as solved");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PutMapping("/{postId}")
+    public ResponseEntity<?> updatePost(
+            @PathVariable Long postId,
+            Authentication authentication,
+            @Valid @RequestBody PostRequest postRequest) {
+        try {
+            String username = authentication.getName();
+            PostResponse response = postService.updatePost(postId, username, postRequest);
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/{postId}")
+    public ResponseEntity<?> deletePost(
+            @PathVariable Long postId,
+            Authentication authentication) {
+        try {
+            String username = authentication.getName();
+            postService.deletePost(postId, username);
+            return ResponseEntity.ok("Post deleted successfully");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 }
 

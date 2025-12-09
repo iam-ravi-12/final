@@ -14,6 +14,8 @@ public class PostResponse {
     private Long id;
     private String content;
     private Boolean isHelpSection;
+    private Boolean isSolved;
+    private Boolean showInHome;
     private List<String> mediaUrls;
     private Long userId;
     private String username;

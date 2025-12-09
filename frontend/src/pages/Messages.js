@@ -134,64 +134,55 @@ const Messages = () => {
   };
 
   return (
-    <div className="messages-container">
-      <header className="messages-header">
-        <div className="header-content">
-          <h1>Messages</h1>
-          <div className="user-info">
-            <button onClick={handleBackToHome} className="btn-back">
-              Back to Home
-            </button>
-            <button onClick={handleGoToProfile} className="btn-profile">
-              👤 Profile
-            </button>
-            {profilePicture ? (
-              <img src={profilePicture} alt="Profile" className="navbar-profile-pic" onClick={handleGoToProfile} />
-            ) : (
-              <div className="navbar-profile-placeholder" onClick={handleGoToProfile}>
-                {currentUser?.username?.charAt(0).toUpperCase()}
-              </div>
-            )}
-            <span className="username">{currentUser?.username}</span>
-            <button onClick={handleLogout} className="btn-logout">
-              Logout
-            </button>
-          </div>
+    <div className="messages-wrapper">
+      {/* Sidebar with Conversations */}
+      <aside className="sidebar messages-sidebar">
+        <div className="sidebar-header">
+          <h1 className="app-logo">Friends</h1>
+          <h2 style={{fontSize: '12px', color: '#9ca3af', marginTop: '4px', marginBottom: 0}}>A social Network</h2>
         </div>
-      </header>
+        
+        <nav className="sidebar-nav">
+          <button className="nav-item" onClick={handleBackToHome}>
+            <span className="nav-icon">🏠</span>
+            <span className="nav-label">Back to Home</span>
+          </button>
+          <button className="nav-item" onClick={handleGoToProfile}>
+            <span className="nav-icon">👤</span>
+            <span className="nav-label">Profile</span>
+          </button>
+        </nav>
 
-      <div className="messages-content">
-        <div className="conversations-panel">
-          <h2>Conversations</h2>
+        {/* Conversations Section in Sidebar */}
+        <div className="sidebar-conversations">
+          <h3 className="conversations-title">Messages</h3>
           {conversations.length === 0 ? (
-            <div className="no-conversations">
-              <p>No conversations yet</p>
-              <p className="hint">Click on a user's profile picture from a post to start chatting!</p>
+            <div className="no-conversations-sidebar">
+              <p>No messages yet</p>
             </div>
           ) : (
-            <div className="conversations-list">
+            <div className="conversations-list-sidebar">
               {conversations.map((conversation) => (
                 <div
                   key={conversation.userId}
-                  className={`conversation-item ${
+                  className={`conversation-item-sidebar ${
                     selectedUser?.userId === conversation.userId ? 'active' : ''
                   }`}
                   onClick={() => handleSelectConversation(conversation)}
                 >
-                  <div className="conversation-avatar">
+                  <div className="conversation-avatar-sidebar">
                     {conversation.username.charAt(0).toUpperCase()}
                   </div>
-                  <div className="conversation-info">
-                    <div className="conversation-header">
-                      <span className="conversation-username">{conversation.username}</span>
+                  <div className="conversation-info-sidebar">
+                    <div className="conversation-name-sidebar">
+                      {conversation.username}
                       {conversation.unreadCount > 0 && (
-                        <span className="unread-badge">{conversation.unreadCount}</span>
+                        <span className="unread-badge-sidebar">{conversation.unreadCount}</span>
                       )}
                     </div>
-                    <p className="conversation-profession">{conversation.profession}</p>
-                    <p className="conversation-last-message">
-                      {conversation.lastMessage?.substring(0, 50)}
-                      {conversation.lastMessage?.length > 50 ? '...' : ''}
+                    <p className="conversation-preview-sidebar">
+                      {conversation.lastMessage?.substring(0, 30)}
+                      {conversation.lastMessage?.length > 30 ? '...' : ''}
                     </p>
                   </div>
                 </div>
@@ -200,7 +191,29 @@ const Messages = () => {
           )}
         </div>
 
-        <div className="chat-panel">
+        <div className="sidebar-footer">
+          <div className="user-card" onClick={handleGoToProfile}>
+            {profilePicture ? (
+              <img src={profilePicture} alt="Profile" className="user-avatar" />
+            ) : (
+              <div className="user-avatar-placeholder">
+                {currentUser?.username?.charAt(0).toUpperCase()}
+              </div>
+            )}
+            <div className="user-details">
+              <div className="user-name">{currentUser?.username}</div>
+              <div className="user-profession">{currentUser?.profession || 'Professional'}</div>
+            </div>
+          </div>
+          <button onClick={handleLogout} className="btn-logout-sidebar">
+            <span>🚪</span> Logout
+          </button>
+        </div>
+      </aside>
+
+      {/* Main Chat Area */}
+      <div className="messages-main-content">
+        <div className="chat-panel-full">
           {selectedUser ? (
             <>
               <div className="chat-header">
@@ -259,8 +272,8 @@ const Messages = () => {
               </form>
             </>
           ) : (
-            <div className="no-chat-selected">
-              <p>Select a conversation to start chatting</p>
+            <div className="no-chat-selected-full">
+              <p>Select a conversation from the sidebar to start chatting</p>
             </div>
           )}
         </div>

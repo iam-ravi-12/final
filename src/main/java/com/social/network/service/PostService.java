@@ -40,6 +40,7 @@ public class PostService {
         Post post = new Post();
         post.setContent(postRequest.getContent());
         post.setIsHelpSection(postRequest.getIsHelpSection());
+        post.setShowInHome(postRequest.getShowInHome());
         post.setUser(user);
         post.setUserProfession(user.getProfession());
         
@@ -55,7 +56,7 @@ public class PostService {
     }
 
     public List<PostResponse> getAllPosts() {
-        return postRepository.findAllByOrderByCreatedAtDesc()
+        return postRepository.findByShowInHomeTrueOrderByCreatedAtDesc()
                 .stream()
                 .map(post -> convertToResponse(post, null))
                 .collect(Collectors.toList());
@@ -64,7 +65,7 @@ public class PostService {
     public List<PostResponse> getAllPostsForUser(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        return postRepository.findAllByOrderByCreatedAtDesc()
+        return postRepository.findByShowInHomeTrueOrderByCreatedAtDesc()
                 .stream()
                 .map(post -> convertToResponse(post, user))
                 .collect(Collectors.toList());
@@ -80,6 +81,7 @@ public class PostService {
 
         return postRepository.findByUserProfessionOrderByCreatedAtDesc(user.getProfession())
                 .stream()
+                .filter(post -> post.getIsHelpSection() == null || !post.getIsHelpSection()) // Exclude help posts
                 .map(post -> convertToResponse(post, user))
                 .collect(Collectors.toList());
     }
@@ -135,11 +137,73 @@ public class PostService {
                 .collect(Collectors.toList());
     }
 
+    public void markAsSolved(Long postId, String username) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new RuntimeException("Post not found"));
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Only the post author can mark as solved
+        if (!post.getUser().getId().equals(user.getId())) {
+            throw new RuntimeException("Only post author can mark as solved");
+        }
+
+        // Only help section posts can be marked as solved
+        if (post.getIsHelpSection() == null || !post.getIsHelpSection()) {
+            throw new RuntimeException("Only help request posts can be marked as solved");
+        }
+
+        post.setIsSolved(!post.getIsSolved()); // Toggle solved status
+        postRepository.save(post);
+    }
+
+    public PostResponse updatePost(Long postId, String username, PostRequest postRequest) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new RuntimeException("Post not found"));
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Only the post author can update
+        if (!post.getUser().getId().equals(user.getId())) {
+            throw new RuntimeException("You can only update your own posts");
+        }
+
+        post.setContent(postRequest.getContent());
+        post.setIsHelpSection(postRequest.getIsHelpSection());
+        post.setShowInHome(postRequest.getShowInHome());
+        
+        // Handle media URLs
+        if (postRequest.getMediaUrls() != null && !postRequest.getMediaUrls().isEmpty()) {
+            post.setMediaUrls(String.join("|||MEDIA_SEPARATOR|||", postRequest.getMediaUrls()));
+        } else {
+            post.setMediaUrls(null);
+        }
+
+        Post updatedPost = postRepository.save(post);
+        return convertToResponse(updatedPost, user);
+    }
+
+    public void deletePost(Long postId, String username) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new RuntimeException("Post not found"));
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Only the post author can delete
+        if (!post.getUser().getId().equals(user.getId())) {
+            throw new RuntimeException("You can only delete your own posts");
+        }
+
+        postRepository.delete(post);
+    }
+
     private PostResponse convertToResponse(Post post, User currentUser) {
         PostResponse response = new PostResponse();
         response.setId(post.getId());
         response.setContent(post.getContent());
         response.setIsHelpSection(post.getIsHelpSection());
+        response.setIsSolved(post.getIsSolved());
+        response.setShowInHome(post.getShowInHome());
         
         // Parse media URLs
         if (post.getMediaUrls() != null && !post.getMediaUrls().isEmpty()) {

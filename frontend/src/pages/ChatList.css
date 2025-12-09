@@ -1,6 +1,6 @@
 .chatlist-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  background: #6b7280;
   position: relative;
 }
 
@@ -12,8 +12,8 @@
   right: 0;
   bottom: 0;
   background: 
-    radial-gradient(circle at 30% 40%, rgba(255, 255, 255, 0.08) 0%, transparent 50%),
-    radial-gradient(circle at 70% 70%, rgba(255, 255, 255, 0.08) 0%, transparent 50%);
+    rgba(255, 255, 255, 0.05),
+    rgba(255, 255, 255, 0.05);
   pointer-events: none;
 }
 
@@ -39,7 +39,7 @@
 .header-content h1 {
   margin: 0;
   font-size: 1.8rem;
-  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  background: #6b7280;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -58,7 +58,7 @@
 
 .btn-logout {
   padding: 0.5rem 1rem;
-  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  background: #6b7280;
   color: white;
   border: none;
   border-radius: 6px;
@@ -193,7 +193,7 @@
   width: 60px;
   height: 60px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  background: #6b7280;
   color: white;
   display: flex;
   align-items: center;

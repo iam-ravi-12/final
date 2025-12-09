@@ -4,21 +4,28 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import ProfileSetup from './pages/ProfileSetup';
 import Profile from './pages/Profile';
+import ProfileEdit from './pages/ProfileEdit';
 import UserProfile from './pages/UserProfile';
+import Followers from './pages/Followers';
+import Following from './pages/Following';
 import Home from './pages/Home';
 import ChatList from './pages/ChatList';
 import Chat from './pages/Chat';
 import PostDetail from './pages/PostDetail';
+import Communities from './pages/Communities';
+import CommunityDetail from './pages/CommunityDetail';
 import PrivateRoute from './components/PrivateRoute';
+import { ThemeProvider } from './contexts/ThemeContext';
 import './App.css';
 
 function App() {
   return (
-    <Router>
-      <div className="App">
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
+    <ThemeProvider>
+      <Router>
+        <div className="App">
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
           <Route
             path="/profile-setup"
             element={
@@ -36,6 +43,14 @@ function App() {
             }
           />
           <Route
+            path="/profile-edit"
+            element={
+              <PrivateRoute>
+                <ProfileEdit />
+              </PrivateRoute>
+            }
+          />
+          <Route
             path="/user/:userId"
             element={
               <PrivateRoute>
@@ -44,10 +59,42 @@ function App() {
             }
           />
           <Route
+            path="/followers/:userId?"
+            element={
+              <PrivateRoute>
+                <Followers />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/following/:userId?"
+            element={
+              <PrivateRoute>
+                <Following />
+              </PrivateRoute>
+            }
+          />
+          <Route
             path="/home"
             element={
               <PrivateRoute>
                 <Home />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/communities"
+            element={
+              <PrivateRoute>
+                <Communities />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/community/:communityId"
+            element={
+              <PrivateRoute>
+                <CommunityDetail />
               </PrivateRoute>
             }
           />
@@ -79,6 +126,7 @@ function App() {
         </Routes>
       </div>
     </Router>
+    </ThemeProvider>
   );
 }
 

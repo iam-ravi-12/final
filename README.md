@@ -1,6 +1,6 @@
 # Professional Network - Full Stack Application
 
-A full-stack professional networking application with a Spring Boot backend, MySQL database, and React frontend.
+A full-stack professional networking application with a Spring Boot backend, MySQL database, React web frontend, and React Native mobile app.
 
 ## Features
 
@@ -16,7 +16,8 @@ A full-stack professional networking application with a Spring Boot backend, MyS
   3. **Click to Message**: Click on any user's profile picture to directly open a chat with them
   4. **Real-time Updates**: Messages update automatically using polling
   5. **Read Receipts**: Messages are marked as read when viewed
-- **React Frontend**: Modern, responsive user interface
+- **React Web Frontend**: Modern, responsive user interface
+- **React Native Mobile App**: Native iOS and Android mobile application
 - **REST API**: Full-featured backend API
 
 ## Tech Stack
@@ -29,11 +30,29 @@ A full-stack professional networking application with a Spring Boot backend, MyS
 - MySQL Database
 - Maven
 
-### Frontend
+### Web Frontend
 - React 19
 - React Router DOM
 - Axios
 - Modern CSS with responsive design
+
+### Mobile App
+- React Native with Expo
+- TypeScript
+- Axios for API calls
+- AsyncStorage for local data
+- Expo Router for navigation
+
+## Project Structure
+
+```
+professional-network/
+├── src/                     # Spring Boot backend
+├── frontend/                # React web application
+├── friend/                  # React Native mobile app
+├── pom.xml                  # Maven configuration
+└── README.md               # This file
+```
 
 ## Prerequisites
 
@@ -42,6 +61,7 @@ A full-stack professional networking application with a Spring Boot backend, MyS
 - Maven 3.6 or higher
 - Node.js 14 or higher
 - npm or yarn
+- Expo CLI (for mobile app development)
 
 ## Database Setup
 
@@ -79,7 +99,7 @@ mvn spring-boot:run
 
 The backend will start on `http://localhost:8080`
 
-### Frontend
+### Web Frontend
 
 1. Navigate to the frontend directory:
 ```bash
@@ -98,13 +118,40 @@ npm start
 
 The frontend will open automatically at `http://localhost:3000`
 
-### Running Both Together
+### Mobile App
 
-For development, you need to run both the backend and frontend:
+1. Navigate to the friend directory:
+```bash
+cd friend
+```
+
+2. Install dependencies (first time only):
+```bash
+npm install
+```
+
+3. Configure the API URL in `.env` file (see [Mobile App Guide](MOBILE_APP_GUIDE.md))
+
+4. Start the Expo development server:
+```bash
+npm start
+```
+
+5. Run on your device:
+   - Press `i` for iOS Simulator
+   - Press `a` for Android Emulator
+   - Scan QR code with Expo Go app on physical device
+
+For detailed mobile app setup and troubleshooting, see [MOBILE_APP_GUIDE.md](MOBILE_APP_GUIDE.md).
+
+### Running All Together
+
+For full-stack development:
 1. Start the backend in one terminal (from project root): `mvn spring-boot:run`
-2. Start the frontend in another terminal (from frontend directory): `npm start`
+2. Start the web frontend in another terminal (from frontend directory): `npm start`
+3. Start the mobile app in a third terminal (from friend directory): `npm start`
 
-The React app will automatically proxy API requests to the backend running on port 8080.
+The web and mobile apps will automatically connect to the backend running on port 8080.
 
 ## API Endpoints
 

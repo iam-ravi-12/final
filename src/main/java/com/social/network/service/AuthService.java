@@ -128,4 +128,21 @@ public class AuthService {
                 user.getProfilePicture()
         );
     }
+
+    public ProfileResponse getUserProfileById(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        return new ProfileResponse(
+                user.getId(),
+                user.getUsername(),
+                user.getName(),
+                user.getEmail(),
+                user.getProfession(),
+                user.getOrganization(),
+                user.getLocation(),
+                user.getProfileCompleted(),
+                user.getProfilePicture()
+        );
+    }
 }
