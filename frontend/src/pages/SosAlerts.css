@@ -478,3 +478,104 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .navbar {
+    background: rgba(30, 30, 30, 0.95);
+  }
+
+  .navbar h1 {
+    color: #e0e0e0;
+  }
+
+  .no-alerts {
+    background: #1a1a1a;
+  }
+
+  .no-alerts h3 {
+    color: #66bb6a;
+  }
+
+  .no-alerts p {
+    color: #999;
+  }
+
+  .alert-card {
+    background: #1a1a1a;
+    color: #e0e0e0;
+  }
+
+  .time-badge {
+    background: #333;
+    color: #999;
+  }
+
+  .user-info h3 {
+    color: #e0e0e0;
+  }
+
+  .user-info p {
+    color: #999;
+  }
+
+  .alert-description {
+    background: #2a2a2a;
+  }
+
+  .alert-description p {
+    color: #e0e0e0;
+  }
+
+  .alert-distance {
+    color: #999;
+  }
+
+  .alert-stats {
+    color: #999;
+  }
+
+  .response-modal {
+    background: #1a1a1a;
+    color: #e0e0e0;
+  }
+
+  .response-modal h2 {
+    color: #e0e0e0;
+  }
+
+  .modal-username {
+    color: #999;
+  }
+
+  .response-type-selector label,
+  .response-message-field label {
+    color: #e0e0e0;
+  }
+
+  .response-type-selector select {
+    background: #2a2a2a;
+    color: #e0e0e0;
+    border-color: #444;
+  }
+
+  .response-message-field textarea {
+    background: #2a2a2a;
+    color: #e0e0e0;
+    border-color: #444;
+  }
+
+  .points-info {
+    background: #1b3a1f;
+    color: #81c784;
+  }
+
+  .btn-modal-cancel {
+    background: #333;
+    color: #e0e0e0;
+  }
+
+  .btn-modal-cancel:hover {
+    background: #444;
+  }
+}
