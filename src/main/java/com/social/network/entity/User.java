@@ -47,6 +47,9 @@ public class User {
     @Column(name = "profile_picture", columnDefinition = "TEXT")
     private String profilePicture;
 
+    @Column(name = "leaderboard_points")
+    private Integer leaderboardPoints = 0;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
