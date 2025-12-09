@@ -306,6 +306,17 @@
   margin-bottom: 4px;
 }
 
+.alert-owner-badge {
+  background: linear-gradient(135deg, #ff9800, #f57c00);
+  color: white;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  font-size: 14px;
+  text-align: center;
+  font-weight: 600;
+}
+
 .btn-respond {
   width: 100%;
   padding: 14px;
@@ -626,5 +637,9 @@
 
   .btn-modal-cancel:hover {
     background: #444;
+  }
+
+  .alert-owner-badge {
+    background: linear-gradient(135deg, #f57c00, #e65100);
   }
 }

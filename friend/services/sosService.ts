@@ -30,6 +30,7 @@ export interface SosAlertResponse {
   hasCurrentUserResponded: boolean;
   currentUserResponseType: string | null;
   currentUserResponseMessage: string | null;
+  isCurrentUserAlertOwner: boolean;
 }
 
 export interface SosResponseRequest {

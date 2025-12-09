@@ -130,6 +130,11 @@ public class SosService {
             throw new RuntimeException("Alert is not active");
         }
 
+        // Prevent user from responding to their own alert
+        if (alert.getUser().getId().equals(responder.getId())) {
+            throw new RuntimeException("You cannot respond to your own SOS alert");
+        }
+
         // Check if already responded
         if (sosResponseRepository.existsBySosAlertAndResponder(alert, responder)) {
             throw new RuntimeException("You have already responded to this alert");
@@ -251,8 +256,13 @@ public class SosService {
         boolean hasCurrentUserResponded = false;
         String currentUserResponseType = null;
         String currentUserResponseMessage = null;
+        boolean isCurrentUserAlertOwner = false;
         
         if (currentUser != null) {
+            // Check if current user is the alert owner
+            isCurrentUserAlertOwner = alert.getUser().getId().equals(currentUser.getId());
+            
+            // Check if current user has responded
             SosResponse userResponse = sosResponseRepository.findBySosAlertAndResponder(alert, currentUser);
             if (userResponse != null) {
                 hasCurrentUserResponded = true;
@@ -292,7 +302,8 @@ public class SosService {
                 emergencyContactNumber,
                 hasCurrentUserResponded,
                 currentUserResponseType,
-                currentUserResponseMessage
+                currentUserResponseMessage,
+                isCurrentUserAlertOwner
         );
     }
 

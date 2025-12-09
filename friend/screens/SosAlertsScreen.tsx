@@ -269,16 +269,24 @@ const SosAlertsScreen = () => {
         </View>
       )}
 
+      {item.isCurrentUserAlertOwner && (
+        <View style={styles.alertOwnerBadge}>
+          <Text style={styles.alertOwnerBadgeText}>⚠️ This is your SOS alert</Text>
+        </View>
+      )}
+
       <TouchableOpacity
         style={[
           styles.respondButton,
-          item.hasCurrentUserResponded && styles.respondButtonDisabled,
+          (item.hasCurrentUserResponded || item.isCurrentUserAlertOwner) && styles.respondButtonDisabled,
         ]}
         onPress={() => handleRespond(item)}
-        disabled={item.hasCurrentUserResponded}
+        disabled={item.hasCurrentUserResponded || item.isCurrentUserAlertOwner}
       >
         <Text style={styles.respondButtonText}>
-          {item.hasCurrentUserResponded && item.currentUserResponseType
+          {item.isCurrentUserAlertOwner
+            ? 'Your Alert - Cannot Respond'
+            : item.hasCurrentUserResponded && item.currentUserResponseType
             ? `Responded: ${formatResponseType(item.currentUserResponseType)}`
             : item.hasCurrentUserResponded
             ? 'Already Responded'
@@ -598,6 +606,18 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 13,
     marginBottom: 4,
+  },
+  alertOwnerBadge: {
+    backgroundColor: '#ff9800',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 12,
+  },
+  alertOwnerBadgeText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '600',
+    textAlign: 'center',
   },
   respondButton: {
     backgroundColor: '#4caf50',

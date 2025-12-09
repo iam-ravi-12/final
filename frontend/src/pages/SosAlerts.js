@@ -248,12 +248,20 @@ const SosAlerts = () => {
                 </div>
               )}
 
+              {alert.isCurrentUserAlertOwner && (
+                <div className="alert-owner-badge">
+                  ⚠️ This is your SOS alert
+                </div>
+              )}
+
               <button 
                 className="btn-respond"
                 onClick={() => handleRespond(alert)}
-                disabled={alert.hasCurrentUserResponded}
+                disabled={alert.hasCurrentUserResponded || alert.isCurrentUserAlertOwner}
               >
-                {alert.hasCurrentUserResponded && alert.currentUserResponseType 
+                {alert.isCurrentUserAlertOwner 
+                  ? 'Your Alert - Cannot Respond' 
+                  : alert.hasCurrentUserResponded && alert.currentUserResponseType 
                   ? `Responded: ${formatResponseType(alert.currentUserResponseType)}` 
                   : alert.hasCurrentUserResponded 
                   ? 'Already Responded' 
