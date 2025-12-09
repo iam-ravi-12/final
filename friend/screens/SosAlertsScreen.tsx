@@ -236,11 +236,23 @@ const SosAlertsScreen = () => {
         </Text>
       </View>
 
+      {item.hasCurrentUserResponded && (
+        <View style={styles.respondedBadge}>
+          <Text style={styles.respondedBadgeText}>✅ You have responded to this alert</Text>
+        </View>
+      )}
+
       <TouchableOpacity
-        style={styles.respondButton}
+        style={[
+          styles.respondButton,
+          item.hasCurrentUserResponded && styles.respondButtonDisabled,
+        ]}
         onPress={() => handleRespond(item)}
+        disabled={item.hasCurrentUserResponded}
       >
-        <Text style={styles.respondButtonText}>Respond to Alert</Text>
+        <Text style={styles.respondButtonText}>
+          {item.hasCurrentUserResponded ? 'Already Responded' : 'Respond to Alert'}
+        </Text>
       </TouchableOpacity>
     </View>
   );
@@ -532,11 +544,27 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
   },
+  respondedBadge: {
+    backgroundColor: '#4caf50',
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  respondedBadgeText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '600',
+  },
   respondButton: {
     backgroundColor: '#4caf50',
     padding: 14,
     borderRadius: 8,
     alignItems: 'center',
+  },
+  respondButtonDisabled: {
+    backgroundColor: '#9e9e9e',
+    opacity: 0.6,
   },
   respondButtonText: {
     color: 'white',

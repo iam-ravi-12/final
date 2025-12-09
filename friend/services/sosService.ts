@@ -27,6 +27,7 @@ export interface SosAlertResponse {
   distance: number | null;
   googleMapsUrl: string | null;
   emergencyContactNumber: string | null;
+  hasCurrentUserResponded: boolean;
 }
 
 export interface SosResponseRequest {

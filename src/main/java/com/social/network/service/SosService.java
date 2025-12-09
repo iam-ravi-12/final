@@ -51,7 +51,7 @@ public class SosService {
         alert.setCancelledByUser(false);
 
         SosAlert savedAlert = sosAlertRepository.save(alert);
-        return convertToResponse(savedAlert, null);
+        return convertToResponse(savedAlert, null, user);
     }
 
     @Transactional
@@ -74,22 +74,24 @@ public class SosService {
         alert.setCancelledByUser(true);
         SosAlert savedAlert = sosAlertRepository.save(alert);
         
-        return convertToResponse(savedAlert, null);
+        return convertToResponse(savedAlert, null, user);
     }
 
     public List<SosAlertResponse> getActiveAlerts(String username, Double latitude, Double longitude, Double radiusKm) {
+        User currentUser = username != null ? userRepository.findByUsername(username).orElse(null) : null;
+        
         if (latitude != null && longitude != null && radiusKm != null) {
             List<SosAlert> alerts = sosAlertRepository.findNearbyActiveAlerts(latitude, longitude, radiusKm, "ACTIVE");
             return alerts.stream()
                     .map(alert -> {
                         Double distance = calculateDistance(latitude, longitude, alert.getLatitude(), alert.getLongitude());
-                        return convertToResponse(alert, distance);
+                        return convertToResponse(alert, distance, currentUser);
                     })
                     .collect(Collectors.toList());
         } else {
             List<SosAlert> alerts = sosAlertRepository.findByStatusOrderByCreatedAtDesc("ACTIVE");
             return alerts.stream()
-                    .map(alert -> convertToResponse(alert, null))
+                    .map(alert -> convertToResponse(alert, null, currentUser))
                     .collect(Collectors.toList());
         }
     }
@@ -100,7 +102,7 @@ public class SosService {
 
         List<SosAlert> alerts = sosAlertRepository.findByUserAndStatusOrderByCreatedAtDesc(user, "ACTIVE");
         return alerts.stream()
-                .map(alert -> convertToResponse(alert, null))
+                .map(alert -> convertToResponse(alert, null, user))
                 .collect(Collectors.toList());
     }
 
@@ -113,7 +115,7 @@ public class SosService {
             distance = calculateDistance(userLatitude, userLongitude, alert.getLatitude(), alert.getLongitude());
         }
 
-        return convertToResponse(alert, distance);
+        return convertToResponse(alert, distance, null);
     }
 
     @Transactional
@@ -242,8 +244,14 @@ public class SosService {
                 .collect(Collectors.toList());
     }
 
-    private SosAlertResponse convertToResponse(SosAlert alert, Double distance) {
+    private SosAlertResponse convertToResponse(SosAlert alert, Double distance, User currentUser) {
         long responseCount = sosResponseRepository.countBySosAlert(alert);
+        
+        // Check if current user has responded
+        boolean hasCurrentUserResponded = false;
+        if (currentUser != null) {
+            hasCurrentUserResponded = sosResponseRepository.existsBySosAlertAndResponder(alert, currentUser);
+        }
         
         // Generate Google Maps URL if location is available
         String googleMapsUrl = null;
@@ -273,7 +281,8 @@ public class SosService {
                 (int) responseCount,
                 distance,
                 googleMapsUrl,
-                emergencyContactNumber
+                emergencyContactNumber,
+                hasCurrentUserResponded
         );
     }
 

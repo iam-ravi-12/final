@@ -222,11 +222,18 @@ const SosAlerts = () => {
                 <span>👥 {alert.responseCount} responder{alert.responseCount !== 1 ? 's' : ''}</span>
               </div>
 
+              {alert.hasCurrentUserResponded && (
+                <div className="user-responded-badge">
+                  ✅ You have responded to this alert
+                </div>
+              )}
+
               <button 
                 className="btn-respond"
                 onClick={() => handleRespond(alert)}
+                disabled={alert.hasCurrentUserResponded}
               >
-                Respond to Alert
+                {alert.hasCurrentUserResponded ? 'Already Responded' : 'Respond to Alert'}
               </button>
             </div>
           ))}

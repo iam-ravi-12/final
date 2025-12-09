@@ -28,4 +28,5 @@ public class SosAlertResponse {
     private Double distance; // Distance in km from current user
     private String googleMapsUrl; // Google Maps URL for location
     private String emergencyContactNumber; // Emergency contact number based on type
+    private Boolean hasCurrentUserResponded; // Whether the current user has responded to this alert
 }
