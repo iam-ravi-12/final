@@ -159,8 +159,13 @@ export default function HomeScreen() {
             <TouchableOpacity
               onPress={() => setMenuVisible(menuVisible === item.id ? null : item.id)}
               style={styles.menuButton}
+              activeOpacity={0.6}
             >
-              <IconSymbol name="ellipsis" size={20} color="#666" />
+              <View style={styles.dotsContainer}>
+                <View style={styles.dot} />
+                <View style={styles.dot} />
+                <View style={styles.dot} />
+              </View>
             </TouchableOpacity>
           )}
         </View>
@@ -406,7 +411,24 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   menuButton: {
-    padding: 4,
+    padding: 8,
+    borderRadius: 16,
+    backgroundColor: '#f0f0f0',
+    minWidth: 32,
+    minHeight: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  dotsContainer: {
+    flexDirection: 'row',
+    gap: 3,
+    alignItems: 'center',
+  },
+  dot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#666',
   },
   avatar: {
     width: 40,
