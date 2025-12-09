@@ -44,6 +44,7 @@ export interface SosResponseResponse {
   responseType: string;
   message: string;
   pointsAwarded: number;
+  confirmedByAlertOwner: boolean;
   createdAt: string;
 }
 
@@ -55,6 +56,7 @@ export interface LeaderboardResponse {
   profilePicture: string | null;
   leaderboardPoints: number;
   rank: number;
+  badge: string | null; // GOLD, SILVER, BRONZE, or null
 }
 
 const sosService = {
@@ -119,6 +121,11 @@ const sosService = {
 
   getLeaderboard: async (limit: number = 50): Promise<LeaderboardResponse[]> => {
     const response = await api.get('/api/sos/leaderboard', { params: { limit } });
+    return response.data;
+  },
+
+  confirmHelpReceived: async (responseId: number): Promise<SosResponseResponse> => {
+    const response = await api.put(`/api/sos/response/${responseId}/confirm`);
     return response.data;
   },
 };
