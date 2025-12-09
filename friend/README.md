@@ -1,50 +1,125 @@
-# Welcome to your Expo app 👋
+# Professional Network Mobile App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A React Native mobile application built with Expo for the Professional Network platform. This app connects to the Spring Boot backend to provide a full-featured professional networking experience.
 
-## Get started
+## Features
 
-1. Install dependencies
+- **User Authentication**: Login and Signup with JWT tokens
+- **Profile Management**: Users can set their profession and organization
+- **Post Feed**: View posts in three sections:
+  - All Posts: View all posts from all users
+  - Professional Posts: View posts from users in the same profession
+  - Help Section: Posts specifically marked for help or assistance
+- **Create Posts**: Share content and request help
+- **Messaging**: Direct messaging between users
+- **Profile**: View and edit your profile
 
-   ```bash
-   npm install
-   ```
+## Prerequisites
 
-2. Start the app
+- Node.js 14 or higher
+- npm or yarn
+- Expo CLI (`npm install -g expo-cli`)
+- iOS Simulator (for iOS development) or Android Emulator (for Android development)
+- Backend server running on port 8080
 
-   ```bash
-   npx expo start
-   ```
+## Getting Started
 
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
+1. Install dependencies:
 ```bash
-npm run reset-project
+npm install
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+2. Configure the backend API URL:
 
-## Learn more
+Edit `.env` file and set the `EXPO_PUBLIC_API_URL`:
+- For iOS Simulator: `http://localhost:8080`
+- For Android Emulator: `http://10.0.2.2:8080`
+- For physical device: `http://YOUR_COMPUTER_IP:8080`
 
-To learn more about developing your project with Expo, look at the following resources:
+3. Start the development server:
+```bash
+npm start
+```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+4. Run on your preferred platform:
+- Press `i` for iOS Simulator
+- Press `a` for Android Emulator
+- Scan QR code with Expo Go app on your physical device
 
-## Join the community
+## Project Structure
 
-Join our community of developers creating universal apps.
+```
+friend/
+├── app/                    # App routes (using Expo Router)
+│   ├── (tabs)/            # Tab navigation
+│   │   ├── index.tsx      # Home/Feed screen
+│   │   ├── messages.tsx   # Messages list screen
+│   │   └── profile.tsx    # Profile screen
+│   ├── _layout.tsx        # Root layout with auth handling
+│   ├── login.tsx          # Login screen
+│   ├── signup.tsx         # Signup screen
+│   ├── profile-setup.tsx  # Profile setup screen
+│   └── create-post.tsx    # Create post modal
+├── screens/               # Screen components
+├── services/              # API services
+│   ├── api.ts            # Axios configuration
+│   ├── authService.ts    # Authentication API calls
+│   ├── postService.ts    # Post API calls
+│   ├── messageService.ts # Message API calls
+│   └── followService.ts  # Follow API calls
+├── contexts/              # React contexts
+│   └── AuthContext.tsx   # Authentication context
+├── components/            # Reusable components
+└── constants/             # App constants
+```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## Tech Stack
+
+- **React Native**: Cross-platform mobile framework
+- **Expo**: Development platform and tooling
+- **Expo Router**: File-based routing
+- **TypeScript**: Type-safe development
+- **Axios**: HTTP client
+- **AsyncStorage**: Local data persistence
+
+## Available Scripts
+
+- `npm start` - Start the Expo development server
+- `npm run android` - Run on Android emulator/device
+- `npm run ios` - Run on iOS simulator/device
+- `npm run web` - Run in web browser
+- `npm run lint` - Run ESLint
+
+## Backend Integration
+
+This app connects to the Professional Network backend API. Make sure the backend is running before using the app.
+
+### API Endpoints Used
+
+- `/api/auth/signup` - User registration
+- `/api/auth/login` - User login
+- `/api/auth/profile` - Get/Update user profile
+- `/api/posts` - CRUD operations for posts
+- `/api/posts/all` - Get all posts
+- `/api/posts/profession` - Get posts by profession
+- `/api/posts/help` - Get help posts
+- `/api/messages` - Messaging endpoints
+- `/api/follows` - Follow/unfollow operations
+
+## Troubleshooting
+
+### Cannot connect to backend
+
+- Make sure the backend is running on port 8080
+- Check the `EXPO_PUBLIC_API_URL` in `.env` file
+- For physical devices, ensure they're on the same network as your computer
+- For Android emulator, use `10.0.2.2` instead of `localhost`
+
+### App crashes on startup
+
+- Clear cache: `expo start -c`
+- Reinstall dependencies: `rm -rf node_modules && npm install`
+
+## License
+
+This project is licensed under the MIT License.
