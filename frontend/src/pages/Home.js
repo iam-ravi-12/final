@@ -121,7 +121,7 @@ const Home = () => {
       <aside className="sidebar">
         <div className="sidebar-header">
           <h1 className="app-logo">Friends</h1>
-            <h2>A social Network</h2>
+            <h4>A social Network</h4>
         </div>
         
         <nav className="sidebar-nav">

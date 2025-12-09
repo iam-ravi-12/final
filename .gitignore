@@ -33,9 +33,9 @@ build/
 .vscode/
 
 ### Maven ###
-.mvn/
-mvnw
-mvnw.cmd
+#.mvn/
+#mvnw
+#mvnw.cmd
 
 ### React/Node ###
 frontend/node_modules/
