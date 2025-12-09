@@ -25,6 +25,8 @@ export interface SosAlertResponse {
   resolvedAt: string | null;
   responseCount: number;
   distance: number | null;
+  googleMapsUrl: string | null;
+  emergencyContactNumber: string | null;
 }
 
 export interface SosResponseRequest {

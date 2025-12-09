@@ -126,6 +126,10 @@ const SosAlerts = () => {
     return date.toLocaleDateString();
   };
 
+  const handleCallEmergency = (phoneNumber) => {
+    window.location.href = `tel:${phoneNumber}`;
+  };
+
   const handleLogout = () => {
     authService.logout();
     navigate('/login');
@@ -190,6 +194,30 @@ const SosAlerts = () => {
                 </div>
               )}
 
+              {alert.googleMapsUrl && (
+                <div className="alert-location">
+                  <a 
+                    href={alert.googleMapsUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="btn-location"
+                  >
+                    🗺️ Open Location in Google Maps
+                  </a>
+                </div>
+              )}
+
+              {alert.emergencyContactNumber && (
+                <div className="alert-emergency-contact">
+                  <button 
+                    className="btn-call-emergency"
+                    onClick={() => handleCallEmergency(alert.emergencyContactNumber)}
+                  >
+                    📞 Call Emergency: {alert.emergencyContactNumber}
+                  </button>
+                </div>
+              )}
+
               <div className="alert-stats">
                 <span>👥 {alert.responseCount} responder{alert.responseCount !== 1 ? 's' : ''}</span>
               </div>
@@ -210,6 +238,30 @@ const SosAlerts = () => {
           <div className="response-modal">
             <h2>Respond to SOS Alert</h2>
             <p className="modal-username">Helping: {selectedAlert.username}</p>
+
+            {selectedAlert.googleMapsUrl && (
+              <div className="modal-location">
+                <a 
+                  href={selectedAlert.googleMapsUrl} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="btn-modal-location"
+                >
+                  🗺️ View Exact Location on Google Maps
+                </a>
+              </div>
+            )}
+
+            {selectedAlert.emergencyContactNumber && (
+              <div className="modal-emergency">
+                <button 
+                  className="btn-modal-emergency"
+                  onClick={() => handleCallEmergency(selectedAlert.emergencyContactNumber)}
+                >
+                  📞 Call Emergency: {selectedAlert.emergencyContactNumber}
+                </button>
+              </div>
+            )}
 
             <div className="response-type-selector">
               <label>Response Type:</label>

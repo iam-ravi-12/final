@@ -202,6 +202,16 @@ public class SosService {
     private SosAlertResponse convertToResponse(SosAlert alert, Double distance) {
         long responseCount = sosResponseRepository.countBySosAlert(alert);
         
+        // Generate Google Maps URL if location is available
+        String googleMapsUrl = null;
+        if (alert.getLatitude() != null && alert.getLongitude() != null) {
+            googleMapsUrl = String.format("https://www.google.com/maps?q=%f,%f", 
+                alert.getLatitude(), alert.getLongitude());
+        }
+        
+        // Determine emergency contact number based on type
+        String emergencyContactNumber = getEmergencyContactNumber(alert.getEmergencyType());
+        
         return new SosAlertResponse(
                 alert.getId(),
                 alert.getUser().getId(),
@@ -218,8 +228,19 @@ public class SosService {
                 alert.getCreatedAt(),
                 alert.getResolvedAt(),
                 (int) responseCount,
-                distance
+                distance,
+                googleMapsUrl,
+                emergencyContactNumber
         );
+    }
+
+    private String getEmergencyContactNumber(String emergencyType) {
+        return switch (emergencyType) {
+            case "WOMEN_SAFETY", "GENERAL", "ACCIDENT" -> "12"; // Police
+            case "FIRE" -> "13"; // Fire
+            case "MEDICAL" -> "14"; // Medical
+            default -> "12"; // Default to police
+        };
     }
 
     private SosResponseResponse convertToResponseResponse(SosResponse response) {

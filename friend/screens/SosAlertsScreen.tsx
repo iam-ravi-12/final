@@ -10,6 +10,7 @@ import {
   TextInput,
   ActivityIndicator,
   Alert,
+  Linking,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as Location from 'expo-location';
@@ -154,6 +155,20 @@ const SosAlertsScreen = () => {
     return date.toLocaleDateString();
   };
 
+  const handleOpenMaps = (url: string) => {
+    Linking.openURL(url).catch(err => {
+      Alert.alert('Error', 'Failed to open maps');
+      console.error('Failed to open maps:', err);
+    });
+  };
+
+  const handleCallEmergency = (phoneNumber: string) => {
+    Linking.openURL(`tel:${phoneNumber}`).catch(err => {
+      Alert.alert('Error', 'Failed to make call');
+      console.error('Failed to make call:', err);
+    });
+  };
+
   const renderAlertCard = ({ item }: { item: SosAlertResponse }) => (
     <View style={styles.alertCard}>
       <View style={styles.alertHeader}>
@@ -187,6 +202,26 @@ const SosAlertsScreen = () => {
 
       {item.distance !== null && (
         <Text style={styles.distance}>📍 {formatDistance(item.distance)}</Text>
+      )}
+
+      {item.googleMapsUrl && (
+        <TouchableOpacity
+          style={styles.locationButton}
+          onPress={() => handleOpenMaps(item.googleMapsUrl!)}
+        >
+          <Text style={styles.locationButtonText}>🗺️ Open in Google Maps</Text>
+        </TouchableOpacity>
+      )}
+
+      {item.emergencyContactNumber && (
+        <TouchableOpacity
+          style={styles.emergencyButton}
+          onPress={() => handleCallEmergency(item.emergencyContactNumber!)}
+        >
+          <Text style={styles.emergencyButtonText}>
+            📞 Call Emergency: {item.emergencyContactNumber}
+          </Text>
+        </TouchableOpacity>
       )}
 
       <View style={styles.statsContainer}>
@@ -243,6 +278,28 @@ const SosAlertsScreen = () => {
             <Text style={styles.modalUsername}>
               Helping: {selectedAlert?.username}
             </Text>
+
+            {selectedAlert?.googleMapsUrl && (
+              <TouchableOpacity
+                style={styles.modalLocationButton}
+                onPress={() => handleOpenMaps(selectedAlert.googleMapsUrl!)}
+              >
+                <Text style={styles.modalLocationButtonText}>
+                  🗺️ View Exact Location on Google Maps
+                </Text>
+              </TouchableOpacity>
+            )}
+
+            {selectedAlert?.emergencyContactNumber && (
+              <TouchableOpacity
+                style={styles.modalEmergencyButton}
+                onPress={() => handleCallEmergency(selectedAlert.emergencyContactNumber!)}
+              >
+                <Text style={styles.modalEmergencyButtonText}>
+                  📞 Call Emergency: {selectedAlert.emergencyContactNumber}
+                </Text>
+              </TouchableOpacity>
+            )}
 
             <View style={styles.responseTypeContainer}>
               <Text style={styles.label}>Response Type:</Text>
@@ -438,6 +495,30 @@ const styles = StyleSheet.create({
     color: '#666',
     marginBottom: 8,
   },
+  locationButton: {
+    backgroundColor: '#4285f4',
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  locationButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  emergencyButton: {
+    backgroundColor: '#ff6b6b',
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  emergencyButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '600',
+  },
   statsContainer: {
     marginBottom: 12,
   },
@@ -477,6 +558,30 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#666',
     marginBottom: 20,
+  },
+  modalLocationButton: {
+    backgroundColor: '#4285f4',
+    padding: 14,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  modalLocationButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  modalEmergencyButton: {
+    backgroundColor: '#ff6b6b',
+    padding: 14,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  modalEmergencyButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
   },
   responseTypeContainer: {
     marginBottom: 20,

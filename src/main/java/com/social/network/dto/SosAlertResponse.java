@@ -26,4 +26,6 @@ public class SosAlertResponse {
     private LocalDateTime resolvedAt;
     private Integer responseCount;
     private Double distance; // Distance in km from current user
+    private String googleMapsUrl; // Google Maps URL for location
+    private String emergencyContactNumber; // Emergency contact number based on type
 }
