@@ -218,9 +218,9 @@ export default function HomeScreen() {
       >
         <Text style={styles.postContent}>{item.content}</Text>
         
-        {item.mediaUrl && (
+        {item.mediaUrls && item.mediaUrls.length > 0 && (
           <Image
-            source={{ uri: item.mediaUrl }}
+            source={{ uri: item.mediaUrls[0] }}
             style={styles.postImage}
             resizeMode="cover"
           />

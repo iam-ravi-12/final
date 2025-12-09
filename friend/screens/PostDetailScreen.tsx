@@ -159,9 +159,9 @@ export default function PostDetailScreen() {
           <Text style={styles.timestamp}>{formatDate(post.createdAt)}</Text>
           <Text style={styles.postContent}>{post.content}</Text>
           
-          {post.mediaUrl && (
+          {post.mediaUrls && post.mediaUrls.length > 0 && (
             <Image
-              source={{ uri: post.mediaUrl }}
+              source={{ uri: post.mediaUrls[0] }}
               style={styles.postImage}
               resizeMode="cover"
             />

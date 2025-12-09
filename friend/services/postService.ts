@@ -3,7 +3,7 @@ import api from './api';
 export interface PostData {
   content: string;
   isHelpSection: boolean;
-  mediaUrl?: string;
+  mediaUrls?: string[];
 }
 
 export interface CommentData {
@@ -14,7 +14,7 @@ export interface PostResponse {
   id: number;
   content: string;
   isHelpSection: boolean;
-  mediaUrl?: string;
+  mediaUrls?: string[];
   userId: number;
   username: string;
   userProfession: string;
