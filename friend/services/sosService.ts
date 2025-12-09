@@ -28,6 +28,8 @@ export interface SosAlertResponse {
   googleMapsUrl: string | null;
   emergencyContactNumber: string | null;
   hasCurrentUserResponded: boolean;
+  currentUserResponseType: string | null;
+  currentUserResponseMessage: string | null;
 }
 
 export interface SosResponseRequest {

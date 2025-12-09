@@ -29,4 +29,6 @@ public class SosAlertResponse {
     private String googleMapsUrl; // Google Maps URL for location
     private String emergencyContactNumber; // Emergency contact number based on type
     private Boolean hasCurrentUserResponded; // Whether the current user has responded to this alert
+    private String currentUserResponseType; // The response type if user has responded (ON_WAY, CONTACTED_AUTHORITIES, etc)
+    private String currentUserResponseMessage; // The message if user has responded
 }

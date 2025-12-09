@@ -142,6 +142,21 @@ const SosAlertsScreen = () => {
       : `${distance.toFixed(1)} km away`;
   };
 
+  const formatResponseType = (type: string) => {
+    switch (type) {
+      case 'ON_WAY':
+        return 'On My Way';
+      case 'CONTACTED_AUTHORITIES':
+        return 'Contacted Authorities';
+      case 'REACHED':
+        return 'Reached Location';
+      case 'RESOLVED':
+        return 'Situation Resolved';
+      default:
+        return type;
+    }
+  };
+
   const formatTime = (timestamp: string) => {
     const date = new Date(timestamp);
     const now = new Date();
@@ -239,6 +254,18 @@ const SosAlertsScreen = () => {
       {item.hasCurrentUserResponded && (
         <View style={styles.respondedBadge}>
           <Text style={styles.respondedBadgeText}>✅ You have responded to this alert</Text>
+          {item.currentUserResponseType && (
+            <View style={styles.respondedDetails}>
+              <Text style={styles.respondedDetailsText}>
+                Response Type: {formatResponseType(item.currentUserResponseType)}
+              </Text>
+              {item.currentUserResponseMessage && (
+                <Text style={styles.respondedDetailsText}>
+                  Message: {item.currentUserResponseMessage}
+                </Text>
+              )}
+            </View>
+          )}
         </View>
       )}
 
@@ -251,7 +278,11 @@ const SosAlertsScreen = () => {
         disabled={item.hasCurrentUserResponded}
       >
         <Text style={styles.respondButtonText}>
-          {item.hasCurrentUserResponded ? 'Already Responded' : 'Respond to Alert'}
+          {item.hasCurrentUserResponded && item.currentUserResponseType
+            ? `Responded: ${formatResponseType(item.currentUserResponseType)}`
+            : item.hasCurrentUserResponded
+            ? 'Already Responded'
+            : 'Respond to Alert'}
         </Text>
       </TouchableOpacity>
     </View>
@@ -548,13 +579,25 @@ const styles = StyleSheet.create({
     backgroundColor: '#4caf50',
     padding: 12,
     borderRadius: 8,
-    alignItems: 'center',
     marginBottom: 12,
   },
   respondedBadgeText: {
     color: 'white',
     fontSize: 14,
     fontWeight: '600',
+    textAlign: 'center',
+  },
+  respondedDetails: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    padding: 10,
+    borderRadius: 6,
+    marginTop: 8,
+    width: '100%',
+  },
+  respondedDetailsText: {
+    color: 'white',
+    fontSize: 13,
+    marginBottom: 4,
   },
   respondButton: {
     backgroundColor: '#4caf50',

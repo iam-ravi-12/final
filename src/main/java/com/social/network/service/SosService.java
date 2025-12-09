@@ -247,10 +247,18 @@ public class SosService {
     private SosAlertResponse convertToResponse(SosAlert alert, Double distance, User currentUser) {
         long responseCount = sosResponseRepository.countBySosAlert(alert);
         
-        // Check if current user has responded
+        // Check if current user has responded and get their response details
         boolean hasCurrentUserResponded = false;
+        String currentUserResponseType = null;
+        String currentUserResponseMessage = null;
+        
         if (currentUser != null) {
-            hasCurrentUserResponded = sosResponseRepository.existsBySosAlertAndResponder(alert, currentUser);
+            SosResponse userResponse = sosResponseRepository.findBySosAlertAndResponder(alert, currentUser);
+            if (userResponse != null) {
+                hasCurrentUserResponded = true;
+                currentUserResponseType = userResponse.getResponseType();
+                currentUserResponseMessage = userResponse.getMessage();
+            }
         }
         
         // Generate Google Maps URL if location is available
@@ -282,7 +290,9 @@ public class SosService {
                 distance,
                 googleMapsUrl,
                 emergencyContactNumber,
-                hasCurrentUserResponded
+                hasCurrentUserResponded,
+                currentUserResponseType,
+                currentUserResponseMessage
         );
     }
 

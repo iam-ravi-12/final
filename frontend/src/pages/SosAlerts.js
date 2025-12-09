@@ -113,6 +113,16 @@ const SosAlerts = () => {
       : `${distance.toFixed(1)} km away`;
   };
 
+  const formatResponseType = (type) => {
+    switch(type) {
+      case 'ON_WAY': return 'On My Way';
+      case 'CONTACTED_AUTHORITIES': return 'Contacted Authorities';
+      case 'REACHED': return 'Reached Location';
+      case 'RESOLVED': return 'Situation Resolved';
+      default: return type;
+    }
+  };
+
   const formatTime = (timestamp) => {
     const date = new Date(timestamp);
     const now = new Date();
@@ -224,7 +234,17 @@ const SosAlerts = () => {
 
               {alert.hasCurrentUserResponded && (
                 <div className="user-responded-badge">
-                  ✅ You have responded to this alert
+                  <div className="responded-header">✅ You have responded to this alert</div>
+                  {alert.currentUserResponseType && (
+                    <div className="responded-details">
+                      <strong>Response Type:</strong> {formatResponseType(alert.currentUserResponseType)}
+                      {alert.currentUserResponseMessage && (
+                        <div className="responded-message">
+                          <strong>Message:</strong> {alert.currentUserResponseMessage}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -233,7 +253,11 @@ const SosAlerts = () => {
                 onClick={() => handleRespond(alert)}
                 disabled={alert.hasCurrentUserResponded}
               >
-                {alert.hasCurrentUserResponded ? 'Already Responded' : 'Respond to Alert'}
+                {alert.hasCurrentUserResponded && alert.currentUserResponseType 
+                  ? `Responded: ${formatResponseType(alert.currentUserResponseType)}` 
+                  : alert.hasCurrentUserResponded 
+                  ? 'Already Responded' 
+                  : 'Respond to Alert'}
               </button>
             </div>
           ))}
