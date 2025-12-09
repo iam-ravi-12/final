@@ -92,6 +92,15 @@ const sosService = {
       throw error.response?.data || error.message;
     }
   },
+
+  confirmHelpReceived: async (responseId) => {
+    try {
+      const response = await api.put(`/sos/response/${responseId}/confirm`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
 };
 
 export { sosService };

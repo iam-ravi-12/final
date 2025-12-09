@@ -163,6 +163,10 @@ const Home = () => {
             <span className="nav-icon">🚨</span>
             <span className="nav-label">SOS Alerts</span>
           </button>
+          <button className="nav-item" onClick={() => navigate('/leaderboard')}>
+            <span className="nav-icon">🏆</span>
+            <span className="nav-label">Leaderboard</span>
+          </button>
         </nav>
 
         <div className="sidebar-footer">

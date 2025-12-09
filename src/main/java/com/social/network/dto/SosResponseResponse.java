@@ -18,5 +18,6 @@ public class SosResponseResponse {
     private String responseType;
     private String message;
     private Integer pointsAwarded;
+    private Boolean confirmedByAlertOwner;
     private LocalDateTime createdAt;
 }

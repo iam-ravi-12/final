@@ -36,6 +36,9 @@ public class SosResponse {
     @Column(name = "points_awarded")
     private Integer pointsAwarded = 0;
 
+    @Column(name = "confirmed_by_alert_owner")
+    private Boolean confirmedByAlertOwner = false;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

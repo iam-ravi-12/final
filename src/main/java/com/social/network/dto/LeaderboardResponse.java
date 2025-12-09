@@ -15,4 +15,5 @@ public class LeaderboardResponse {
     private String profilePicture;
     private Integer leaderboardPoints;
     private Integer rank;
+    private String badge; // GOLD, SILVER, BRONZE, or null
 }

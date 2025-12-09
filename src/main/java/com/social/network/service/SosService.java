@@ -138,14 +138,11 @@ public class SosService {
         response.setResponder(responder);
         response.setResponseType(request.getResponseType());
         response.setMessage(request.getMessage());
+        response.setConfirmedByAlertOwner(false); // Initially not confirmed
 
-        // Award points based on response type
+        // Points will be awarded when confirmed by alert owner
         int points = calculatePoints(request.getResponseType());
         response.setPointsAwarded(points);
-
-        // Update responder's leaderboard points
-        responder.setLeaderboardPoints((responder.getLeaderboardPoints() != null ? responder.getLeaderboardPoints() : 0) + points);
-        userRepository.save(responder);
 
         SosResponse savedResponse = sosResponseRepository.save(response);
 
@@ -157,6 +154,39 @@ public class SosService {
         }
 
         return convertToResponseResponse(savedResponse);
+    }
+
+    @Transactional
+    public SosResponseResponse confirmHelpReceived(String username, Long responseId) {
+        User alertOwner = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        SosResponse response = sosResponseRepository.findById(responseId)
+                .orElseThrow(() -> new RuntimeException("Response not found"));
+
+        SosAlert alert = response.getSosAlert();
+
+        // Only the alert owner can confirm
+        if (!alert.getUser().getId().equals(alertOwner.getId())) {
+            throw new RuntimeException("Only the alert owner can confirm help received");
+        }
+
+        // Check if already confirmed
+        if (response.getConfirmedByAlertOwner()) {
+            throw new RuntimeException("Help already confirmed for this response");
+        }
+
+        // Mark as confirmed
+        response.setConfirmedByAlertOwner(true);
+        sosResponseRepository.save(response);
+
+        // Award points to the responder
+        User responder = response.getResponder();
+        int currentPoints = responder.getLeaderboardPoints() != null ? responder.getLeaderboardPoints() : 0;
+        responder.setLeaderboardPoints(currentPoints + response.getPointsAwarded());
+        userRepository.save(responder);
+
+        return convertToResponseResponse(response);
     }
 
     public List<SosResponseResponse> getAlertResponses(Long alertId) {
@@ -186,6 +216,18 @@ public class SosService {
         return IntStream.range(0, topUsers.size())
                 .mapToObj(index -> {
                     User user = topUsers.get(index);
+                    int rank = index + 1;
+                    String badge = null;
+                    
+                    // Assign badges to top 3
+                    if (rank == 1) {
+                        badge = "GOLD";
+                    } else if (rank == 2) {
+                        badge = "SILVER";
+                    } else if (rank == 3) {
+                        badge = "BRONZE";
+                    }
+                    
                     return new LeaderboardResponse(
                             user.getId(),
                             user.getUsername(),
@@ -193,7 +235,8 @@ public class SosService {
                             user.getProfession(),
                             user.getProfilePicture(),
                             user.getLeaderboardPoints() != null ? user.getLeaderboardPoints() : 0,
-                            index + 1
+                            rank,
+                            badge
                     );
                 })
                 .collect(Collectors.toList());
@@ -253,6 +296,7 @@ public class SosService {
                 response.getResponseType(),
                 response.getMessage(),
                 response.getPointsAwarded(),
+                response.getConfirmedByAlertOwner(),
                 response.getCreatedAt()
         );
     }

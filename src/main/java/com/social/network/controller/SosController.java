@@ -117,4 +117,17 @@ public class SosController {
         List<LeaderboardResponse> leaderboard = sosService.getLeaderboard(limit);
         return ResponseEntity.ok(leaderboard);
     }
+
+    @PutMapping("/response/{responseId}/confirm")
+    public ResponseEntity<?> confirmHelpReceived(
+            Authentication authentication,
+            @PathVariable Long responseId) {
+        try {
+            String username = authentication.getName();
+            SosResponseResponse response = sosService.confirmHelpReceived(username, responseId);
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 }
