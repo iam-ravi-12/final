@@ -7,7 +7,7 @@ const SosButton = () => {
   const [countdown, setCountdown] = useState(15);
   const [location, setLocation] = useState(null);
   const [locationError, setLocationError] = useState('');
-  const [emergencyType, setEmergencyType] = useState('GENERAL');
+  const [emergencyType, setEmergencyType] = useState('IMMEDIATE_EMERGENCY');
   const [description, setDescription] = useState('');
   const [isSending, setIsSending] = useState(false);
 
@@ -118,7 +118,7 @@ const SosButton = () => {
                   value={emergencyType} 
                   onChange={(e) => setEmergencyType(e.target.value)}
                 >
-                  <option value="GENERAL">General Emergency</option>
+                  <option value="IMMEDIATE_EMERGENCY">Immediate Emergency</option>
                   <option value="ACCIDENT">Accident</option>
                   <option value="WOMEN_SAFETY">Women Safety</option>
                   <option value="MEDICAL">Medical Emergency</option>

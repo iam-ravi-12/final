@@ -34,7 +34,7 @@ public class SosAlert {
     private String locationAddress;
 
     @Column(name = "emergency_type", nullable = false)
-    private String emergencyType; // GENERAL, ACCIDENT, WOMEN_SAFETY, MEDICAL, FIRE
+    private String emergencyType; // IMMEDIATE_EMERGENCY, ACCIDENT, WOMEN_SAFETY, MEDICAL, FIRE
 
     @Column(name = "status", nullable = false)
     private String status; // ACTIVE, CANCELLED, RESOLVED, EXPIRED

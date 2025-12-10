@@ -11,6 +11,6 @@ public class SosAlertRequest {
     private Double latitude;
     private Double longitude;
     private String locationAddress;
-    private String emergencyType; // GENERAL, ACCIDENT, WOMEN_SAFETY, MEDICAL, FIRE
+    private String emergencyType; // IMMEDIATE_EMERGENCY, ACCIDENT, WOMEN_SAFETY, MEDICAL, FIRE
     private String description;
 }

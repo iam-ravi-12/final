@@ -21,7 +21,7 @@ const SosButton: React.FC<SosButtonProps> = ({ style }) => {
   const [countdown, setCountdown] = useState(15);
   const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [locationError, setLocationError] = useState('');
-  const [emergencyType, setEmergencyType] = useState<'GENERAL' | 'ACCIDENT' | 'WOMEN_SAFETY' | 'MEDICAL' | 'FIRE'>('GENERAL');
+  const [emergencyType, setEmergencyType] = useState<'IMMEDIATE_EMERGENCY' | 'ACCIDENT' | 'WOMEN_SAFETY' | 'MEDICAL' | 'FIRE'>('IMMEDIATE_EMERGENCY');
   const [description, setDescription] = useState('');
   const [isSending, setIsSending] = useState(false);
 
@@ -102,8 +102,8 @@ const SosButton: React.FC<SosButtonProps> = ({ style }) => {
 
   const getEmergencyTypeLabel = (type: string) => {
     switch (type) {
-      case 'GENERAL':
-        return '🚨 General Emergency';
+      case 'IMMEDIATE_EMERGENCY':
+        return '🚨 Immediate Emergency';
       case 'ACCIDENT':
         return '🚑 Accident';
       case 'WOMEN_SAFETY':
@@ -154,7 +154,7 @@ const SosButton: React.FC<SosButtonProps> = ({ style }) => {
             <View style={styles.emergencyTypeContainer}>
               <Text style={styles.label}>Emergency Type:</Text>
               <View style={styles.typeButtons}>
-                {['GENERAL', 'ACCIDENT', 'WOMEN_SAFETY', 'MEDICAL', 'FIRE'].map((type) => (
+                {['IMMEDIATE_EMERGENCY', 'ACCIDENT', 'WOMEN_SAFETY', 'MEDICAL', 'FIRE'].map((type) => (
                   <TouchableOpacity
                     key={type}
                     style={[

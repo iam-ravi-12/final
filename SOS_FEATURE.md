@@ -20,7 +20,7 @@ The SOS feature is an emergency alert system integrated into the Professional Ne
 
 ### 3. Emergency Type Selection
 Choose from five emergency types:
-- 🚨 **General Emergency**: For general safety concerns
+- 🚨 **Immediate Emergency**: For immediate safety concerns requiring urgent attention
 - 🚑 **Accident**: For traffic or other accidents
 - 👩 **Women Safety**: Specifically for women's safety emergencies
 - ⚕️ **Medical Emergency**: For medical situations requiring immediate help
@@ -111,7 +111,7 @@ Authorization: Bearer <token>
 - `latitude`: GPS latitude
 - `longitude`: GPS longitude
 - `location_address`: Human-readable address
-- `emergency_type`: Type of emergency (GENERAL, ACCIDENT, WOMEN_SAFETY, MEDICAL, FIRE)
+- `emergency_type`: Type of emergency (IMMEDIATE_EMERGENCY, ACCIDENT, WOMEN_SAFETY, MEDICAL, FIRE)
 - `status`: Alert status (ACTIVE, CANCELLED, RESOLVED, EXPIRED)
 - `description`: Optional description of the emergency
 - `cancelled_by_user`: Boolean flag

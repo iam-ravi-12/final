@@ -120,8 +120,8 @@ const SosAlertsScreen = () => {
 
   const getEmergencyTypeLabel = (type: string) => {
     switch (type) {
-      case 'GENERAL':
-        return '🚨 General Emergency';
+      case 'IMMEDIATE_EMERGENCY':
+        return '🚨 Immediate Emergency';
       case 'ACCIDENT':
         return '🚑 Accident';
       case 'WOMEN_SAFETY':

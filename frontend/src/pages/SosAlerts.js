@@ -97,7 +97,7 @@ const SosAlerts = () => {
 
   const getEmergencyTypeLabel = (type) => {
     switch (type) {
-      case 'GENERAL': return '🚨 General Emergency';
+      case 'IMMEDIATE_EMERGENCY': return '🚨 Immediate Emergency';
       case 'ACCIDENT': return '🚑 Accident';
       case 'WOMEN_SAFETY': return '👩 Women Safety';
       case 'MEDICAL': return '⚕️ Medical Emergency';

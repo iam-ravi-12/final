@@ -309,7 +309,7 @@ public class SosService {
 
     private String getEmergencyContactNumber(String emergencyType) {
         return switch (emergencyType) {
-            case "WOMEN_SAFETY", "GENERAL", "ACCIDENT" -> "12"; // Police
+            case "WOMEN_SAFETY", "IMMEDIATE_EMERGENCY", "ACCIDENT" -> "12"; // Police
             case "FIRE" -> "13"; // Fire
             case "MEDICAL" -> "14"; // Medical
             default -> "12"; // Default to police

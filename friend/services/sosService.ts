@@ -4,7 +4,7 @@ export interface SosAlertRequest {
   latitude: number | null;
   longitude: number | null;
   locationAddress: string;
-  emergencyType: 'GENERAL' | 'ACCIDENT' | 'WOMEN_SAFETY' | 'MEDICAL' | 'FIRE';
+  emergencyType: 'IMMEDIATE_EMERGENCY' | 'ACCIDENT' | 'WOMEN_SAFETY' | 'MEDICAL' | 'FIRE';
   description: string;
 }
 
