@@ -18,6 +18,8 @@ public interface SosAlertRepository extends JpaRepository<SosAlert, Long> {
     
     List<SosAlert> findByStatusAndCreatedAtAfterOrderByCreatedAtDesc(String status, LocalDateTime after);
     
+    List<SosAlert> findByEmergencyTypeAndCreatedAtBefore(String emergencyType, LocalDateTime before);
+    
     @Query("SELECT s FROM SosAlert s WHERE s.status = :status AND " +
            "(6371 * acos(cos(radians(:latitude)) * cos(radians(s.latitude)) * " +
            "cos(radians(s.longitude) - radians(:longitude)) + " +

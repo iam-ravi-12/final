@@ -103,6 +103,37 @@ GET /api/sos/leaderboard?limit=50
 Authorization: Bearer <token>
 ```
 
+#### Trigger Manual Cleanup
+```
+POST /api/sos/alerts/cleanup
+Authorization: Bearer <token>
+```
+
+### Automatic Alert Cleanup
+
+To prevent database clutter and ensure the SOS alert system remains manageable, old alerts are automatically removed from the system based on their emergency type and age:
+
+**Alert Retention Periods:**
+- **Immediate Emergency**: 24 hours
+- **Women Safety**: 24 hours
+- **Medical Emergency**: 24 hours
+- **Fire**: 2 days (48 hours)
+- **Accident**: 3 days (72 hours)
+
+**How It Works:**
+- A scheduled background task runs every hour (at minute 0 of each hour)
+- The task checks all alerts in the database
+- Alerts older than their retention period are automatically deleted
+- Deletion includes all associated responses and data
+- This keeps the active alerts dashboard clean and relevant
+- Manual cleanup can also be triggered via the `/api/sos/alerts/cleanup` endpoint
+
+**Benefits:**
+- Reduces database size and improves performance
+- Keeps the active alerts page relevant with recent emergencies only
+- Automatically archives old/resolved situations
+- Ensures users only see alerts that need attention
+
 ### Database Schema
 
 #### sos_alerts Table

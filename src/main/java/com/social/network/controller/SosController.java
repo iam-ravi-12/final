@@ -5,6 +5,7 @@ import com.social.network.dto.SosAlertRequest;
 import com.social.network.dto.SosAlertResponse;
 import com.social.network.dto.SosResponseRequest;
 import com.social.network.dto.SosResponseResponse;
+import com.social.network.service.SosAlertCleanupService;
 import com.social.network.service.SosService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -12,6 +13,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/sos")
@@ -19,9 +21,11 @@ import java.util.List;
 public class SosController {
 
     private final SosService sosService;
+    private final SosAlertCleanupService cleanupService;
 
-    public SosController(SosService sosService) {
+    public SosController(SosService sosService, SosAlertCleanupService cleanupService) {
         this.sosService = sosService;
+        this.cleanupService = cleanupService;
     }
 
     @PostMapping("/alert")
@@ -128,6 +132,22 @@ public class SosController {
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/alerts/cleanup")
+    public ResponseEntity<?> triggerManualCleanup(Authentication authentication) {
+        try {
+            cleanupService.performManualCleanup();
+            return ResponseEntity.ok(Map.of(
+                "message", "Cleanup task executed successfully",
+                "status", "success"
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "message", "Cleanup failed: " + e.getMessage(),
+                "status", "error"
+            ));
         }
     }
 }
