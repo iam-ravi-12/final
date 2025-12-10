@@ -83,6 +83,7 @@ public class SosService {
         if (latitude != null && longitude != null && radiusKm != null) {
             List<SosAlert> alerts = sosAlertRepository.findNearbyActiveAlerts(latitude, longitude, radiusKm, "ACTIVE");
             return alerts.stream()
+                    .filter(this::isAlertStillValid) // Filter out expired alerts
                     .map(alert -> {
                         Double distance = calculateDistance(latitude, longitude, alert.getLatitude(), alert.getLongitude());
                         return convertToResponse(alert, distance, currentUser);
@@ -91,8 +92,39 @@ public class SosService {
         } else {
             List<SosAlert> alerts = sosAlertRepository.findByStatusOrderByCreatedAtDesc("ACTIVE");
             return alerts.stream()
+                    .filter(this::isAlertStillValid) // Filter out expired alerts
                     .map(alert -> convertToResponse(alert, null, currentUser))
                     .collect(Collectors.toList());
+        }
+    }
+    
+    /**
+     * Check if an alert is still valid based on its type-specific retention period
+     * - IMMEDIATE_EMERGENCY: 24 hours
+     * - WOMEN_SAFETY: 24 hours
+     * - MEDICAL: 24 hours
+     * - FIRE: 2 days (48 hours)
+     * - ACCIDENT: 3 days (72 hours)
+     */
+    private boolean isAlertStillValid(SosAlert alert) {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime createdAt = alert.getCreatedAt();
+        
+        switch (alert.getEmergencyType()) {
+            case "IMMEDIATE_EMERGENCY":
+            case "WOMEN_SAFETY":
+            case "MEDICAL":
+                // Valid for 24 hours
+                return createdAt.isAfter(now.minusHours(24));
+            case "FIRE":
+                // Valid for 2 days (48 hours)
+                return createdAt.isAfter(now.minusDays(2));
+            case "ACCIDENT":
+                // Valid for 3 days (72 hours)
+                return createdAt.isAfter(now.minusDays(3));
+            default:
+                // Default to 24 hours for unknown types
+                return createdAt.isAfter(now.minusHours(24));
         }
     }
 
@@ -102,6 +134,7 @@ public class SosService {
 
         List<SosAlert> alerts = sosAlertRepository.findByUserAndStatusOrderByCreatedAtDesc(user, "ACTIVE");
         return alerts.stream()
+                .filter(this::isAlertStillValid) // Filter out expired alerts
                 .map(alert -> convertToResponse(alert, null, user))
                 .collect(Collectors.toList());
     }
