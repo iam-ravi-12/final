@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import postService, { PostResponse } from '../services/postService';
+import SosButton from '../components/SosButton';
 import { useAuth } from '../contexts/AuthContext';
 import { router } from 'expo-router';
 
@@ -333,6 +334,9 @@ export default function HomeScreen() {
       >
         <IconSymbol name="plus" size={24} color="#fff" />
       </TouchableOpacity>
+
+      {/* SOS Button - Always Visible */}
+      <SosButton style={styles.sosButton} />
     </View>
   );
 }
@@ -557,5 +561,8 @@ const styles = StyleSheet.create({
   menuDivider: {
     height: 1,
     backgroundColor: '#e0e0e0',
+  },
+  sosButton: {
+    bottom: 100, // Position above the FAB
   },
 });

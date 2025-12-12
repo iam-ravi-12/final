@@ -10,12 +10,22 @@ A full-stack professional networking application with a Spring Boot backend, MyS
   1. **All Posts Overview**: View all posts from all users
   2. **Professional Posts**: View posts from users in the same profession
   3. **Help Section**: Posts specifically marked for help or assistance
+- **SOS Emergency Alert System**: 🚨 NEW! Emergency alert feature for community safety
+  1. **Always-Visible SOS Button**: Quick access to emergency alerts
+  2. **15-Second Auto-Send Timer**: Countdown with cancel option
+  3. **Emergency Types**: General, Accident, Women Safety, Medical, Fire
+  4. **Location-Based Alerts**: Notify nearby community members (50km radius)
+  5. **Response System**: Help others and earn leaderboard points
+  6. **Leaderboard**: Track and recognize top community helpers
+  7. See [SOS_FEATURE.md](SOS_FEATURE.md) for detailed documentation
 - **Messaging System**: Direct messaging between users with two-page navigation
   1. **Conversation List Page**: View all conversations with unread message counts at `/messages`
   2. **Individual Chat Page**: Dedicated page for each conversation at `/chat/:userId`
   3. **Click to Message**: Click on any user's profile picture to directly open a chat with them
   4. **Real-time Updates**: Messages update automatically using polling
   5. **Read Receipts**: Messages are marked as read when viewed
+- **Community System**: Create and join communities based on interests
+- **Follow System**: Follow other users and build your network
 - **React Web Frontend**: Modern, responsive user interface
 - **React Native Mobile App**: Native iOS and Android mobile application
 - **REST API**: Full-featured backend API
