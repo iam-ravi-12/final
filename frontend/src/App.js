@@ -14,6 +14,8 @@ import Chat from './pages/Chat';
 import PostDetail from './pages/PostDetail';
 import Communities from './pages/Communities';
 import CommunityDetail from './pages/CommunityDetail';
+import SosAlerts from './pages/SosAlerts';
+import Leaderboard from './pages/Leaderboard';
 import PrivateRoute from './components/PrivateRoute';
 import { ThemeProvider } from './contexts/ThemeContext';
 import './App.css';
@@ -119,6 +121,22 @@ function App() {
             element={
               <PrivateRoute>
                 <PostDetail />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/sos-alerts"
+            element={
+              <PrivateRoute>
+                <SosAlerts />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/leaderboard"
+            element={
+              <PrivateRoute>
+                <Leaderboard />
               </PrivateRoute>
             }
           />
