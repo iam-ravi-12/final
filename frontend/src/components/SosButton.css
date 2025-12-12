@@ -1,0 +1,270 @@
+.sos-button {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ff0000, #cc0000);
+  color: white;
+  font-size: 18px;
+  font-weight: bold;
+  border: 3px solid white;
+  box-shadow: 0 4px 12px rgba(255, 0, 0, 0.5);
+  cursor: pointer;
+  z-index: 1000;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sos-button:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(255, 0, 0, 0.7);
+}
+
+.sos-button:active {
+  transform: scale(0.95);
+}
+
+.sos-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.sos-modal {
+  background: white;
+  border-radius: 16px;
+  max-width: 500px;
+  width: 90%;
+  padding: 30px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.sos-modal-header {
+  text-align: center;
+  margin-bottom: 25px;
+}
+
+.sos-modal-header h2 {
+  color: #ff0000;
+  margin: 0 0 20px 0;
+  font-size: 28px;
+}
+
+.countdown-circle {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ff0000, #cc0000);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  box-shadow: 0 4px 12px rgba(255, 0, 0, 0.4);
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.countdown-number {
+  font-size: 48px;
+  font-weight: bold;
+  color: white;
+}
+
+.sos-modal-content {
+  text-align: center;
+}
+
+.sos-message {
+  font-size: 18px;
+  color: #333;
+  margin-bottom: 20px;
+  font-weight: 500;
+}
+
+.location-error {
+  font-size: 14px;
+  color: #ff9800;
+  margin-bottom: 15px;
+  padding: 10px;
+  background: #fff3e0;
+  border-radius: 8px;
+}
+
+.emergency-type-selector {
+  text-align: left;
+  margin-bottom: 15px;
+}
+
+.emergency-type-selector label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #333;
+}
+
+.emergency-type-selector select {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  font-size: 16px;
+  background: white;
+  cursor: pointer;
+}
+
+.emergency-type-selector select:focus {
+  outline: none;
+  border-color: #ff0000;
+}
+
+.description-field {
+  text-align: left;
+  margin-bottom: 20px;
+}
+
+.description-field label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #333;
+}
+
+.description-field textarea {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.description-field textarea:focus {
+  outline: none;
+  border-color: #ff0000;
+}
+
+.sos-modal-actions {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.sos-modal-actions button {
+  flex: 1;
+  padding: 14px;
+  font-size: 16px;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-cancel {
+  background: #e0e0e0;
+  color: #333;
+}
+
+.btn-cancel:hover {
+  background: #d0d0d0;
+}
+
+.btn-send-now {
+  background: linear-gradient(135deg, #ff0000, #cc0000);
+  color: white;
+}
+
+.btn-send-now:hover {
+  background: linear-gradient(135deg, #cc0000, #990000);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 0, 0, 0.4);
+}
+
+.btn-send-now:disabled,
+.btn-cancel:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.sos-info {
+  font-size: 13px;
+  color: #666;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .sos-modal {
+    background: #1a1a1a;
+    color: #e0e0e0;
+  }
+
+  .sos-message,
+  .emergency-type-selector label,
+  .description-field label {
+    color: #e0e0e0;
+  }
+
+  .emergency-type-selector select,
+  .description-field textarea {
+    background: #2a2a2a;
+    color: #e0e0e0;
+    border-color: #444;
+  }
+
+  .btn-cancel {
+    background: #333;
+    color: #e0e0e0;
+  }
+
+  .btn-cancel:hover {
+    background: #444;
+  }
+
+  .sos-info {
+    color: #999;
+  }
+}

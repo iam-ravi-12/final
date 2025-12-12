@@ -4,6 +4,7 @@ import { authService } from '../services/authService';
 import { postService } from '../services/postService';
 import PostCard from '../components/PostCard';
 import CreatePost from '../components/CreatePost';
+import SosButton from '../components/SosButton';
 import { useTheme } from '../contexts/ThemeContext';
 import './Home.css';
 
@@ -158,6 +159,14 @@ const Home = () => {
             <span className="nav-icon">👤</span>
             <span className="nav-label">Profile</span>
           </button>
+          <button className="nav-item" onClick={() => navigate('/sos-alerts')}>
+            <span className="nav-icon">🚨</span>
+            <span className="nav-label">SOS Alerts</span>
+          </button>
+          <button className="nav-item" onClick={() => navigate('/leaderboard')}>
+            <span className="nav-icon">🏆</span>
+            <span className="nav-label">Leaderboard</span>
+          </button>
         </nav>
 
         <div className="sidebar-footer">
@@ -233,6 +242,9 @@ const Home = () => {
           </div>
         </div>
       </main>
+
+      {/* SOS Button - Always Visible */}
+      <SosButton />
     </div>
   );
 };
