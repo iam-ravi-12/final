@@ -35,17 +35,27 @@ export default function EditProfileScreen() {
   const [location, setLocation] = useState(user?.location || '');
   const [profilePicture, setProfilePicture] = useState(user?.profilePicture || '');
   const [loading, setLoading] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
 
-  // Update state when user data changes
+  // Update state when user data changes (only on first load)
   useEffect(() => {
-    if (user) {
+    console.log('useEffect triggered, user:', user ? 'exists' : 'null', 'isInitialized:', isInitialized);
+    if (user && !isInitialized) {
+      console.log('Initializing form with user data:', {
+        name: user.name,
+        profession: user.profession,
+        organization: user.organization,
+        location: user.location,
+        hasProfilePicture: !!user.profilePicture,
+      });
       setName(user.name || '');
       setProfession(user.profession || '');
       setOrganization(user.organization || '');
       setLocation(user.location || '');
       setProfilePicture(user.profilePicture || '');
+      setIsInitialized(true);
     }
-  }, [user]);
+  }, [user, isInitialized]);
 
   const pickImage = async () => {
     try {
