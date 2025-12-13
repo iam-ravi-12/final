@@ -6,6 +6,7 @@ import './Profile.css';
 const ProfileEdit = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
+    name: '',
     username: '',
     email: '',
     profession: '',
@@ -24,6 +25,7 @@ const ProfileEdit = () => {
       try {
         const profile = await authService.getUserProfile();
         setFormData({
+          name: profile.name || '',
           username: profile.username || '',
           email: profile.email || '',
           profession: profile.profession || '',
@@ -97,6 +99,7 @@ const ProfileEdit = () => {
 
     try {
       await authService.updateProfile(
+        formData.name,
         formData.profession, 
         formData.organization,
         formData.location,
@@ -106,6 +109,7 @@ const ProfileEdit = () => {
       
       // Update local storage with new profile data
       const user = authService.getCurrentUser();
+      user.name = formData.name;
       user.profession = formData.profession;
       user.organization = formData.organization;
       localStorage.setItem('user', JSON.stringify(user));
@@ -222,6 +226,19 @@ const ProfileEdit = () => {
                 </div>
               </div>
               <small className="help-text">Max file size: 5MB. Accepted formats: JPG, PNG, GIF</small>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="name">Name</label>
+              <input
+                type="text"
+                id="name"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                placeholder="Your full name"
+                disabled={loading}
+              />
             </div>
 
             <div className="form-group">

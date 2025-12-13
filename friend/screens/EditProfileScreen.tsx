@@ -9,7 +9,9 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  Image,
 } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useAuth } from '../contexts/AuthContext';
 import { router } from 'expo-router';
@@ -24,6 +26,39 @@ export default function EditProfileScreen() {
   const [profilePicture, setProfilePicture] = useState(user?.profilePicture || '');
   const [loading, setLoading] = useState(false);
 
+  const pickImage = async () => {
+    try {
+      // Request permission
+      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      
+      if (!permissionResult.granted) {
+        Alert.alert('Permission Required', 'Please grant camera roll permission to upload images.');
+        return;
+      }
+
+      // Launch image picker
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+        base64: true,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const asset = result.assets[0];
+        // Convert to base64 data URL
+        if (asset.base64) {
+          const base64Image = `data:image/jpeg;base64,${asset.base64}`;
+          setProfilePicture(base64Image);
+        }
+      }
+    } catch (error) {
+      console.error('Error picking image:', error);
+      Alert.alert('Error', 'Failed to pick image');
+    }
+  };
+
   const handleSave = async () => {
     if (!profession || !organization || !location) {
       Alert.alert('Error', 'Please fill in all required fields (Profession, Organization, Location)');
@@ -32,12 +67,21 @@ export default function EditProfileScreen() {
 
     setLoading(true);
     try {
-      await authService.updateProfile({ 
+      const updateData: any = { 
         profession, 
         organization, 
         location,
-        profilePicture: profilePicture || undefined
-      });
+      };
+      
+      if (name) {
+        updateData.name = name;
+      }
+      
+      if (profilePicture) {
+        updateData.profilePicture = profilePicture;
+      }
+      
+      await authService.updateProfile(updateData);
       await refreshUser();
       Alert.alert('Success', 'Profile updated successfully', [
         {
@@ -61,9 +105,9 @@ export default function EditProfileScreen() {
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.content}>
           <View style={styles.avatarContainer}>
-            <TouchableOpacity style={styles.avatarLarge}>
+            <TouchableOpacity style={styles.avatarLarge} onPress={pickImage}>
               {profilePicture ? (
-                <Text style={styles.avatarTextLarge}>🖼️</Text>
+                <Image source={{ uri: profilePicture }} style={styles.profileImage} />
               ) : (
                 <Text style={styles.avatarTextLarge}>
                   {name?.charAt(0).toUpperCase() || user?.username?.charAt(0).toUpperCase() || 'U'}
@@ -76,6 +120,7 @@ export default function EditProfileScreen() {
             <Text style={styles.username}>{user?.username}</Text>
             <Text style={styles.email}>{user?.email}</Text>
             <Text style={styles.hint}>Tap camera icon to change picture</Text>
+            <Text style={styles.hintSmall}>Username and email cannot be changed</Text>
           </View>
 
           <View style={styles.form}>
@@ -89,20 +134,6 @@ export default function EditProfileScreen() {
                 editable={!loading}
                 autoCapitalize="words"
               />
-            </View>
-
-            <View style={styles.fieldContainer}>
-              <Text style={styles.label}>Profile Picture URL</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="https://example.com/photo.jpg"
-                value={profilePicture}
-                onChangeText={setProfilePicture}
-                editable={!loading}
-                autoCapitalize="none"
-                keyboardType="url"
-              />
-              <Text style={styles.fieldHint}>Enter a URL to your profile picture</Text>
             </View>
 
             <View style={styles.fieldContainer}>
@@ -224,6 +255,17 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#999',
     fontStyle: 'italic',
+    marginBottom: 4,
+  },
+  hintSmall: {
+    fontSize: 11,
+    color: '#999',
+    fontStyle: 'italic',
+  },
+  profileImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
   },
   form: {
     width: '100%',

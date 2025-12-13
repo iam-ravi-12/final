@@ -99,6 +99,9 @@ public class AuthService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+        if (profileRequest.getName() != null && !profileRequest.getName().isEmpty()) {
+            user.setName(profileRequest.getName());
+        }
         user.setProfession(profileRequest.getProfession());
         user.setOrganization(profileRequest.getOrganization());
         user.setLocation(profileRequest.getLocation());

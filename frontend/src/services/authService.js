@@ -19,8 +19,11 @@ export const authService = {
     return response.data;
   },
 
-  updateProfile: async (profession, organization, location, profilePicture = null) => {
+  updateProfile: async (name, profession, organization, location, profilePicture = null) => {
     const requestBody = { profession, organization, location };
+    if (name) {
+      requestBody.name = name;
+    }
     if (profilePicture) {
       requestBody.profilePicture = profilePicture;
     }

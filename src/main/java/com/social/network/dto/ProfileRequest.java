@@ -10,6 +10,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ProfileRequest {
 
+    private String name;
+
     @NotBlank(message = "Profession is required")
     private String profession;
 
