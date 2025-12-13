@@ -123,7 +123,7 @@ export default function EditProfileScreen() {
         profession, 
         organization, 
         location,
-        ...(name && { name }),
+        ...(name?.trim() && { name: name.trim() }),
         ...(profilePicture && { profilePicture }),
       };
       
