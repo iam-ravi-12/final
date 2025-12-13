@@ -153,13 +153,9 @@ public class SosController {
 
     @GetMapping("/alerts/unread-count")
     public ResponseEntity<Map<String, Long>> getUnreadSosAlertsCount(Authentication authentication) {
-        try {
-            String username = authentication.getName();
-            long count = sosService.getUnreadSosAlertsCount(username);
-            return ResponseEntity.ok(Map.of("count", count));
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(Map.of("count", 0L));
-        }
+        String username = authentication.getName();
+        long count = sosService.getUnreadSosAlertsCount(username);
+        return ResponseEntity.ok(Map.of("count", count));
     }
 
     @PostMapping("/alerts/mark-read")

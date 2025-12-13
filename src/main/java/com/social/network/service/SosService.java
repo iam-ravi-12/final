@@ -396,8 +396,12 @@ public class SosService {
      * Counts active alerts created after user's last check time
      */
     public long getUnreadSosAlertsCount(String username) {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        User user = userRepository.findByUsername(username).orElse(null);
+        
+        // If user not found, return 0 (shouldn't happen with authenticated requests)
+        if (user == null) {
+            return 0;
+        }
 
         LocalDateTime lastCheckTime = user.getLastSosCheckAt();
         
@@ -424,8 +428,12 @@ public class SosService {
      */
     @Transactional
     public void markSosAlertsAsRead(String username) {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        User user = userRepository.findByUsername(username).orElse(null);
+        
+        // If user not found, silently return (shouldn't happen with authenticated requests)
+        if (user == null) {
+            return;
+        }
         
         user.setLastSosCheckAt(LocalDateTime.now());
         userRepository.save(user);
