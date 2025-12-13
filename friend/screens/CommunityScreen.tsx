@@ -11,6 +11,7 @@ import {
   Image,
   Share,
   Platform,
+  TextInput,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -29,6 +30,7 @@ export default function CommunityScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     loadCommunities();
@@ -183,7 +185,22 @@ export default function CommunityScreen() {
     );
   };
 
+  // Filter communities based on search query
+  const filterCommunities = (communities: CommunityResponse[]) => {
+    if (!searchQuery.trim()) {
+      return communities;
+    }
+    
+    const query = searchQuery.toLowerCase();
+    return communities.filter(community => 
+      community.name.toLowerCase().includes(query) ||
+      community.description.toLowerCase().includes(query) ||
+      community.adminUsername.toLowerCase().includes(query)
+    );
+  };
+
   const currentData = activeTab === 'my' ? myCommunities : publicCommunities;
+  const filteredData = filterCommunities(currentData);
 
   if (loading) {
     return (
@@ -215,8 +232,30 @@ export default function CommunityScreen() {
         </TouchableOpacity>
       </View>
 
+      {/* Search Bar */}
+      <View style={styles.searchContainer}>
+        <Ionicons name="search" size={20} color="#999" style={styles.searchIcon} />
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search communities..."
+          placeholderTextColor="#999"
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          autoCapitalize="none"
+          autoCorrect={false}
+        />
+        {searchQuery.length > 0 && (
+          <TouchableOpacity 
+            onPress={() => setSearchQuery('')}
+            style={styles.clearButton}
+          >
+            <Ionicons name="close-circle" size={20} color="#999" />
+          </TouchableOpacity>
+        )}
+      </View>
+
       <FlatList
-        data={currentData}
+        data={filteredData}
         renderItem={renderCommunity}
         keyExtractor={(item) => item.id.toString()}
         contentContainerStyle={styles.listContent}
@@ -227,7 +266,11 @@ export default function CommunityScreen() {
           <View style={styles.emptyState}>
             <Ionicons name="people-circle-outline" size={64} color="#ccc" />
             <Text style={styles.emptyText}>
-              {activeTab === 'my' ? 'You haven\'t joined any communities yet' : 'No public communities available'}
+              {searchQuery.trim() 
+                ? `No communities found matching "${searchQuery}"` 
+                : activeTab === 'my' 
+                  ? 'You haven\'t joined any communities yet' 
+                  : 'No public communities available'}
             </Text>
           </View>
         }
@@ -284,6 +327,36 @@ const styles = StyleSheet.create({
   },
   activeTabText: {
     color: '#007AFF',
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    marginHorizontal: 16,
+    marginVertical: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  searchIcon: {
+    marginRight: 8,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 15,
+    color: '#333',
+    paddingVertical: 0,
+  },
+  clearButton: {
+    padding: 4,
+    marginLeft: 4,
   },
   listContent: {
     padding: 16,
