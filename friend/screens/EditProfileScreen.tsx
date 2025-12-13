@@ -49,7 +49,11 @@ export default function EditProfileScreen() {
         const asset = result.assets[0];
         // Convert to base64 data URL
         if (asset.base64) {
-          const base64Image = `data:image/jpeg;base64,${asset.base64}`;
+          // Detect MIME type from URI or default to jpeg
+          const mimeType = asset.uri?.endsWith('.png') ? 'image/png' : 
+                          asset.uri?.endsWith('.gif') ? 'image/gif' : 
+                          'image/jpeg';
+          const base64Image = `data:${mimeType};base64,${asset.base64}`;
           setProfilePicture(base64Image);
         }
       }

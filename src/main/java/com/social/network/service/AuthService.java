@@ -102,6 +102,8 @@ public class AuthService {
         if (profileRequest.getName() != null && !profileRequest.getName().isEmpty()) {
             user.setName(profileRequest.getName());
         }
+        
+        // These fields are required (validated by @NotBlank), so we can set them directly
         user.setProfession(profileRequest.getProfession());
         user.setOrganization(profileRequest.getOrganization());
         user.setLocation(profileRequest.getLocation());
