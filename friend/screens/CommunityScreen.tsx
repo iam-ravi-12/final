@@ -9,10 +9,15 @@ import {
   ActivityIndicator,
   Alert,
   Image,
+  Share,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import communityService, { CommunityResponse } from '../services/communityService';
+import CreateCommunityModal from '../components/CreateCommunityModal';
+import { APP_URL } from '../constants/config';
+import { copyToClipboard, formatMemberCount } from '../utils/helpers';
 
 type TabType = 'my' | 'public';
 
@@ -23,6 +28,7 @@ export default function CommunityScreen() {
   const [publicCommunities, setPublicCommunities] = useState<CommunityResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   useEffect(() => {
     loadCommunities();
@@ -74,6 +80,32 @@ export default function CommunityScreen() {
     });
   };
 
+  const handleShareCommunity = async (community: CommunityResponse) => {
+    try {
+      const shareUrl = `${APP_URL}/community/${community.id}`;
+      const message = `Join ${community.name} on our social network!\n\n${community.description}\n\n${shareUrl}`;
+      
+      if (Platform.OS === 'web') {
+        // Web fallback with proper error handling
+        try {
+          await copyToClipboard(shareUrl);
+          Alert.alert('Link Copied', 'Community link copied to clipboard!');
+        } catch (err) {
+          Alert.alert('Error', 'Failed to copy link to clipboard');
+        }
+      } else {
+        // Native share
+        await Share.share({
+          title: `Join ${community.name}`,
+          message,
+          url: shareUrl,
+        });
+      }
+    } catch (error) {
+      console.error('Error sharing community:', error);
+    }
+  };
+
   const renderCommunity = ({ item }: { item: CommunityResponse }) => {
     const initial = item.name.charAt(0).toUpperCase();
 
@@ -96,6 +128,11 @@ export default function CommunityScreen() {
               {item.isPrivate && (
                 <Ionicons name="lock-closed" size={16} color="#666" style={styles.lockIcon} />
               )}
+              {item.isAdmin && (
+                <View style={styles.adminBadge}>
+                  <Text style={styles.adminBadgeText}>👑 Admin</Text>
+                </View>
+              )}
             </View>
             {item.description && (
               <Text style={styles.communityDescription} numberOfLines={2}>
@@ -103,24 +140,45 @@ export default function CommunityScreen() {
               </Text>
             )}
             <Text style={styles.communityMeta}>
-              {item.memberCount} members • by @{item.adminUsername}
+              {formatMemberCount(item.memberCount)} • by @{item.adminUsername}
             </Text>
           </View>
         </View>
         
-        {activeTab === 'public' && (
+        <View style={styles.communityActions}>
           <TouchableOpacity
-            style={[styles.joinButton, item.isMember && styles.memberButton]}
+            style={styles.shareButton}
             onPress={(e) => {
               e.stopPropagation();
-              handleJoinToggle(item.id, item.isMember);
+              handleShareCommunity(item);
             }}
           >
-            <Text style={[styles.joinButtonText, item.isMember && styles.memberButtonText]}>
-              {item.isMember ? 'Leave' : 'Join'}
-            </Text>
+            <Ionicons name="share-outline" size={20} color="#007AFF" />
+            <Text style={styles.shareButtonText}>Share</Text>
           </TouchableOpacity>
-        )}
+          
+          {item.isMember ? (
+            <TouchableOpacity
+              style={styles.viewButton}
+              onPress={() => handleCommunityPress(item.id, item.name)}
+            >
+              <Text style={styles.viewButtonText}>View</Text>
+              <Ionicons name="arrow-forward" size={16} color="#fff" />
+            </TouchableOpacity>
+          ) : (
+            !item.isPrivate && (
+              <TouchableOpacity
+                style={styles.joinButton}
+                onPress={(e) => {
+                  e.stopPropagation();
+                  handleJoinToggle(item.id, item.isMember);
+                }}
+              >
+                <Text style={styles.joinButtonText}>Join</Text>
+              </TouchableOpacity>
+            )
+          )}
+        </View>
       </TouchableOpacity>
     );
   };
@@ -174,6 +232,21 @@ export default function CommunityScreen() {
           </View>
         }
       />
+
+      {/* Floating Action Button */}
+      <TouchableOpacity
+        style={styles.fab}
+        onPress={() => setShowCreateModal(true)}
+      >
+        <Ionicons name="add" size={28} color="#fff" />
+      </TouchableOpacity>
+
+      {/* Create Community Modal */}
+      <CreateCommunityModal
+        visible={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onSuccess={loadCommunities}
+      />
     </View>
   );
 }
@@ -214,6 +287,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     padding: 16,
+    paddingBottom: 80, // Space for FAB
   },
   communityCard: {
     backgroundColor: '#fff',
@@ -228,6 +302,7 @@ const styles = StyleSheet.create({
   },
   communityHeader: {
     flexDirection: 'row',
+    marginBottom: 12,
   },
   communityPic: {
     width: 60,
@@ -253,6 +328,7 @@ const styles = StyleSheet.create({
   communityTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    flexWrap: 'wrap',
   },
   communityName: {
     fontSize: 18,
@@ -261,6 +337,18 @@ const styles = StyleSheet.create({
   },
   lockIcon: {
     marginLeft: 6,
+  },
+  adminBadge: {
+    backgroundColor: '#FFD700',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+    marginLeft: 6,
+  },
+  adminBadgeText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#333',
   },
   communityDescription: {
     fontSize: 14,
@@ -272,26 +360,51 @@ const styles = StyleSheet.create({
     color: '#999',
     marginTop: 6,
   },
+  communityActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 8,
+  },
+  shareButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#007AFF',
+    gap: 6,
+  },
+  shareButtonText: {
+    color: '#007AFF',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  viewButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#007AFF',
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    borderRadius: 20,
+    gap: 6,
+  },
+  viewButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
   joinButton: {
     backgroundColor: '#007AFF',
     paddingHorizontal: 24,
-    paddingVertical: 10,
+    paddingVertical: 8,
     borderRadius: 20,
-    marginTop: 12,
-    alignSelf: 'flex-start',
-  },
-  memberButton: {
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#007AFF',
   },
   joinButtonText: {
     color: '#fff',
     fontSize: 14,
     fontWeight: '600',
-  },
-  memberButtonText: {
-    color: '#007AFF',
   },
   emptyState: {
     alignItems: 'center',
@@ -303,5 +416,21 @@ const styles = StyleSheet.create({
     color: '#999',
     marginTop: 16,
     textAlign: 'center',
+  },
+  fab: {
+    position: 'absolute',
+    right: 20,
+    bottom: 20,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#007AFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
 });

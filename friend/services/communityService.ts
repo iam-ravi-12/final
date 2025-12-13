@@ -85,6 +85,22 @@ const communityService = {
     const response = await api.post<CommunityResponse>('/communities', data);
     return response.data;
   },
+
+  // Get pending posts (admin only)
+  getPendingPosts: async (communityId: number): Promise<CommunityPostResponse[]> => {
+    const response = await api.get<CommunityPostResponse[]>(`/communities/${communityId}/posts/pending`);
+    return response.data;
+  },
+
+  // Approve a post (admin only)
+  approvePost: async (postId: number): Promise<void> => {
+    await api.post(`/communities/posts/${postId}/approve`);
+  },
+
+  // Reject a post (admin only)
+  rejectPost: async (postId: number): Promise<void> => {
+    await api.post(`/communities/posts/${postId}/reject`);
+  },
 };
 
 export default communityService;
