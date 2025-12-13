@@ -34,6 +34,9 @@ const SosAlerts = () => {
 
   useEffect(() => {
     loadAlerts();
+    // Mark alerts as read when component mounts
+    markAlertsAsRead();
+    
     // Refresh alerts every 30 seconds
     const interval = setInterval(loadAlerts, 30000);
     return () => clearInterval(interval);
@@ -54,6 +57,14 @@ const SosAlerts = () => {
       console.error('Error loading alerts:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const markAlertsAsRead = async () => {
+    try {
+      await sosService.markAlertsAsRead();
+    } catch (err) {
+      console.error('Error marking alerts as read:', err);
     }
   };
 

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authService } from '../services/authService';
 import { postService } from '../services/postService';
+import { sosService } from '../services/sosService';
 import PostCard from '../components/PostCard';
 import CreatePost from '../components/CreatePost';
 import SosButton from '../components/SosButton';
@@ -17,6 +18,7 @@ const Home = () => {
   const [error, setError] = useState('');
   const [showCreatePost, setShowCreatePost] = useState(false);
   const [profilePicture, setProfilePicture] = useState(null);
+  const [sosUnreadCount, setSosUnreadCount] = useState(0);
   const user = authService.getCurrentUser();
 
   useEffect(() => {
@@ -64,6 +66,23 @@ const Home = () => {
     };
 
     loadProfilePicture();
+  }, []);
+
+  useEffect(() => {
+    const loadSosUnreadCount = async () => {
+      try {
+        const count = await sosService.getUnreadCount();
+        setSosUnreadCount(count);
+      } catch (err) {
+        console.error('Error loading SOS unread count:', err);
+      }
+    };
+
+    loadSosUnreadCount();
+    
+    // Poll for updates every 30 seconds
+    const interval = setInterval(loadSosUnreadCount, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   const reloadPosts = async () => {
@@ -162,6 +181,9 @@ const Home = () => {
           <button className="nav-item" onClick={() => navigate('/sos-alerts')}>
             <span className="nav-icon">🚨</span>
             <span className="nav-label">SOS Alerts</span>
+            {sosUnreadCount > 0 && (
+              <span className="notification-badge">{sosUnreadCount}</span>
+            )}
           </button>
           <button className="nav-item" onClick={() => navigate('/leaderboard')}>
             <span className="nav-icon">🏆</span>

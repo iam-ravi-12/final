@@ -30,6 +30,7 @@ const SosAlertsScreen = () => {
   useEffect(() => {
     getLocation();
     loadAlerts();
+    markAlertsAsRead();
   }, []);
 
   const getLocation = async () => {
@@ -61,6 +62,14 @@ const SosAlertsScreen = () => {
       Alert.alert('Error', 'Failed to load SOS alerts');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const markAlertsAsRead = async () => {
+    try {
+      await sosService.markAlertsAsRead();
+    } catch (error) {
+      console.error('Error marking alerts as read:', error);
     }
   };
 
