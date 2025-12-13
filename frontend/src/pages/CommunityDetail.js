@@ -26,12 +26,19 @@ const CommunityDetail = () => {
       const communityData = await communityService.getCommunityById(communityId);
       setCommunity(communityData);
 
-      const postsData = await communityService.getCommunityPosts(communityId);
-      setPosts(postsData);
+      // Only load posts if user is a member
+      if (communityData.isMember) {
+        const postsData = await communityService.getCommunityPosts(communityId);
+        setPosts(postsData);
 
-      if (communityData.isAdmin) {
-        const pendingData = await communityService.getPendingPosts(communityId);
-        setPendingPosts(pendingData);
+        if (communityData.isAdmin) {
+          const pendingData = await communityService.getPendingPosts(communityId);
+          setPendingPosts(pendingData);
+        }
+      } else {
+        // Clear posts if not a member
+        setPosts([]);
+        setPendingPosts([]);
       }
     } catch (err) {
       setError('Failed to load community. Please try again.');
@@ -81,6 +88,17 @@ const CommunityDetail = () => {
       } catch (err) {
         setError(err.response?.data || 'Failed to leave community.');
       }
+    }
+  };
+
+  const handleJoinCommunity = async () => {
+    try {
+      await communityService.joinCommunity(communityId);
+      setError('');
+      alert('Joined community successfully!');
+      loadCommunityData();
+    } catch (err) {
+      setError(err.response?.data || 'Failed to join community.');
     }
   };
 
@@ -179,7 +197,7 @@ const CommunityDetail = () => {
 
       {error && <div className="error-message">{error}</div>}
 
-      {community.isAdmin && (
+      {community.isAdmin && community.isMember && (
         <div className="admin-tabs">
           <button
             className={`admin-tab ${activeTab === 'approved' ? 'active' : ''}`}
@@ -196,133 +214,146 @@ const CommunityDetail = () => {
         </div>
       )}
 
-      <div className="community-content">
-        <div className="create-post-section">
-          {!showCreatePost ? (
-            <button
-              className="btn-create-post"
-              onClick={() => setShowCreatePost(true)}
-            >
-              + Create Post in this Community
+      {!community.isMember ? (
+        <div className="not-member-container">
+          <div className="not-member-content">
+            <div className="not-member-icon">🔒</div>
+            <h2>Join to See Posts</h2>
+            <p>You must be a member of this community to view and create posts.</p>
+            <button className="btn-join-community" onClick={handleJoinCommunity}>
+              Join Community
             </button>
-          ) : (
-            <form className="create-post-form" onSubmit={handleCreatePost}>
-              <textarea
-                value={postContent}
-                onChange={(e) => setPostContent(e.target.value)}
-                placeholder="Write your post here..."
-                rows="4"
-                required
-              />
-              <div className="form-actions">
-                <button type="submit" className="btn-submit">
-                  Submit for Approval
-                </button>
-                <button
-                  type="button"
-                  className="btn-cancel"
-                  onClick={() => {
-                    setShowCreatePost(false);
-                    setPostContent('');
-                  }}
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          )}
+          </div>
         </div>
+      ) : (
+        <div className="community-content">
+          <div className="create-post-section">
+            {!showCreatePost ? (
+              <button
+                className="btn-create-post"
+                onClick={() => setShowCreatePost(true)}
+              >
+                + Create Post in this Community
+              </button>
+            ) : (
+              <form className="create-post-form" onSubmit={handleCreatePost}>
+                <textarea
+                  value={postContent}
+                  onChange={(e) => setPostContent(e.target.value)}
+                  placeholder="Write your post here..."
+                  rows="4"
+                  required
+                />
+                <div className="form-actions">
+                  <button type="submit" className="btn-submit">
+                    Submit for Approval
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-cancel"
+                    onClick={() => {
+                      setShowCreatePost(false);
+                      setPostContent('');
+                    }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
 
-        <div className="posts-section">
-          {activeTab === 'approved' ? (
-            <>
-              <h3>Community Posts</h3>
-              {posts.length === 0 ? (
-                <div className="empty-state">
-                  <p>No posts yet. Be the first to post!</p>
-                </div>
-              ) : (
-                <div className="posts-list">
-                  {posts.map((post) => (
-                    <div key={post.id} className="community-post-card">
-                      <div className="post-header">
-                        <div className="post-author">
-                          <div className="author-avatar">
-                            {post.userProfilePicture ? (
-                              <img src={post.userProfilePicture} alt={post.username} />
-                            ) : (
-                              <span>{post.username.charAt(0).toUpperCase()}</span>
-                            )}
-                          </div>
-                          <div className="author-info">
-                            <strong>{post.username}</strong>
-                            <span className="post-date">
-                              {new Date(post.createdAt).toLocaleDateString()}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="post-content">
-                        <p>{post.content}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </>
-          ) : (
-            <>
-              <h3>Pending Posts (Admin Only)</h3>
-              {pendingPosts.length === 0 ? (
-                <div className="empty-state">
-                  <p>No pending posts</p>
-                </div>
-              ) : (
-                <div className="posts-list">
-                  {pendingPosts.map((post) => (
-                    <div key={post.id} className="community-post-card pending">
-                      <div className="post-header">
-                        <div className="post-author">
-                          <div className="author-avatar">
-                            {post.userProfilePicture ? (
-                              <img src={post.userProfilePicture} alt={post.username} />
-                            ) : (
-                              <span>{post.username.charAt(0).toUpperCase()}</span>
-                            )}
-                          </div>
-                          <div className="author-info">
-                            <strong>{post.username}</strong>
-                            <span className="post-date">
-                              {new Date(post.createdAt).toLocaleDateString()}
-                            </span>
+          <div className="posts-section">
+            {activeTab === 'approved' ? (
+              <>
+                <h3>Community Posts</h3>
+                {posts.length === 0 ? (
+                  <div className="empty-state">
+                    <p>No posts yet. Be the first to post!</p>
+                  </div>
+                ) : (
+                  <div className="posts-list">
+                    {posts.map((post) => (
+                      <div key={post.id} className="community-post-card">
+                        <div className="post-header">
+                          <div className="post-author">
+                            <div className="author-avatar">
+                              {post.userProfilePicture ? (
+                                <img src={post.userProfilePicture} alt={post.username} />
+                              ) : (
+                                <span>{post.username.charAt(0).toUpperCase()}</span>
+                              )}
+                            </div>
+                            <div className="author-info">
+                              <strong>{post.username}</strong>
+                              <span className="post-date">
+                                {new Date(post.createdAt).toLocaleDateString()}
+                              </span>
+                            </div>
                           </div>
                         </div>
-                        <div className="admin-actions">
-                          <button
-                            className="btn-approve"
-                            onClick={() => handleApprovePost(post.id)}
-                          >
-                            ✓ Approve
-                          </button>
-                          <button
-                            className="btn-reject"
-                            onClick={() => handleRejectPost(post.id)}
-                          >
-                            ✕ Reject
-                          </button>
+                        <div className="post-content">
+                          <p>{post.content}</p>
                         </div>
                       </div>
-                      <div className="post-content">
-                        <p>{post.content}</p>
+                    ))}
+                  </div>
+                )}
+              </>
+            ) : (
+              <>
+                <h3>Pending Posts (Admin Only)</h3>
+                {pendingPosts.length === 0 ? (
+                  <div className="empty-state">
+                    <p>No pending posts</p>
+                  </div>
+                ) : (
+                  <div className="posts-list">
+                    {pendingPosts.map((post) => (
+                      <div key={post.id} className="community-post-card pending">
+                        <div className="post-header">
+                          <div className="post-author">
+                            <div className="author-avatar">
+                              {post.userProfilePicture ? (
+                                <img src={post.userProfilePicture} alt={post.username} />
+                              ) : (
+                                <span>{post.username.charAt(0).toUpperCase()}</span>
+                              )}
+                            </div>
+                            <div className="author-info">
+                              <strong>{post.username}</strong>
+                              <span className="post-date">
+                                {new Date(post.createdAt).toLocaleDateString()}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="admin-actions">
+                            <button
+                              className="btn-approve"
+                              onClick={() => handleApprovePost(post.id)}
+                            >
+                              ✓ Approve
+                            </button>
+                            <button
+                              className="btn-reject"
+                              onClick={() => handleRejectPost(post.id)}
+                            >
+                              ✕ Reject
+                            </button>
+                          </div>
+                        </div>
+                        <div className="post-content">
+                          <p>{post.content}</p>
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </>
-          )}
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

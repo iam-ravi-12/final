@@ -146,11 +146,9 @@ public class CommunityService {
         Community community = communityRepository.findById(communityId)
                 .orElseThrow(() -> new RuntimeException("Community not found"));
 
-        // Check if user is a member (for private communities)
-        if (community.getIsPrivate()) {
-            if (communityMemberRepository.findByCommunityIdAndUserId(communityId, userId).isEmpty()) {
-                throw new RuntimeException("Must be a member to view posts");
-            }
+        // Check if user is a member - required for all communities (public and private)
+        if (communityMemberRepository.findByCommunityIdAndUserId(communityId, userId).isEmpty()) {
+            throw new RuntimeException("Must be a member to view posts");
         }
 
         List<CommunityPost> posts = communityPostRepository.findApprovedPostsByCommunityId(communityId);

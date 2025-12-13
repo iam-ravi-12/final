@@ -47,18 +47,24 @@ export default function CommunityPostsScreen() {
   const loadCommunityData = async () => {
     try {
       setLoading(true);
-      const [communityData, postsData] = await Promise.all([
-        communityService.getCommunityById(communityId),
-        communityService.getCommunityPosts(communityId),
-      ]);
+      const communityData = await communityService.getCommunityById(communityId);
       
       setCommunity(communityData);
-      setApprovedPosts(postsData);
 
-      // Load pending posts if user is admin
-      if (communityData.isAdmin) {
-        const pending = await communityService.getPendingPosts(communityId);
-        setPendingPosts(pending);
+      // Only load posts if user is a member
+      if (communityData.isMember) {
+        const postsData = await communityService.getCommunityPosts(communityId);
+        setApprovedPosts(postsData);
+
+        // Load pending posts if user is admin
+        if (communityData.isAdmin) {
+          const pending = await communityService.getPendingPosts(communityId);
+          setPendingPosts(pending);
+        }
+      } else {
+        // Clear posts if not a member
+        setApprovedPosts([]);
+        setPendingPosts([]);
       }
     } catch (error) {
       console.error('Error loading community data:', error);
@@ -322,7 +328,7 @@ export default function CommunityPostsScreen() {
       </View>
 
       {/* Admin Tabs */}
-      {community.isAdmin && (
+      {community.isAdmin && community.isMember && (
         <View style={styles.tabContainer}>
           <TouchableOpacity
             style={[styles.tab, activeTab === 'approved' && styles.activeTab]}
@@ -343,38 +349,66 @@ export default function CommunityPostsScreen() {
         </View>
       )}
 
-      {/* Create Post Button */}
-      <View style={styles.createPostSection}>
-        <TouchableOpacity
-          style={styles.createPostButton}
-          onPress={() => setShowCreatePost(true)}
-        >
-          <Ionicons name="add-circle-outline" size={20} color="#007AFF" />
-          <Text style={styles.createPostButtonText}>Create Post</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Posts List */}
-      <FlatList
-        data={currentPosts}
-        renderItem={({ item }) => renderPost({ item, isPending: activeTab === 'pending' })}
-        keyExtractor={(item) => item.id.toString()}
-        contentContainerStyle={styles.listContent}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-        ListEmptyComponent={
-          <View style={styles.emptyState}>
-            <Ionicons name="chatbubbles-outline" size={64} color="#ccc" />
-            <Text style={styles.emptyText}>
-              {activeTab === 'approved' ? 'No posts yet' : 'No pending posts'}
-            </Text>
-            <Text style={styles.emptySubtext}>
-              {activeTab === 'approved' && 'Be the first to post in this community!'}
-            </Text>
+      {/* Show join prompt if not a member */}
+      {!community.isMember ? (
+        <View style={styles.notMemberContainer}>
+          <Ionicons name="lock-closed-outline" size={64} color="#ccc" />
+          <Text style={styles.notMemberTitle}>Join to See Posts</Text>
+          <Text style={styles.notMemberText}>
+            You must be a member of this community to view and create posts.
+          </Text>
+          <TouchableOpacity
+            style={styles.joinButton}
+            onPress={async () => {
+              try {
+                await communityService.joinCommunity(communityId);
+                Alert.alert('Success', 'Joined community successfully!');
+                await loadCommunityData();
+              } catch (error) {
+                console.error('Error joining community:', error);
+                Alert.alert('Error', 'Failed to join community');
+              }
+            }}
+          >
+            <Text style={styles.joinButtonText}>Join Community</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <>
+          {/* Create Post Button */}
+          <View style={styles.createPostSection}>
+            <TouchableOpacity
+              style={styles.createPostButton}
+              onPress={() => setShowCreatePost(true)}
+            >
+              <Ionicons name="add-circle-outline" size={20} color="#007AFF" />
+              <Text style={styles.createPostButtonText}>Create Post</Text>
+            </TouchableOpacity>
           </View>
-        }
-      />
+
+          {/* Posts List */}
+          <FlatList
+            data={currentPosts}
+            renderItem={({ item }) => renderPost({ item, isPending: activeTab === 'pending' })}
+            keyExtractor={(item) => item.id.toString()}
+            contentContainerStyle={styles.listContent}
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            }
+            ListEmptyComponent={
+              <View style={styles.emptyState}>
+                <Ionicons name="chatbubbles-outline" size={64} color="#ccc" />
+                <Text style={styles.emptyText}>
+                  {activeTab === 'approved' ? 'No posts yet' : 'No pending posts'}
+                </Text>
+                <Text style={styles.emptySubtext}>
+                  {activeTab === 'approved' && 'Be the first to post in this community!'}
+                </Text>
+              </View>
+            }
+          />
+        </>
+      )}
 
       {/* Create Post Modal */}
       <Modal
@@ -805,5 +839,42 @@ const styles = StyleSheet.create({
   },
   disabledButton: {
     opacity: 0.6,
+  },
+  notMemberContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 40,
+    backgroundColor: '#f5f5f5',
+  },
+  notMemberTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#333',
+    marginTop: 20,
+    marginBottom: 10,
+  },
+  notMemberText: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 30,
+    lineHeight: 24,
+  },
+  joinButton: {
+    backgroundColor: '#007AFF',
+    paddingHorizontal: 40,
+    paddingVertical: 14,
+    borderRadius: 25,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  joinButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

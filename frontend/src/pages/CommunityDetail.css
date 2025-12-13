@@ -421,6 +421,58 @@
   border-left: 4px solid #ef4444;
 }
 
+.not-member-container {
+  max-width: 800px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 16px;
+  padding: 60px 40px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  text-align: center;
+}
+
+.not-member-content {
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.not-member-icon {
+  font-size: 64px;
+  margin-bottom: 20px;
+}
+
+.not-member-container h2 {
+  margin: 0 0 15px 0;
+  font-size: 28px;
+  font-weight: 700;
+  color: #333;
+}
+
+.not-member-container p {
+  margin: 0 0 30px 0;
+  font-size: 16px;
+  color: #6b7280;
+  line-height: 1.6;
+}
+
+.btn-join-community {
+  padding: 14px 40px;
+  background: #6b7280;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.btn-join-community:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
 @media (max-width: 768px) {
   .community-header-info {
     flex-direction: column;
