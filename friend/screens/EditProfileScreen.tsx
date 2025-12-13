@@ -17,6 +17,15 @@ import { useAuth } from '../contexts/AuthContext';
 import { router } from 'expo-router';
 import authService, { ProfileData } from '../services/authService';
 
+// MIME type lookup for image extensions
+const IMAGE_MIME_TYPES: { [key: string]: string } = {
+  '.png': 'image/png',
+  '.gif': 'image/gif',
+  '.webp': 'image/webp',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+};
+
 export default function EditProfileScreen() {
   const { user, refreshUser } = useAuth();
   const [name, setName] = useState(user?.name || '');
@@ -28,16 +37,50 @@ export default function EditProfileScreen() {
 
   const pickImage = async () => {
     try {
-      // Request permission
-      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      
-      if (!permissionResult.granted) {
-        Alert.alert('Permission Required', 'Please grant camera roll permission to upload images.');
-        return;
-      }
+      // Show action sheet to choose between camera and library
+      Alert.alert(
+        'Change Profile Picture',
+        'Choose an option',
+        [
+          {
+            text: 'Take Photo',
+            onPress: async () => {
+              const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+              if (!permissionResult.granted) {
+                Alert.alert('Permission Required', 'Please grant camera permission to take photos.');
+                return;
+              }
+              await launchImagePicker(ImagePicker.launchCameraAsync);
+            },
+          },
+          {
+            text: 'Choose from Library',
+            onPress: async () => {
+              const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+              if (!permissionResult.granted) {
+                Alert.alert('Permission Required', 'Please grant media library permission to select photos.');
+                return;
+              }
+              await launchImagePicker(ImagePicker.launchImageLibraryAsync);
+            },
+          },
+          {
+            text: 'Cancel',
+            style: 'cancel',
+          },
+        ],
+      );
+    } catch (error) {
+      console.error('Error picking image:', error);
+      Alert.alert('Error', 'Failed to pick image');
+    }
+  };
 
-      // Launch image picker
-      const result = await ImagePicker.launchImageLibraryAsync({
+  const launchImagePicker = async (
+    pickerFunction: typeof ImagePicker.launchImageLibraryAsync | typeof ImagePicker.launchCameraAsync
+  ) => {
+    try {
+      const result = await pickerFunction({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [1, 1],
@@ -49,21 +92,12 @@ export default function EditProfileScreen() {
         const asset = result.assets[0];
         // Convert to base64 data URL
         if (asset.base64) {
-          // MIME type detection based on file extension
-          const mimeTypes: { [key: string]: string } = {
-            '.png': 'image/png',
-            '.gif': 'image/gif',
-            '.webp': 'image/webp',
-            '.jpg': 'image/jpeg',
-            '.jpeg': 'image/jpeg',
-          };
-          
           let mimeType = 'image/jpeg'; // default
           if (asset.uri) {
             const uriLower = asset.uri.toLowerCase();
-            const extension = Object.keys(mimeTypes).find(ext => uriLower.endsWith(ext));
+            const extension = Object.keys(IMAGE_MIME_TYPES).find(ext => uriLower.endsWith(ext));
             if (extension) {
-              mimeType = mimeTypes[extension];
+              mimeType = IMAGE_MIME_TYPES[extension];
             }
           }
           
@@ -72,8 +106,8 @@ export default function EditProfileScreen() {
         }
       }
     } catch (error) {
-      console.error('Error picking image:', error);
-      Alert.alert('Error', 'Failed to pick image');
+      console.error('Error in image picker:', error);
+      Alert.alert('Error', 'Failed to process image');
     }
   };
 
