@@ -17,13 +17,14 @@ import { useAuth } from '../contexts/AuthContext';
 import { router } from 'expo-router';
 import authService, { ProfileData } from '../services/authService';
 
-// MIME type lookup for image extensions
+// MIME type lookup for supported image extensions
+// Supporting common web-friendly formats only (JPEG, PNG, GIF, WebP)
 const IMAGE_MIME_TYPES: { [key: string]: string } = {
+  '.jpeg': 'image/jpeg',
+  '.jpg': 'image/jpeg',
   '.png': 'image/png',
   '.gif': 'image/gif',
   '.webp': 'image/webp',
-  '.jpg': 'image/jpeg',
-  '.jpeg': 'image/jpeg',
 };
 
 export default function EditProfileScreen() {
@@ -95,7 +96,9 @@ export default function EditProfileScreen() {
           let mimeType = 'image/jpeg'; // default
           if (asset.uri) {
             const uriLower = asset.uri.toLowerCase();
-            const extension = Object.keys(IMAGE_MIME_TYPES).find(ext => uriLower.endsWith(ext));
+            // Check extensions in order of specificity (longer first)
+            const extensions = ['.jpeg', '.webp', '.jpg', '.png', '.gif'];
+            const extension = extensions.find(ext => uriLower.endsWith(ext));
             if (extension) {
               mimeType = IMAGE_MIME_TYPES[extension];
             }
