@@ -49,18 +49,24 @@ export default function EditProfileScreen() {
         const asset = result.assets[0];
         // Convert to base64 data URL
         if (asset.base64) {
-          // Try to detect MIME type from URI extension, default to jpeg
-          let mimeType = 'image/jpeg';
+          // MIME type detection based on file extension
+          const mimeTypes: { [key: string]: string } = {
+            '.png': 'image/png',
+            '.gif': 'image/gif',
+            '.webp': 'image/webp',
+            '.jpg': 'image/jpeg',
+            '.jpeg': 'image/jpeg',
+          };
+          
+          let mimeType = 'image/jpeg'; // default
           if (asset.uri) {
             const uriLower = asset.uri.toLowerCase();
-            if (uriLower.endsWith('.png')) {
-              mimeType = 'image/png';
-            } else if (uriLower.endsWith('.gif')) {
-              mimeType = 'image/gif';
-            } else if (uriLower.endsWith('.webp')) {
-              mimeType = 'image/webp';
+            const extension = Object.keys(mimeTypes).find(ext => uriLower.endsWith(ext));
+            if (extension) {
+              mimeType = mimeTypes[extension];
             }
           }
+          
           const base64Image = `data:${mimeType};base64,${asset.base64}`;
           setProfilePicture(base64Image);
         }
@@ -83,15 +89,9 @@ export default function EditProfileScreen() {
         profession, 
         organization, 
         location,
+        ...(name && { name }),
+        ...(profilePicture && { profilePicture }),
       };
-      
-      if (name) {
-        updateData.name = name;
-      }
-      
-      if (profilePicture) {
-        updateData.profilePicture = profilePicture;
-      }
       
       await authService.updateProfile(updateData);
       await refreshUser();
