@@ -19,6 +19,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import communityService, { CommunityPostResponse, CommunityResponse } from '../services/communityService';
+import { APP_URL, MAX_POST_LENGTH } from '../constants/config';
 
 type TabType = 'approved' | 'pending';
 
@@ -157,7 +158,7 @@ export default function CommunityPostsScreen() {
 
   const handleShareCommunity = async () => {
     try {
-      const shareUrl = `https://yourapp.com/community/${communityId}`;
+      const shareUrl = `${APP_URL}/community/${communityId}`;
       const message = `Join ${community?.name} on our social network!\n\n${community?.description}\n\n${shareUrl}`;
       
       if (Platform.OS === 'web') {
@@ -404,7 +405,7 @@ export default function CommunityPostsScreen() {
                   placeholder="What's on your mind?"
                   multiline
                   numberOfLines={6}
-                  maxLength={5000}
+                  maxLength={MAX_POST_LENGTH}
                   textAlignVertical="top"
                 />
               </ScrollView>

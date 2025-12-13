@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import communityService from '../services/communityService';
+import { MAX_COMMUNITY_NAME_LENGTH, MAX_COMMUNITY_DESCRIPTION_LENGTH } from '../constants/config';
 
 interface CreateCommunityModalProps {
   visible: boolean;
@@ -92,7 +93,7 @@ export default function CreateCommunityModal({
                   value={name}
                   onChangeText={setName}
                   placeholder="Enter community name"
-                  maxLength={100}
+                  maxLength={MAX_COMMUNITY_NAME_LENGTH}
                 />
               </View>
 
@@ -105,7 +106,7 @@ export default function CreateCommunityModal({
                   placeholder="Describe your community"
                   multiline
                   numberOfLines={4}
-                  maxLength={500}
+                  maxLength={MAX_COMMUNITY_DESCRIPTION_LENGTH}
                 />
               </View>
 

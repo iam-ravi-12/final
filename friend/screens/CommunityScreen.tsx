@@ -16,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import communityService, { CommunityResponse } from '../services/communityService';
 import CreateCommunityModal from '../components/CreateCommunityModal';
+import { APP_URL } from '../constants/config';
 
 type TabType = 'my' | 'public';
 
@@ -80,7 +81,7 @@ export default function CommunityScreen() {
 
   const handleShareCommunity = async (community: CommunityResponse) => {
     try {
-      const shareUrl = `https://yourapp.com/community/${community.id}`;
+      const shareUrl = `${APP_URL}/community/${community.id}`;
       const message = `Join ${community.name} on our social network!\n\n${community.description}\n\n${shareUrl}`;
       
       if (Platform.OS === 'web') {
