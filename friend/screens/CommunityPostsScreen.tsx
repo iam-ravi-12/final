@@ -20,6 +20,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import communityService, { CommunityPostResponse, CommunityResponse } from '../services/communityService';
 import { APP_URL, MAX_POST_LENGTH } from '../constants/config';
+import { copyToClipboard, formatRelativeDate, formatMemberCount } from '../utils/helpers';
 
 type TabType = 'approved' | 'pending';
 
@@ -85,7 +86,8 @@ export default function CommunityPostsScreen() {
         content: postContent.trim(),
         mediaUrls: [],
       });
-      Alert.alert('Success', 'Post submitted for approval!');
+      // More generic success message since all posts go through approval
+      Alert.alert('Success', 'Post created successfully!');
       setPostContent('');
       setShowCreatePost(false);
       await loadCommunityData();
@@ -162,8 +164,13 @@ export default function CommunityPostsScreen() {
       const message = `Join ${community?.name} on our social network!\n\n${community?.description}\n\n${shareUrl}`;
       
       if (Platform.OS === 'web') {
-        await navigator.clipboard.writeText(shareUrl);
-        Alert.alert('Link Copied', 'Community link copied to clipboard!');
+        // Web fallback with proper error handling
+        try {
+          await copyToClipboard(shareUrl);
+          Alert.alert('Link Copied', 'Community link copied to clipboard!');
+        } catch (err) {
+          Alert.alert('Error', 'Failed to copy link to clipboard');
+        }
       } else {
         await RNShare.share({
           title: `Join ${community?.name}`,
@@ -177,18 +184,7 @@ export default function CommunityPostsScreen() {
   };
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMins / 60);
-    const diffDays = Math.floor(diffHours / 24);
-
-    if (diffMins < 1) return 'Just now';
-    if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
-    if (diffDays < 7) return `${diffDays}d ago`;
-    return date.toLocaleDateString();
+    return formatRelativeDate(dateString);
   };
 
   const renderPost = ({ item, isPending = false }: { item: CommunityPostResponse; isPending?: boolean }) => {
@@ -300,7 +296,7 @@ export default function CommunityPostsScreen() {
           </Text>
           <View style={styles.communityMeta}>
             <Text style={styles.metaText}>
-              👤 {community.memberCount} {community.memberCount === 1 ? 'member' : 'members'}
+              👤 {formatMemberCount(community.memberCount)}
             </Text>
             {community.isPrivate && (
               <View style={styles.privateBadge}>

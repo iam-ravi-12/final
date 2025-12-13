@@ -17,6 +17,7 @@ import { useRouter } from 'expo-router';
 import communityService, { CommunityResponse } from '../services/communityService';
 import CreateCommunityModal from '../components/CreateCommunityModal';
 import { APP_URL } from '../constants/config';
+import { copyToClipboard, formatMemberCount } from '../utils/helpers';
 
 type TabType = 'my' | 'public';
 
@@ -85,9 +86,13 @@ export default function CommunityScreen() {
       const message = `Join ${community.name} on our social network!\n\n${community.description}\n\n${shareUrl}`;
       
       if (Platform.OS === 'web') {
-        // Web fallback
-        await navigator.clipboard.writeText(shareUrl);
-        Alert.alert('Link Copied', 'Community link copied to clipboard!');
+        // Web fallback with proper error handling
+        try {
+          await copyToClipboard(shareUrl);
+          Alert.alert('Link Copied', 'Community link copied to clipboard!');
+        } catch (err) {
+          Alert.alert('Error', 'Failed to copy link to clipboard');
+        }
       } else {
         // Native share
         await Share.share({
@@ -135,7 +140,7 @@ export default function CommunityScreen() {
               </Text>
             )}
             <Text style={styles.communityMeta}>
-              {item.memberCount} {item.memberCount === 1 ? 'member' : 'members'}
+              {formatMemberCount(item.memberCount)}
             </Text>
           </View>
         </View>
