@@ -150,4 +150,28 @@ public class SosController {
             ));
         }
     }
+
+    @GetMapping("/alerts/unread-count")
+    public ResponseEntity<Map<String, Long>> getUnreadSosAlertsCount(Authentication authentication) {
+        String username = authentication.getName();
+        long count = sosService.getUnreadSosAlertsCount(username);
+        return ResponseEntity.ok(Map.of("count", count));
+    }
+
+    @PostMapping("/alerts/mark-read")
+    public ResponseEntity<?> markSosAlertsAsRead(Authentication authentication) {
+        try {
+            String username = authentication.getName();
+            sosService.markSosAlertsAsRead(username);
+            return ResponseEntity.ok(Map.of(
+                "message", "SOS alerts marked as read",
+                "status", "success"
+            ));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "message", "Failed to mark alerts as read: " + e.getMessage(),
+                "status", "error"
+            ));
+        }
+    }
 }

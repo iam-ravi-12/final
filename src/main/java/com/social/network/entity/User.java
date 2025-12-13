@@ -50,6 +50,9 @@ public class User {
     @Column(name = "leaderboard_points")
     private Integer leaderboardPoints = 0;
 
+    @Column(name = "last_sos_check_at")
+    private LocalDateTime lastSosCheckAt;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

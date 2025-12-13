@@ -390,4 +390,52 @@ public class SosService {
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         return R * c;
     }
+
+    /**
+     * Get count of unread SOS alerts for a user
+     * Counts active alerts created after user's last check time
+     */
+    public long getUnreadSosAlertsCount(String username) {
+        User user = userRepository.findByUsername(username).orElse(null);
+        
+        // If user not found, return 0 (shouldn't happen with authenticated requests)
+        if (user == null) {
+            return 0;
+        }
+
+        LocalDateTime lastCheckTime = user.getLastSosCheckAt();
+        
+        // If user has never checked, count all active alerts
+        if (lastCheckTime == null) {
+            List<SosAlert> allActiveAlerts = sosAlertRepository.findByStatusOrderByCreatedAtDesc("ACTIVE");
+            return allActiveAlerts.stream()
+                    .filter(this::isAlertStillValid)
+                    .filter(alert -> !alert.getUser().getId().equals(user.getId())) // Exclude user's own alerts
+                    .count();
+        }
+        
+        // Count alerts created after last check time
+        List<SosAlert> alerts = sosAlertRepository.findByStatusOrderByCreatedAtDesc("ACTIVE");
+        return alerts.stream()
+                .filter(this::isAlertStillValid)
+                .filter(alert -> alert.getCreatedAt().isAfter(lastCheckTime))
+                .filter(alert -> !alert.getUser().getId().equals(user.getId())) // Exclude user's own alerts
+                .count();
+    }
+
+    /**
+     * Mark SOS alerts as read by updating user's last check time
+     */
+    @Transactional
+    public void markSosAlertsAsRead(String username) {
+        User user = userRepository.findByUsername(username).orElse(null);
+        
+        // If user not found, silently return (shouldn't happen with authenticated requests)
+        if (user == null) {
+            return;
+        }
+        
+        user.setLastSosCheckAt(LocalDateTime.now());
+        userRepository.save(user);
+    }
 }
