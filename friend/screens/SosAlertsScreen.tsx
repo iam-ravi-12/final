@@ -15,6 +15,7 @@ import {
 import { useRouter } from 'expo-router';
 import * as Location from 'expo-location';
 import sosService, { SosAlertResponse, SosResponseRequest } from '../services/sosService';
+import notificationService from '../services/notificationService';
 
 const SosAlertsScreen = () => {
   const router = useRouter();
@@ -31,7 +32,17 @@ const SosAlertsScreen = () => {
     getLocation();
     loadAlerts();
     markAlertsAsRead();
+    clearNotifications();
   }, []);
+
+  const clearNotifications = async () => {
+    try {
+      // Clear app badge count
+      await notificationService.setBadgeCount(0);
+    } catch (error) {
+      console.error('Error clearing notifications:', error);
+    }
+  };
 
   const getLocation = async () => {
     try {

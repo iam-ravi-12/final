@@ -1,22 +1,63 @@
 import { Tabs } from 'expo-router';
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, AppState, Platform } from 'react-native';
+import * as Notifications from 'expo-notifications';
 
 import { HapticTab } from '@/components/haptic-tab';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import sosService from '@/services/sosService';
+import notificationService, { showSosAlertNotification } from '@/services/notificationService';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   const [sosUnreadCount, setSosUnreadCount] = useState(0);
+  const [previousAlertIds, setPreviousAlertIds] = useState<Set<number>>(new Set());
+  const appState = useRef(AppState.currentState);
+  const notificationListener = useRef<Notifications.Subscription>();
+  const responseListener = useRef<Notifications.Subscription>();
+
+  useEffect(() => {
+    // Initialize notifications
+    initializeNotifications();
+
+    // Setup notification listeners
+    notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
+      console.log('Notification received:', notification);
+    });
+
+    responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
+      console.log('Notification response:', response);
+      // Navigate to SOS alerts when user taps notification
+      // The tab navigation will handle this
+    });
+
+    return () => {
+      if (notificationListener.current) {
+        Notifications.removeNotificationSubscription(notificationListener.current);
+      }
+      if (responseListener.current) {
+        Notifications.removeNotificationSubscription(responseListener.current);
+      }
+    };
+  }, []);
+
+  const initializeNotifications = async () => {
+    const hasPermission = await notificationService.requestPermissions();
+    if (hasPermission) {
+      await notificationService.setupNotificationChannel();
+    }
+  };
 
   useEffect(() => {
     const loadSosUnreadCount = async () => {
       try {
         const count = await sosService.getUnreadCount();
         setSosUnreadCount(count);
+        
+        // Update badge count on app icon
+        await notificationService.setBadgeCount(count);
       } catch (err) {
         console.error('Error loading SOS unread count:', err);
       }
@@ -27,6 +68,62 @@ export default function TabLayout() {
     // Poll for updates every 30 seconds
     const interval = setInterval(loadSosUnreadCount, 30000);
     return () => clearInterval(interval);
+  }, []);
+
+  // Monitor for new alerts and send notifications
+  useEffect(() => {
+    const checkForNewAlerts = async () => {
+      try {
+        const alerts = await sosService.getActiveAlerts();
+        
+        // Check for new alerts that weren't in previous set
+        const newAlerts = alerts.filter(alert => 
+          !previousAlertIds.has(alert.id) && !alert.isCurrentUserAlertOwner
+        );
+
+        if (newAlerts.length > 0) {
+          // Show notification for each new alert
+          for (const alert of newAlerts) {
+            await showSosAlertNotification(
+              alert.username,
+              alert.emergencyType,
+              alert.distance
+            );
+          }
+        }
+
+        // Update the set of known alert IDs
+        const currentAlertIds = new Set(alerts.map(a => a.id));
+        setPreviousAlertIds(currentAlertIds);
+      } catch (err) {
+        console.error('Error checking for new alerts:', err);
+      }
+    };
+
+    // Initial check
+    checkForNewAlerts();
+
+    // Poll for new alerts every 30 seconds
+    const interval = setInterval(checkForNewAlerts, 30000);
+    return () => clearInterval(interval);
+  }, [previousAlertIds]);
+
+  // Handle app state changes
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', nextAppState => {
+      if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
+        // App came to foreground - refresh counts
+        sosService.getUnreadCount().then(count => {
+          setSosUnreadCount(count);
+          notificationService.setBadgeCount(count);
+        });
+      }
+      appState.current = nextAppState;
+    });
+
+    return () => {
+      subscription.remove();
+    };
   }, []);
 
   return (
