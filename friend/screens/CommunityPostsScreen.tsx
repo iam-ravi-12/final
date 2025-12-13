@@ -167,6 +167,17 @@ export default function CommunityPostsScreen() {
     );
   };
 
+  const handleJoinCommunity = async () => {
+    try {
+      await communityService.joinCommunity(communityId);
+      Alert.alert('Success', 'Joined community successfully!');
+      await loadCommunityData();
+    } catch (error) {
+      console.error('Error joining community:', error);
+      Alert.alert('Error', 'Failed to join community');
+    }
+  };
+
   const handleShareCommunity = async () => {
     try {
       const shareUrl = `${APP_URL}/community/${communityId}`;
@@ -320,9 +331,14 @@ export default function CommunityPostsScreen() {
             )}
           </View>
         </View>
-        {!community.isAdmin && (
+        {!community.isAdmin && community.isMember && (
           <TouchableOpacity style={styles.leaveButton} onPress={handleLeaveCommunity}>
             <Text style={styles.leaveButtonText}>Leave</Text>
+          </TouchableOpacity>
+        )}
+        {!community.isAdmin && !community.isMember && (
+          <TouchableOpacity style={styles.joinButton} onPress={handleJoinCommunity}>
+            <Text style={styles.joinButtonText}>Join</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -590,6 +606,17 @@ const styles = StyleSheet.create({
   },
   leaveButtonText: {
     color: '#FF3B30',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  joinButton: {
+    backgroundColor: '#007AFF',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 16,
+  },
+  joinButtonText: {
+    color: '#fff',
     fontSize: 14,
     fontWeight: '600',
   },

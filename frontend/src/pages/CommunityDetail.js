@@ -186,9 +186,14 @@ const CommunityDetail = () => {
             <button className="btn-share" onClick={handleShareCommunity}>
               🔗 Share
             </button>
-            {!community.isAdmin && (
+            {!community.isAdmin && community.isMember && (
               <button className="btn-leave" onClick={handleLeaveCommunity}>
                 Leave Community
+              </button>
+            )}
+            {!community.isAdmin && !community.isMember && (
+              <button className="btn-join" onClick={handleJoinCommunity}>
+                Join Community
               </button>
             )}
           </div>
