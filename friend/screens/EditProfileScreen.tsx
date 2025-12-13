@@ -15,7 +15,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useAuth } from '../contexts/AuthContext';
 import { router } from 'expo-router';
-import authService from '../services/authService';
+import authService, { ProfileData } from '../services/authService';
 
 export default function EditProfileScreen() {
   const { user, refreshUser } = useAuth();
@@ -49,10 +49,18 @@ export default function EditProfileScreen() {
         const asset = result.assets[0];
         // Convert to base64 data URL
         if (asset.base64) {
-          // Detect MIME type from URI or default to jpeg
-          const mimeType = asset.uri?.endsWith('.png') ? 'image/png' : 
-                          asset.uri?.endsWith('.gif') ? 'image/gif' : 
-                          'image/jpeg';
+          // Try to detect MIME type from URI extension, default to jpeg
+          let mimeType = 'image/jpeg';
+          if (asset.uri) {
+            const uriLower = asset.uri.toLowerCase();
+            if (uriLower.endsWith('.png')) {
+              mimeType = 'image/png';
+            } else if (uriLower.endsWith('.gif')) {
+              mimeType = 'image/gif';
+            } else if (uriLower.endsWith('.webp')) {
+              mimeType = 'image/webp';
+            }
+          }
           const base64Image = `data:${mimeType};base64,${asset.base64}`;
           setProfilePicture(base64Image);
         }
@@ -71,7 +79,7 @@ export default function EditProfileScreen() {
 
     setLoading(true);
     try {
-      const updateData: any = { 
+      const updateData: ProfileData = { 
         profession, 
         organization, 
         location,
