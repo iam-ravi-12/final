@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -35,6 +35,17 @@ export default function EditProfileScreen() {
   const [location, setLocation] = useState(user?.location || '');
   const [profilePicture, setProfilePicture] = useState(user?.profilePicture || '');
   const [loading, setLoading] = useState(false);
+
+  // Update state when user data changes
+  useEffect(() => {
+    if (user) {
+      setName(user.name || '');
+      setProfession(user.profession || '');
+      setOrganization(user.organization || '');
+      setLocation(user.location || '');
+      setProfilePicture(user.profilePicture || '');
+    }
+  }, [user]);
 
   const pickImage = async () => {
     try {
@@ -115,6 +126,8 @@ export default function EditProfileScreen() {
   };
 
   const handleSave = async () => {
+    console.log('handleSave called', { profession, organization, location, name, hasProfilePicture: !!profilePicture });
+    
     if (!profession || !organization || !location) {
       Alert.alert('Error', 'Please fill in all required fields (Profession, Organization, Location)');
       return;
@@ -130,8 +143,17 @@ export default function EditProfileScreen() {
         ...(profilePicture && { profilePicture }),
       };
       
+      console.log('Sending update with data:', { 
+        ...updateData, 
+        profilePicture: updateData.profilePicture ? 'base64 data present' : 'none' 
+      });
+      
       await authService.updateProfile(updateData);
+      console.log('Profile update successful');
+      
       await refreshUser();
+      console.log('User data refreshed');
+      
       Alert.alert('Success', 'Profile updated successfully', [
         {
           text: 'OK',
@@ -140,7 +162,12 @@ export default function EditProfileScreen() {
       ]);
     } catch (error: any) {
       console.error('Failed to update profile:', error);
-      Alert.alert('Error', error.response?.data?.message || 'Failed to update profile');
+      console.error('Error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+      });
+      Alert.alert('Error', error.response?.data?.message || error.message || 'Failed to update profile');
     } finally {
       setLoading(false);
     }
