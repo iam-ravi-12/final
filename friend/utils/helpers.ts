@@ -35,6 +35,10 @@ export const formatRelativeDate = (dateString: string): string => {
  * Copy text to clipboard with fallback for different platforms
  * @param text - Text to copy
  * @returns Promise that resolves when copied successfully
+ * 
+ * Note: Uses deprecated document.execCommand as fallback for older browsers
+ * that don't support the modern Clipboard API. This is intentional for
+ * maximum compatibility.
  */
 export const copyToClipboard = async (text: string): Promise<void> => {
   // Try modern clipboard API first
@@ -48,6 +52,7 @@ export const copyToClipboard = async (text: string): Promise<void> => {
   }
   
   // Fallback for browsers that don't support clipboard API
+  // Uses deprecated execCommand for maximum compatibility
   if (typeof document !== 'undefined') {
     const textArea = document.createElement('textarea');
     textArea.value = text;

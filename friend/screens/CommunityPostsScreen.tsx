@@ -86,8 +86,11 @@ export default function CommunityPostsScreen() {
         content: postContent.trim(),
         mediaUrls: [],
       });
-      // More generic success message since all posts go through approval
-      Alert.alert('Success', 'Post created successfully!');
+      // Inform user about approval process
+      Alert.alert(
+        'Success', 
+        'Post submitted successfully! It will appear once approved by the admin.'
+      );
       setPostContent('');
       setShowCreatePost(false);
       await loadCommunityData();

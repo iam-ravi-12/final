@@ -140,7 +140,7 @@ export default function CommunityScreen() {
               </Text>
             )}
             <Text style={styles.communityMeta}>
-              {formatMemberCount(item.memberCount)}
+              {formatMemberCount(item.memberCount)} • by @{item.adminUsername}
             </Text>
           </View>
         </View>
