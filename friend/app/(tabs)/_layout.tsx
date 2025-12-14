@@ -13,10 +13,11 @@ import notificationService, { showSosAlertNotification } from '@/services/notifi
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   const [sosUnreadCount, setSosUnreadCount] = useState(0);
-  const [previousAlertIds, setPreviousAlertIds] = useState<Set<number>>(new Set());
+  const previousAlertIdsRef = useRef<Set<number>>(new Set());
   const appState = useRef(AppState.currentState);
   const notificationListener = useRef<Notifications.Subscription>();
   const responseListener = useRef<Notifications.Subscription>();
+  const isInitialLoadRef = useRef(true);
 
   useEffect(() => {
     // Initialize notifications
@@ -76,14 +77,25 @@ export default function TabLayout() {
       try {
         const alerts = await sosService.getActiveAlerts();
         
+        // On initial load, just store the current alerts without sending notifications
+        if (isInitialLoadRef.current) {
+          const initialAlertIds = new Set(alerts.map(a => a.id));
+          previousAlertIdsRef.current = initialAlertIds;
+          isInitialLoadRef.current = false;
+          console.log('Initial load - stored alert IDs:', initialAlertIds.size);
+          return;
+        }
+        
         // Check for new alerts that weren't in previous set
         const newAlerts = alerts.filter(alert => 
-          !previousAlertIds.has(alert.id) && !alert.isCurrentUserAlertOwner
+          !previousAlertIdsRef.current.has(alert.id) && !alert.isCurrentUserAlertOwner
         );
 
         if (newAlerts.length > 0) {
+          console.log('Found new alerts:', newAlerts.length);
           // Show notification for each new alert
           for (const alert of newAlerts) {
+            console.log('Sending notification for alert:', alert.id, alert.username);
             await showSosAlertNotification(
               alert.username,
               alert.emergencyType,
@@ -94,7 +106,7 @@ export default function TabLayout() {
 
         // Update the set of known alert IDs
         const currentAlertIds = new Set(alerts.map(a => a.id));
-        setPreviousAlertIds(currentAlertIds);
+        previousAlertIdsRef.current = currentAlertIds;
       } catch (err) {
         console.error('Error checking for new alerts:', err);
       }
@@ -106,7 +118,7 @@ export default function TabLayout() {
     // Poll for new alerts every 30 seconds
     const interval = setInterval(checkForNewAlerts, 30000);
     return () => clearInterval(interval);
-  }, [previousAlertIds]);
+  }, []); // Remove dependency on previousAlertIds
 
   // Handle app state changes
   useEffect(() => {
