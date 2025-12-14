@@ -2,6 +2,7 @@ import { Tabs } from 'expo-router';
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, AppState, Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
+import * as Location from 'expo-location';
 
 import { HapticTab } from '@/components/haptic-tab';
 import { IconSymbol } from '@/components/ui/icon-symbol';
@@ -11,6 +12,8 @@ import sosService from '@/services/sosService';
 import notificationService, { showSosAlertNotification } from '@/services/notificationService';
 import BackgroundNotificationService from '@/services/backgroundNotificationService';
 
+const RADIUS_KM = 5; // Only notify users within 5km radius
+
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   const [sosUnreadCount, setSosUnreadCount] = useState(0);
@@ -19,6 +22,7 @@ export default function TabLayout() {
   const notificationListener = useRef<Notifications.Subscription>();
   const responseListener = useRef<Notifications.Subscription>();
   const isInitialLoadRef = useRef(true);
+  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
 
   useEffect(() => {
     // Initialize notifications
@@ -58,6 +62,35 @@ export default function TabLayout() {
     }
   };
 
+  // Get user location for filtering alerts within 5km radius
+  useEffect(() => {
+    const getLocation = async () => {
+      try {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status === 'granted') {
+          const location = await Location.getCurrentPositionAsync({
+            accuracy: Location.Accuracy.Balanced,
+          });
+          setUserLocation({
+            latitude: location.coords.latitude,
+            longitude: location.coords.longitude,
+          });
+          console.log('User location obtained for notifications');
+        } else {
+          console.log('Location permission not granted');
+        }
+      } catch (error) {
+        console.error('Error getting location:', error);
+      }
+    };
+
+    getLocation();
+    
+    // Update location every 5 minutes
+    const interval = setInterval(getLocation, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   useEffect(() => {
     const loadSosUnreadCount = async () => {
       try {
@@ -82,7 +115,14 @@ export default function TabLayout() {
   useEffect(() => {
     const checkForNewAlerts = async () => {
       try {
-        const alerts = await sosService.getActiveAlerts();
+        // Fetch alerts within 5km radius
+        const alerts = await sosService.getActiveAlerts(
+          userLocation?.latitude,
+          userLocation?.longitude,
+          RADIUS_KM
+        );
+        
+        console.log(`Found ${alerts.length} alerts within ${RADIUS_KM}km`);
         
         // On initial load, just store the current alerts without sending notifications
         if (isInitialLoadRef.current) {
@@ -99,10 +139,10 @@ export default function TabLayout() {
         );
 
         if (newAlerts.length > 0) {
-          console.log('Found new alerts:', newAlerts.length);
+          console.log('Found new alerts within 5km:', newAlerts.length);
           // Show notification for each new alert
           for (const alert of newAlerts) {
-            console.log('Sending notification for alert:', alert.id, alert.username);
+            console.log('Sending notification for alert:', alert.id, alert.username, `${alert.distance}km away`);
             await showSosAlertNotification(
               alert.username,
               alert.emergencyType,

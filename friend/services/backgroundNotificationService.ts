@@ -1,23 +1,51 @@
 import * as BackgroundFetch from 'expo-background-fetch';
 import * as TaskManager from 'expo-task-manager';
+import * as Location from 'expo-location';
 import sosService from './sosService';
 import { showSosAlertNotification } from './notificationService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const BACKGROUND_FETCH_TASK = 'sos-alerts-background-fetch';
 const LAST_ALERT_IDS_KEY = 'lastSosAlertIds';
+const RADIUS_KM = 5; // Only notify users within 5km radius
 
 // Define the background task
 TaskManager.defineTask(BACKGROUND_FETCH_TASK, async () => {
   try {
     console.log('[Background] Checking for new SOS alerts...');
     
+    // Get user's current location
+    let userLocation: { latitude: number; longitude: number } | null = null;
+    try {
+      const { status } = await Location.getBackgroundPermissionsAsync();
+      if (status === 'granted') {
+        const location = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.Balanced,
+        });
+        userLocation = {
+          latitude: location.coords.latitude,
+          longitude: location.coords.longitude,
+        };
+        console.log('[Background] Got user location:', userLocation);
+      } else {
+        console.log('[Background] Location permission not granted');
+      }
+    } catch (locError) {
+      console.error('[Background] Error getting location:', locError);
+    }
+    
     // Get previously stored alert IDs
     const lastIdsJson = await AsyncStorage.getItem(LAST_ALERT_IDS_KEY);
     const lastAlertIds = lastIdsJson ? new Set(JSON.parse(lastIdsJson)) : new Set();
     
-    // Fetch current active alerts
-    const alerts = await sosService.getActiveAlerts();
+    // Fetch current active alerts within 5km radius
+    const alerts = await sosService.getActiveAlerts(
+      userLocation?.latitude,
+      userLocation?.longitude,
+      RADIUS_KM
+    );
+    
+    console.log(`[Background] Found ${alerts.length} alerts within ${RADIUS_KM}km`);
     
     // Find new alerts
     const newAlerts = alerts.filter(alert => 

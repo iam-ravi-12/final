@@ -13,8 +13,11 @@
       "infoPlist": {
         "UIBackgroundModes": [
           "fetch",
-          "remote-notification"
-        ]
+          "remote-notification",
+          "location"
+        ],
+        "NSLocationWhenInUseUsageDescription": "This app needs your location to show nearby SOS alerts.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "This app needs background location access to send you notifications about nearby SOS alerts even when the app is closed."
       }
     },
     "android": {
@@ -31,7 +34,10 @@
         "VIBRATE",
         "POST_NOTIFICATIONS",
         "WAKE_LOCK",
-        "FOREGROUND_SERVICE"
+        "FOREGROUND_SERVICE",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION"
       ]
     },
     "web": {
