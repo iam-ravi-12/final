@@ -9,6 +9,7 @@ import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import sosService from '@/services/sosService';
 import notificationService, { showSosAlertNotification } from '@/services/notificationService';
+import BackgroundNotificationService from '@/services/backgroundNotificationService';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
@@ -48,6 +49,12 @@ export default function TabLayout() {
     const hasPermission = await notificationService.requestPermissions();
     if (hasPermission) {
       await notificationService.setupNotificationChannel();
+      
+      // Register background fetch for notifications when app is closed
+      await BackgroundNotificationService.registerBackgroundFetch();
+      
+      // Initialize alert IDs to prevent notifications for existing alerts
+      await BackgroundNotificationService.initializeAlertIds();
     }
   };
 

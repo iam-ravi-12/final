@@ -54,7 +54,7 @@ class NotificationServiceImpl implements NotificationService {
       await Notifications.setNotificationChannelAsync('sos-alerts', {
         name: 'SOS Alerts',
         importance: Notifications.AndroidImportance.MAX,
-        vibrationPattern: [0, 250, 250, 250],
+        vibrationPattern: [0, 250, 250, 250, 250, 250, 250, 250, 250, 250],
         lightColor: '#FF0000',
         sound: 'default',
         enableLights: true,
@@ -140,11 +140,19 @@ export async function showSosAlertNotification(
   };
 
   const title = emergencyLabels[emergencyType] || '🚨 SOS Alert';
-  const distanceText = distance
-    ? distance < 1
-      ? `${(distance * 1000).toFixed(0)} meters away`
-      : `${distance.toFixed(1)} km away`
-    : 'nearby';
+  
+  // Always show distance in meters if available, otherwise show "location unknown"
+  let distanceText = 'location unknown';
+  if (distance !== null && distance !== undefined) {
+    if (distance < 1) {
+      // Less than 1 km - show in meters
+      const meters = Math.round(distance * 1000);
+      distanceText = `${meters} meter${meters === 1 ? '' : 's'} away`;
+    } else {
+      // 1 km or more - show in km with one decimal
+      distanceText = `${distance.toFixed(1)} km away`;
+    }
+  }
 
   const body = `${username} needs help - ${distanceText}`;
 
