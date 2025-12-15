@@ -201,7 +201,7 @@ export default function HomeScreen() {
                 style={styles.menuItem}
                 onPress={() => handleEditPost(item.id)}
               >
-                <IconSymbol name="pencil" size={20} color="#007AFF" />
+                <Ionicons name="create-outline" size={20} color="#007AFF" />
                 <Text style={styles.menuItemText}>Edit Post</Text>
               </TouchableOpacity>
               <View style={styles.menuDivider} />
@@ -209,7 +209,7 @@ export default function HomeScreen() {
                 style={styles.menuItem}
                 onPress={() => handleDeletePost(item.id)}
               >
-                <IconSymbol name="trash" size={20} color="#FF3B30" />
+                <Ionicons name="trash-outline" size={20} color="#FF3B30" />
                 <Text style={[styles.menuItemText, { color: '#FF3B30' }]}>
                   Delete Post
                 </Text>
