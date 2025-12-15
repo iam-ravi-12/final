@@ -16,6 +16,8 @@ import Communities from './pages/Communities';
 import CommunityDetail from './pages/CommunityDetail';
 import SosAlerts from './pages/SosAlerts';
 import Leaderboard from './pages/Leaderboard';
+import AdminLogin from './pages/AdminLogin';
+import AdminDashboard from './pages/AdminDashboard';
 import PrivateRoute from './components/PrivateRoute';
 import { ThemeProvider } from './contexts/ThemeContext';
 import './App.css';
@@ -28,6 +30,8 @@ function App() {
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/admin-login" element={<AdminLogin />} />
+            <Route path="/admin" element={<AdminDashboard />} />
           <Route
             path="/profile-setup"
             element={
