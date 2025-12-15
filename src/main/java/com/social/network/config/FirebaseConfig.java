@@ -3,15 +3,14 @@ package com.social.network.config;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
+import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 
-import jakarta.annotation.PostConstruct;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
+import java.util.Base64;
 
 @Configuration
 public class FirebaseConfig {
@@ -21,21 +20,36 @@ public class FirebaseConfig {
     @PostConstruct
     public void initialize() {
         try {
-            // Try to load from classpath first (for production)
-            InputStream serviceAccount;
-            try {
-                serviceAccount = new ClassPathResource("firebase-service-account.json").getInputStream();
-                logger.info("Loaded Firebase credentials from classpath");
-            } catch (IOException e) {
-                // If not found in classpath, try file system (for local development)
+            InputStream serviceAccount = null;
+
+            // 1️⃣ TRY ENV VARIABLE (RENDER / PRODUCTION)
+            String base64Credentials = System.getenv("FIREBASE_CREDENTIALS_BASE64");
+            if (base64Credentials != null && !base64Credentials.isBlank()) {
+                byte[] decodedBytes = Base64.getDecoder().decode(base64Credentials);
+                serviceAccount = new ByteArrayInputStream(decodedBytes);
+                logger.info("Loaded Firebase credentials from environment variable");
+            }
+
+            // 2️⃣ FALLBACK: CLASSPATH (LOCAL DEV)
+            if (serviceAccount == null) {
+                try {
+                    serviceAccount = new ClassPathResource("firebase-service-account.json").getInputStream();
+                    logger.info("Loaded Firebase credentials from classpath");
+                } catch (IOException ignored) {}
+            }
+
+            // 3️⃣ FALLBACK: PROJECT ROOT (LOCAL DEV)
+            if (serviceAccount == null) {
                 try {
                     serviceAccount = new FileInputStream("firebase-service-account.json");
-                    logger.info("Loaded Firebase credentials from file system");
-                } catch (IOException ex) {
-                    logger.warn("Firebase service account file not found. FCM push notifications will be disabled.");
-                    logger.warn("To enable FCM, place firebase-service-account.json in src/main/resources/ or project root");
-                    return;
-                }
+                    logger.info("Loaded Firebase credentials from project root");
+                } catch (IOException ignored) {}
+            }
+
+            // 4️⃣ FINAL CHECK
+            if (serviceAccount == null) {
+                logger.warn("Firebase credentials not found. FCM will be disabled.");
+                return;
             }
 
             FirebaseOptions options = FirebaseOptions.builder()
@@ -46,9 +60,9 @@ public class FirebaseConfig {
                 FirebaseApp.initializeApp(options);
                 logger.info("Firebase Admin SDK initialized successfully");
             }
+
         } catch (Exception e) {
-            logger.error("Error initializing Firebase Admin SDK: {}", e.getMessage());
-            logger.warn("FCM push notifications will be disabled");
+            logger.error("Error initializing Firebase Admin SDK", e);
         }
     }
 }
