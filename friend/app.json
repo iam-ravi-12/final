@@ -23,8 +23,12 @@
       "permissions": [
         "RECEIVE_BOOT_COMPLETED",
         "VIBRATE",
+        "POST_NOTIFICATIONS",
+        "RECEIVE_BOOT_COMPLETED",
+        "VIBRATE",
         "POST_NOTIFICATIONS"
-      ]
+      ],
+      "package": "com.anonymous.friend"
     },
     "web": {
       "output": "static",
@@ -37,7 +41,9 @@
         {
           "icon": "./assets/images/icon.png",
           "color": "#ff0000",
-          "sounds": ["./assets/sounds/notification.wav"],
+          "sounds": [
+            "./assets/sounds/notification.wav"
+          ],
           "mode": "production"
         }
       ],
