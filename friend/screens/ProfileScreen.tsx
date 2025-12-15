@@ -11,6 +11,7 @@ import {
   Image,
 } from 'react-native';
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
 import { router } from 'expo-router';
 import authService, { ProfileResponse } from '../services/authService';
@@ -125,7 +126,7 @@ export default function ProfileScreen() {
 
       <View style={styles.infoSection}>
         <View style={styles.infoCard}>
-          <IconSymbol name="briefcase.fill" size={24} color="#007AFF" />
+          <Ionicons name="briefcase" size={24} color="#007AFF" />
           <View style={styles.infoTextContainer}>
             <Text style={styles.infoLabel}>Profession</Text>
             <Text style={styles.infoValue}>
@@ -135,7 +136,7 @@ export default function ProfileScreen() {
         </View>
 
         <View style={styles.infoCard}>
-          <IconSymbol name="building.2.fill" size={24} color="#007AFF" />
+          <Ionicons name="business" size={24} color="#007AFF" />
           <View style={styles.infoTextContainer}>
             <Text style={styles.infoLabel}>Organization</Text>
             <Text style={styles.infoValue}>
@@ -146,7 +147,7 @@ export default function ProfileScreen() {
 
         {(profileData?.location || user?.location) && (
           <View style={styles.infoCard}>
-            <IconSymbol name="location.fill" size={24} color="#007AFF" />
+            <Ionicons name="location" size={24} color="#007AFF" />
             <View style={styles.infoTextContainer}>
               <Text style={styles.infoLabel}>Location</Text>
               <Text style={styles.infoValue}>
@@ -162,13 +163,13 @@ export default function ProfileScreen() {
           style={styles.menuItem}
           onPress={() => router.push('/edit-profile')}
         >
-          <IconSymbol name="pencil" size={20} color="#666" />
+          <Ionicons name="create-outline" size={20} color="#666" />
           <Text style={styles.menuItemText}>Edit Profile</Text>
           <IconSymbol name="chevron.right" size={20} color="#ccc" />
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.menuItem} onPress={handleLogout}>
-          <IconSymbol name="arrow.right.square" size={20} color="#FF3B30" />
+          <Ionicons name="log-out-outline" size={20} color="#FF3B30" />
           <Text style={[styles.menuItemText, styles.logoutText]}>Logout</Text>
         </TouchableOpacity>
       </View>
