@@ -11,6 +11,8 @@ import com.social.network.entity.User;
 import com.social.network.repository.SosAlertRepository;
 import com.social.network.repository.SosResponseRepository;
 import com.social.network.repository.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +25,7 @@ import java.util.stream.IntStream;
 @Service
 public class SosService {
 
+    private static final Logger logger = LoggerFactory.getLogger(SosService.class);
     private final SosAlertRepository sosAlertRepository;
     private final SosResponseRepository sosResponseRepository;
     private final UserRepository userRepository;
@@ -451,28 +454,26 @@ public class SosService {
      */
     private void sendPushNotificationsToNearbyUsers(SosAlert alert) {
         try {
-            Double radiusKm = 50.0; // Default 50km radius
+            // Get only users with registered FCM tokens for efficiency
+            List<User> usersWithTokens = userRepository.findByFcmTokenIsNotNull();
             
-            // Get all users with valid FCM tokens
-            List<User> allUsers = userRepository.findAll();
+            logger.info("Sending FCM notifications for alert {} to {} users with tokens", 
+                alert.getId(), usersWithTokens.size());
             
-            for (User user : allUsers) {
+            for (User user : usersWithTokens) {
                 // Skip alert creator
                 if (user.getId().equals(alert.getUser().getId())) {
                     continue;
                 }
                 
-                // Skip users without FCM token
-                if (user.getFcmToken() == null || user.getFcmToken().isEmpty()) {
-                    continue;
-                }
-                
                 // Calculate distance if both have location
+                // TODO: Implement proper distance filtering using Haversine formula
+                // For now, we send to all users (backend can implement radius-based filtering later)
                 Double distance = null;
                 if (alert.getLatitude() != null && alert.getLongitude() != null) {
-                    // For simplicity, we send to all users within a reasonable radius
-                    // In production, you'd calculate actual distance using Haversine formula
-                    distance = 5.0; // Placeholder distance
+                    // Placeholder: In production, calculate actual distance here
+                    // distance = calculateHaversineDistance(userLat, userLon, alertLat, alertLon);
+                    distance = null; // Will show as "location nearby" in notification
                 }
                 
                 // Send FCM notification
@@ -483,9 +484,12 @@ public class SosService {
                     distance
                 );
             }
+            
+            logger.info("Completed sending FCM notifications for alert {}", alert.getId());
         } catch (Exception e) {
             // Log error but don't fail alert creation
-            System.err.println("Error sending FCM notifications: " + e.getMessage());
+            logger.error("Error sending FCM notifications for alert {}: {}", 
+                alert.getId(), e.getMessage(), e);
         }
     }
 }

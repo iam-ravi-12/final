@@ -2,6 +2,7 @@ package com.social.network.service;
 
 import com.google.firebase.messaging.*;
 import com.social.network.entity.User;
+import com.social.network.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -14,6 +15,11 @@ import java.util.Map;
 public class FcmService {
 
     private static final Logger logger = LoggerFactory.getLogger(FcmService.class);
+    private final UserRepository userRepository;
+
+    public FcmService(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
 
     /**
      * Send push notification to a single user
@@ -61,6 +67,7 @@ public class FcmService {
                 e.getMessagingErrorCode() == MessagingErrorCode.UNREGISTERED) {
                 logger.info("Clearing invalid FCM token for user {}", user.getUsername());
                 user.setFcmToken(null);
+                userRepository.save(user);
             }
         }
     }
