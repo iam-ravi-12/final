@@ -106,6 +106,10 @@ const authService = {
     const token = await AsyncStorage.getItem('token');
     return !!token;
   },
+
+  registerFcmToken: async (fcmToken: string): Promise<void> => {
+    await api.post('/api/auth/fcm-token', { fcmToken });
+  },
 };
 
 export default authService;

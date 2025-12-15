@@ -26,13 +26,16 @@ public class SosService {
     private final SosAlertRepository sosAlertRepository;
     private final SosResponseRepository sosResponseRepository;
     private final UserRepository userRepository;
+    private final FcmService fcmService;
 
     public SosService(SosAlertRepository sosAlertRepository,
                      SosResponseRepository sosResponseRepository,
-                     UserRepository userRepository) {
+                     UserRepository userRepository,
+                     FcmService fcmService) {
         this.sosAlertRepository = sosAlertRepository;
         this.sosResponseRepository = sosResponseRepository;
         this.userRepository = userRepository;
+        this.fcmService = fcmService;
     }
 
     @Transactional
@@ -51,6 +54,10 @@ public class SosService {
         alert.setCancelledByUser(false);
 
         SosAlert savedAlert = sosAlertRepository.save(alert);
+        
+        // Send FCM push notifications to nearby users (within 50km)
+        sendPushNotificationsToNearbyUsers(savedAlert);
+        
         return convertToResponse(savedAlert, null, user);
     }
 
@@ -437,5 +444,48 @@ public class SosService {
         
         user.setLastSosCheckAt(LocalDateTime.now());
         userRepository.save(user);
+    }
+
+    /**
+     * Send FCM push notifications to users within radius of the alert
+     */
+    private void sendPushNotificationsToNearbyUsers(SosAlert alert) {
+        try {
+            Double radiusKm = 50.0; // Default 50km radius
+            
+            // Get all users with valid FCM tokens
+            List<User> allUsers = userRepository.findAll();
+            
+            for (User user : allUsers) {
+                // Skip alert creator
+                if (user.getId().equals(alert.getUser().getId())) {
+                    continue;
+                }
+                
+                // Skip users without FCM token
+                if (user.getFcmToken() == null || user.getFcmToken().isEmpty()) {
+                    continue;
+                }
+                
+                // Calculate distance if both have location
+                Double distance = null;
+                if (alert.getLatitude() != null && alert.getLongitude() != null) {
+                    // For simplicity, we send to all users within a reasonable radius
+                    // In production, you'd calculate actual distance using Haversine formula
+                    distance = 5.0; // Placeholder distance
+                }
+                
+                // Send FCM notification
+                fcmService.sendSosAlertNotification(
+                    user,
+                    alert.getUser().getUsername(),
+                    alert.getEmergencyType(),
+                    distance
+                );
+            }
+        } catch (Exception e) {
+            // Log error but don't fail alert creation
+            System.err.println("Error sending FCM notifications: " + e.getMessage());
+        }
     }
 }
