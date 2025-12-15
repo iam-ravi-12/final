@@ -23,7 +23,15 @@ public class AdminController {
     private final SosResponseRepository sosResponseRepository;
     private final JwtTokenProvider jwtTokenProvider;
 
-    // Hardcoded admin credentials
+    // SECURITY NOTE: Hardcoded credentials are for demonstration purposes only.
+    // For production use, implement:
+    // 1. Database-stored admin accounts with hashed passwords (bcrypt)
+    // 2. Role-based access control (RBAC)
+    // 3. Multi-factor authentication
+    // 4. Specific CORS origins (not wildcard)
+    // 5. Rate limiting on admin endpoints
+    // 6. Audit logging for admin actions
+    // See ADMIN_PANEL_GUIDE.md for complete security recommendations.
     private static final String ADMIN_USERNAME = "admin";
     private static final String ADMIN_PASSWORD = "adminfriend";
 

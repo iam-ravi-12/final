@@ -64,17 +64,8 @@ public class JwtTokenProvider {
     }
 
     public String generateToken(Authentication authentication) {
-        // If your principal class name is different, adjust the cast or obtain username differently.
-        String username = authentication.getName(); // simpler and less coupled
-        Date now = new Date();
-        Date expiry = new Date(now.getTime() + jwtExpirationMs);
-
-        return Jwts.builder()
-                .setSubject(username)
-                .setIssuedAt(now)
-                .setExpiration(expiry)
-                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
-                .compact();
+        String username = authentication.getName();
+        return generateToken(username);
     }
 
     public String generateToken(String username) {
