@@ -392,12 +392,10 @@ export default function HomeScreen() {
       </TouchableOpacity>
 
       {/* SOS Modal controlled by header button */}
-      {showSosModal && (
-        <SosButton 
-          showModal={showSosModal}
-          onClose={() => setShowSosModal(false)}
-        />
-      )}
+      <SosButton 
+        showModal={showSosModal}
+        onClose={() => setShowSosModal(false)}
+      />
     </View>
   );
 }
