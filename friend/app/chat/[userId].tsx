@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, Stack, useFocusEffect } from 'expo-router';
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { Ionicons } from '@expo/vector-icons';
 import messageService, { MessageResponse } from '../../services/messageService';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -182,7 +183,7 @@ export default function ChatScreen() {
             {sending ? (
               <ActivityIndicator size="small" color="#fff" />
             ) : (
-              <IconSymbol name="arrow.up" size={20} color="#fff" />
+              <Ionicons name="send" size={20} color="#fff" />
             )}
           </TouchableOpacity>
         </View>
