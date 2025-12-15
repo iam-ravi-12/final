@@ -261,14 +261,6 @@ export default function HomeScreen() {
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity
-          style={styles.leaderboardButton}
-          onPress={() => router.push('/(tabs)/leaderboard')}
-          activeOpacity={0.6}
-        >
-          <IconSymbol name="trophy.fill" size={24} color="#007AFF" />
-        </TouchableOpacity>
-        
-        <TouchableOpacity
           style={styles.profileInfo}
           onPress={() => router.push('/(tabs)/profile')}
           activeOpacity={0.7}
@@ -298,6 +290,14 @@ export default function HomeScreen() {
         <View style={styles.headerActions}>
           <TouchableOpacity
             style={styles.headerActionButton}
+            onPress={() => router.push('/(tabs)/leaderboard')}
+            activeOpacity={0.6}
+          >
+            <IconSymbol name="chart.bar.fill" size={24} color="#007AFF" />
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            style={styles.headerActionButton}
             activeOpacity={0.6}
             disabled
           >
@@ -309,7 +309,7 @@ export default function HomeScreen() {
             onPress={() => setShowSosModal(true)}
             activeOpacity={0.6}
           >
-            <IconSymbol name="exclamationmark.triangle.fill" size={24} color="#FF0000" />
+            <IconSymbol name="exclamationmark.circle.fill" size={24} color="#FF0000" />
           </TouchableOpacity>
         </View>
       </View>
@@ -415,12 +415,6 @@ const styles = StyleSheet.create({
     borderBottomColor: '#e0e0e0',
     paddingTop: 16,
   },
-  leaderboardButton: {
-    padding: 8,
-    borderRadius: 8,
-    backgroundColor: '#f0f0f0',
-    marginRight: 12,
-  },
   profileInfo: {
     flex: 1,
     flexDirection: 'row',
@@ -469,11 +463,6 @@ const styles = StyleSheet.create({
     padding: 8,
     borderRadius: 8,
     backgroundColor: '#fff0f0',
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#333',
   },
   tabs: {
     flexDirection: 'row',
