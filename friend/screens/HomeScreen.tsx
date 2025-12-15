@@ -12,6 +12,7 @@ import {
   Modal,
   Pressable,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 import postService, { PostResponse } from '../services/postService';
@@ -261,7 +262,7 @@ export default function HomeScreen() {
   );
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.profileInfo}
@@ -399,7 +400,7 @@ export default function HomeScreen() {
         showModal={showSosModal}
         onClose={() => setShowSosModal(false)}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
