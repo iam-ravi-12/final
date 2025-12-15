@@ -33,20 +33,13 @@
         "RECEIVE_BOOT_COMPLETED",
         "VIBRATE",
         "POST_NOTIFICATIONS",
-<<<<<<< HEAD
-        "RECEIVE_BOOT_COMPLETED",
-        "VIBRATE",
-        "POST_NOTIFICATIONS"
-      ],
-      "package": "com.anonymous.friend"
-=======
         "WAKE_LOCK",
         "FOREGROUND_SERVICE",
         "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION",
         "ACCESS_BACKGROUND_LOCATION"
-      ]
->>>>>>> ee39bfd31fbb914f5fd7ed985e75cea1eba37d01
+      ],
+      "package": "com.anonymous.friend"
     },
     "web": {
       "output": "static",

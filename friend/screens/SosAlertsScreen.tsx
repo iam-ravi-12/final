@@ -468,8 +468,8 @@ const styles = StyleSheet.create({
   },
   header: {
     backgroundColor: 'white',
-    padding: 20,
-    paddingTop: 60,
+    padding: 10,
+    paddingTop: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#e0e0e0',
   },

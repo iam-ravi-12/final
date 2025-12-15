@@ -220,7 +220,7 @@ export default function TabLayout() {
           title: 'SOS',
           tabBarIcon: ({ color }) => (
             <View>
-              <IconSymbol size={28} name="exclamationmark.triangle.fill" color={color} />
+              <Ionicons name="warning" size={28} color={color} />
               {sosUnreadCount > 0 && (
                 <View style={styles.badge}>
                   <Text style={styles.badgeText}>{sosUnreadCount > 99 ? '99+' : sosUnreadCount}</Text>
