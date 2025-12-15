@@ -13,6 +13,7 @@ import {
   Platform,
   TextInput,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import communityService, { CommunityResponse } from '../services/communityService';
@@ -211,7 +212,7 @@ export default function CommunityScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       {/* Tab Selector */}
       <View style={styles.tabContainer}>
         <TouchableOpacity
@@ -290,7 +291,7 @@ export default function CommunityScreen() {
         onClose={() => setShowCreateModal(false)}
         onSuccess={loadCommunities}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 

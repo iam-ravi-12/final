@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { Ionicons } from '@expo/vector-icons';
 import postService, { PostResponse, CommentResponse } from '../services/postService';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -172,8 +173,8 @@ export default function PostDetailScreen() {
               style={styles.actionButton}
               onPress={handleLike}
             >
-              <IconSymbol
-                name={post.isLiked ? 'heart.fill' : 'heart'}
+              <Ionicons
+                name={post.isLiked ? 'heart' : 'heart-outline'}
                 size={24}
                 color={post.isLiked ? '#FF3B30' : '#666'}
               />
@@ -181,7 +182,7 @@ export default function PostDetailScreen() {
             </TouchableOpacity>
 
             <View style={styles.actionButton}>
-              <IconSymbol name="bubble.left" size={24} color="#666" />
+              <Ionicons name="chatbubble-outline" size={24} color="#666" />
               <Text style={styles.actionText}>{post.commentCount}</Text>
             </View>
           </View>
@@ -195,7 +196,7 @@ export default function PostDetailScreen() {
 
           {comments.length === 0 ? (
             <View style={styles.emptyComments}>
-              <IconSymbol name="bubble.left" size={48} color="#ccc" />
+              <Ionicons name="chatbubble-outline" size={48} color="#ccc" />
               <Text style={styles.emptyCommentsText}>No comments yet</Text>
               <Text style={styles.emptyCommentsSubtext}>
                 Be the first to comment!
@@ -253,7 +254,7 @@ export default function PostDetailScreen() {
             <ActivityIndicator size="small" color="#fff" />
           ) : (
             <View style={styles.sendIconContainer}>
-              <IconSymbol name="paperplane.fill" size={18} color="#fff" />
+              <Ionicons name="send" size={18} color="#fff" />
             </View>
           )}
         </TouchableOpacity>

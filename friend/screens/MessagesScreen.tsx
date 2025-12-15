@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { router } from 'expo-router';
 import messageService, { ConversationResponse } from '../services/messageService';
@@ -81,7 +82,7 @@ export default function MessagesScreen() {
   );
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Messages</Text>
       </View>
@@ -107,7 +108,7 @@ export default function MessagesScreen() {
           }
         />
       )}
-    </View>
+    </SafeAreaView>
   );
 }
 

@@ -12,7 +12,9 @@ import {
   Modal,
   Pressable,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 import postService, { PostResponse } from '../services/postService';
 import SosButton from '../components/SosButton';
 import { useAuth } from '../contexts/AuthContext';
@@ -26,6 +28,7 @@ export default function HomeScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [menuVisible, setMenuVisible] = useState<number | null>(null);
+  const [showSosModal, setShowSosModal] = useState(false);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -132,6 +135,10 @@ export default function HomeScreen() {
     Alert.alert('Edit Post', 'Edit functionality will be implemented');
   };
 
+  const getUserInitial = () => {
+    return (user?.name?.charAt(0) || user?.username?.charAt(0) || 'U').toUpperCase();
+  };
+
   const renderPost = ({ item }: { item: PostResponse }) => (
     <View style={styles.postCard}>
       <View style={styles.postHeader}>
@@ -195,7 +202,7 @@ export default function HomeScreen() {
                 style={styles.menuItem}
                 onPress={() => handleEditPost(item.id)}
               >
-                <IconSymbol name="pencil" size={20} color="#007AFF" />
+                <Ionicons name="create-outline" size={20} color="#007AFF" />
                 <Text style={styles.menuItemText}>Edit Post</Text>
               </TouchableOpacity>
               <View style={styles.menuDivider} />
@@ -203,7 +210,7 @@ export default function HomeScreen() {
                 style={styles.menuItem}
                 onPress={() => handleDeletePost(item.id)}
               >
-                <IconSymbol name="trash" size={20} color="#FF3B30" />
+                <Ionicons name="trash-outline" size={20} color="#FF3B30" />
                 <Text style={[styles.menuItemText, { color: '#FF3B30' }]}>
                   Delete Post
                 </Text>
@@ -217,7 +224,9 @@ export default function HomeScreen() {
         onPress={() => router.push(`/post/${item.id}`)}
         activeOpacity={0.7}
       >
-        <Text style={styles.postContent}>{item.content}</Text>
+        <Text style={styles.postContent} numberOfLines={3} ellipsizeMode="tail">
+          {item.content}
+        </Text>
         
         {item.mediaUrls && item.mediaUrls.length > 0 && (
           <Image
@@ -233,8 +242,8 @@ export default function HomeScreen() {
           style={styles.actionButton}
           onPress={() => handleLike(item.id)}
         >
-          <IconSymbol
-            name={item.isLiked ? 'heart.fill' : 'heart'}
+          <Ionicons
+            name={item.isLiked ? 'heart' : 'heart-outline'}
             size={20}
             color={item.isLiked ? '#FF3B30' : '#666'}
           />
@@ -245,7 +254,7 @@ export default function HomeScreen() {
           style={styles.actionButton}
           onPress={() => router.push(`/post/${item.id}`)}
         >
-          <IconSymbol name="bubble.left" size={20} color="#666" />
+          <Ionicons name="chatbubble-outline" size={20} color="#666" />
           <Text style={styles.actionText}>{item.commentCount}</Text>
         </TouchableOpacity>
       </View>
@@ -253,9 +262,60 @@ export default function HomeScreen() {
   );
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Professional Network</Text>
+        <TouchableOpacity
+          style={styles.profileInfo}
+          onPress={() => router.push('/(tabs)/profile')}
+          activeOpacity={0.7}
+        >
+          {user?.profilePicture ? (
+            <Image
+              source={{ uri: user.profilePicture }}
+              style={styles.headerAvatar}
+            />
+          ) : (
+            <View style={styles.headerAvatar}>
+              <Text style={styles.headerAvatarText}>
+                {getUserInitial()}
+              </Text>
+            </View>
+          )}
+          <View style={styles.profileTextContainer}>
+            <Text style={styles.profileName} numberOfLines={1}>
+              {user?.name || user?.username || 'User'}
+            </Text>
+            <Text style={styles.profileProfession} numberOfLines={1}>
+              {user?.profession || 'Professional'}
+            </Text>
+          </View>
+        </TouchableOpacity>
+        
+        <View style={styles.headerActions}>
+          <TouchableOpacity
+            style={styles.headerActionButton}
+            onPress={() => router.push('/(tabs)/leaderboard')}
+            activeOpacity={0.6}
+          >
+            <Ionicons name="trophy" size={24} color="#007AFF" />
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            style={styles.headerActionButton}
+            activeOpacity={0.6}
+            disabled
+          >
+            <Ionicons name="search" size={24} color="#999" />
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            style={styles.sosCircleButton}
+            onPress={() => setShowSosModal(true)}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.sosButtonText}>SOS</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={styles.tabs}>
@@ -332,12 +392,15 @@ export default function HomeScreen() {
         onPress={() => router.push('/create-post')}
         activeOpacity={0.8}
       >
-        <IconSymbol name="plus" size={24} color="#fff" />
+        <Ionicons name="add" size={24} color="#fff" />
       </TouchableOpacity>
 
-      {/* SOS Button - Always Visible */}
-      <SosButton style={styles.sosButton} />
-    </View>
+      {/* SOS Modal controlled by header button */}
+      <SosButton 
+        showModal={showSosModal}
+        onClose={() => setShowSosModal(false)}
+      />
+    </SafeAreaView>
   );
 }
 
@@ -354,11 +417,69 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: '#e0e0e0',
+    paddingTop: 16,
   },
-  headerTitle: {
-    fontSize: 20,
+  profileInfo: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  headerAvatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#007AFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
+  },
+  headerAvatarText: {
+    color: '#fff',
+    fontSize: 18,
     fontWeight: 'bold',
+  },
+  profileTextContainer: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  profileName: {
+    fontSize: 16,
+    fontWeight: '600',
     color: '#333',
+  },
+  profileProfession: {
+    fontSize: 13,
+    color: '#666',
+    marginTop: 2,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  headerActionButton: {
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: '#f0f0f0',
+  },
+  sosCircleButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#FF0000',
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 2,
+    shadowColor: '#FF0000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+  },
+  sosButtonText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: 'bold',
   },
   tabs: {
     flexDirection: 'row',
@@ -561,8 +682,5 @@ const styles = StyleSheet.create({
   menuDivider: {
     height: 1,
     backgroundColor: '#e0e0e0',
-  },
-  sosButton: {
-    bottom: 100, // Position above the FAB
   },
 });
