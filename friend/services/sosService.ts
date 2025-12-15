@@ -132,6 +132,21 @@ const sosService = {
     const response = await api.put(`/api/sos/response/${responseId}/confirm`);
     return response.data;
   },
+
+  getUnreadCount: async (): Promise<number> => {
+    try {
+      const response = await api.get('/api/sos/alerts/unread-count');
+      return response.data.count;
+    } catch (error) {
+      console.error('Error fetching unread count:', error);
+      return 0;
+    }
+  },
+
+  markAlertsAsRead: async (): Promise<any> => {
+    const response = await api.post('/api/sos/alerts/mark-read');
+    return response.data;
+  },
 };
 
 export default sosService;

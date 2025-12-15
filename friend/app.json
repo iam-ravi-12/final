@@ -9,7 +9,16 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "UIBackgroundModes": [
+          "fetch",
+          "remote-notification",
+          "location"
+        ],
+        "NSLocationWhenInUseUsageDescription": "This app needs your location to show nearby SOS alerts.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "This app needs background location access to send you notifications about nearby SOS alerts even when the app is closed."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -19,7 +28,25 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "RECEIVE_BOOT_COMPLETED",
+        "VIBRATE",
+        "POST_NOTIFICATIONS",
+<<<<<<< HEAD
+        "RECEIVE_BOOT_COMPLETED",
+        "VIBRATE",
+        "POST_NOTIFICATIONS"
+      ],
+      "package": "com.anonymous.friend"
+=======
+        "WAKE_LOCK",
+        "FOREGROUND_SERVICE",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION"
+      ]
+>>>>>>> ee39bfd31fbb914f5fd7ed985e75cea1eba37d01
     },
     "web": {
       "output": "static",
@@ -27,6 +54,17 @@
     },
     "plugins": [
       "expo-router",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/icon.png",
+          "color": "#ff0000",
+          "sounds": [
+            "./assets/sounds/notification.wav"
+          ],
+          "mode": "production"
+        }
+      ],
       [
         "expo-splash-screen",
         {

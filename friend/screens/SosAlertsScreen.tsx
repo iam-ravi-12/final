@@ -15,6 +15,7 @@ import {
 import { useRouter } from 'expo-router';
 import * as Location from 'expo-location';
 import sosService, { SosAlertResponse, SosResponseRequest } from '../services/sosService';
+import notificationService from '../services/notificationService';
 
 const SosAlertsScreen = () => {
   const router = useRouter();
@@ -30,7 +31,18 @@ const SosAlertsScreen = () => {
   useEffect(() => {
     getLocation();
     loadAlerts();
+    markAlertsAsRead();
+    clearNotifications();
   }, []);
+
+  const clearNotifications = async () => {
+    try {
+      // Clear app badge count
+      await notificationService.setBadgeCount(0);
+    } catch (error) {
+      console.error('Error clearing notifications:', error);
+    }
+  };
 
   const getLocation = async () => {
     try {
@@ -53,7 +65,7 @@ const SosAlertsScreen = () => {
       const data = await sosService.getActiveAlerts(
         location?.latitude,
         location?.longitude,
-        50
+        5 // Changed to 5km radius to match notification filtering
       );
       setAlerts(data);
     } catch (error) {
@@ -61,6 +73,14 @@ const SosAlertsScreen = () => {
       Alert.alert('Error', 'Failed to load SOS alerts');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const markAlertsAsRead = async () => {
+    try {
+      await sosService.markAlertsAsRead();
+    } catch (error) {
+      console.error('Error marking alerts as read:', error);
     }
   };
 
@@ -158,15 +178,25 @@ const SosAlertsScreen = () => {
   };
 
   const formatTime = (timestamp: string) => {
+    // Parse the timestamp - backend returns LocalDateTime which may not include timezone
+    // Assume UTC and convert to local time
     const date = new Date(timestamp);
+    
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+      return 'Unknown time';
+    }
+    
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
     const diffMins = Math.floor(diffMs / 60000);
 
     if (diffMins < 1) return 'Just now';
-    if (diffMins < 60) return `${diffMins} minutes ago`;
+    if (diffMins < 60) return `${diffMins} minute${diffMins === 1 ? '' : 's'} ago`;
     const diffHours = Math.floor(diffMins / 60);
-    if (diffHours < 24) return `${diffHours} hours ago`;
+    if (diffHours < 24) return `${diffHours} hour${diffHours === 1 ? '' : 's'} ago`;
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffDays < 7) return `${diffDays} day${diffDays === 1 ? '' : 's'} ago`;
     return date.toLocaleDateString();
   };
 

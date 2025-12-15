@@ -101,6 +101,25 @@ const sosService = {
       throw error.response?.data || error.message;
     }
   },
+
+  getUnreadCount: async () => {
+    try {
+      const response = await api.get('/sos/alerts/unread-count');
+      return response.data.count;
+    } catch (error) {
+      console.error('Error fetching unread count:', error);
+      return 0;
+    }
+  },
+
+  markAlertsAsRead: async () => {
+    try {
+      const response = await api.post('/sos/alerts/mark-read');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
 };
 
 export { sosService };
