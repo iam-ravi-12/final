@@ -11,6 +11,8 @@ import {
   Image,
   Modal,
   Pressable,
+  ViewStyle,
+  StyleProp,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/ui/icon-symbol';
@@ -154,7 +156,7 @@ export default function HomeScreen() {
     return (user?.name?.charAt(0) || user?.username?.charAt(0) || 'U').toUpperCase();
   };
 
-  const getPostCardStyle = (item: PostResponse) => {
+  const getPostCardStyle = (item: PostResponse): StyleProp<ViewStyle> => {
     if (item.isHelpSection) {
       return item.isSolved 
         ? [styles.postCard, styles.postCardSolved]
@@ -163,11 +165,11 @@ export default function HomeScreen() {
     return styles.postCard;
   };
 
-  const shouldShowMarkSolvedButton = (item: PostResponse) => {
+  const shouldShowMarkSolvedButton = (item: PostResponse): boolean => {
     return item.isHelpSection && !item.isSolved && user?.userId === item.userId;
   };
 
-  const renderPost = ({ item }: { item: PostResponse }) => {
+  const renderPost = ({ item }: { item: PostResponse }): React.ReactElement => {
     return (
       <View style={getPostCardStyle(item)}>
       <View style={styles.postHeader}>
