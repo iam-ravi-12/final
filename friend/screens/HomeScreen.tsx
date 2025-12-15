@@ -166,7 +166,19 @@ export default function HomeScreen() {
   };
 
   const shouldShowMarkSolvedButton = (item: PostResponse): boolean => {
-    return item.isHelpSection && !item.isSolved && user?.userId === item.userId;
+    const result = item.isHelpSection === true && item.isSolved !== true && user?.userId === item.userId;
+    // Debug: Log button visibility conditions
+    if (item.isHelpSection) {
+      console.log('Help post debug:', {
+        postId: item.id,
+        isHelpSection: item.isHelpSection,
+        isSolved: item.isSolved,
+        currentUserId: user?.userId,
+        postUserId: item.userId,
+        shouldShow: result
+      });
+    }
+    return result;
   };
 
   const renderPost = ({ item }: { item: PostResponse }): React.ReactElement => {
