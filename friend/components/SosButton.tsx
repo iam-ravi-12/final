@@ -137,7 +137,7 @@ const SosButton: React.FC<SosButtonProps> = ({ style, showModal: externalShowMod
 
   return (
     <>
-      {!externalShowModal && (
+      {externalShowModal === undefined && (
         <TouchableOpacity
           style={[styles.sosButton, style]}
           onPress={handleSosPress}

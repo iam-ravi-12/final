@@ -133,6 +133,10 @@ export default function HomeScreen() {
     Alert.alert('Edit Post', 'Edit functionality will be implemented');
   };
 
+  const getUserInitial = () => {
+    return (user?.name?.charAt(0) || user?.username?.charAt(0) || 'U').toUpperCase();
+  };
+
   const renderPost = ({ item }: { item: PostResponse }) => (
     <View style={styles.postCard}>
       <View style={styles.postHeader}>
@@ -277,7 +281,7 @@ export default function HomeScreen() {
           ) : (
             <View style={styles.headerAvatar}>
               <Text style={styles.headerAvatarText}>
-                {user?.name?.charAt(0).toUpperCase() || user?.username?.charAt(0).toUpperCase() || 'U'}
+                {getUserInitial()}
               </Text>
             </View>
           )}
@@ -388,11 +392,12 @@ export default function HomeScreen() {
       </TouchableOpacity>
 
       {/* SOS Modal controlled by header button */}
-      <SosButton 
-        style={{ display: 'none' }} 
-        showModal={showSosModal}
-        onClose={() => setShowSosModal(false)}
-      />
+      {showSosModal && (
+        <SosButton 
+          showModal={showSosModal}
+          onClose={() => setShowSosModal(false)}
+        />
+      )}
     </View>
   );
 }
