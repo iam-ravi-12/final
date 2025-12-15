@@ -129,6 +129,21 @@ export default function HomeScreen() {
     );
   };
 
+  const handleMarkAsSolved = async (postId: number) => {
+    try {
+      await postService.markAsSolved(postId);
+      // Update the post in the local state
+      setPosts(prevPosts =>
+        prevPosts.map(post =>
+          post.id === postId ? { ...post, isSolved: true } : post
+        )
+      );
+      Alert.alert('Success', 'Post marked as solved!');
+    } catch (error) {
+      Alert.alert('Error', 'Failed to mark post as solved');
+    }
+  };
+
   const handleEditPost = (postId: number) => {
     setMenuVisible(null);
     // Navigate to edit post screen (you can implement this later)
@@ -139,8 +154,19 @@ export default function HomeScreen() {
     return (user?.name?.charAt(0) || user?.username?.charAt(0) || 'U').toUpperCase();
   };
 
-  const renderPost = ({ item }: { item: PostResponse }) => (
-    <View style={styles.postCard}>
+  const renderPost = ({ item }: { item: PostResponse }) => {
+    // Determine background color based on help section status
+    let postCardStyle = styles.postCard;
+    if (item.isHelpSection) {
+      if (item.isSolved) {
+        postCardStyle = [styles.postCard, styles.postCardSolved];
+      } else {
+        postCardStyle = [styles.postCard, styles.postCardHelp];
+      }
+    }
+
+    return (
+      <View style={postCardStyle}>
       <View style={styles.postHeader}>
         <View style={styles.userInfo}>
           {item.userProfilePicture ? (
@@ -180,7 +206,9 @@ export default function HomeScreen() {
 
         {item.isHelpSection && (
           <View style={styles.helpBadge}>
-            <Text style={styles.helpBadgeText}>Help</Text>
+            <Text style={styles.helpBadgeText}>
+              {item.isSolved ? 'Solved' : 'Help'}
+            </Text>
           </View>
         )}
       </View>
@@ -258,8 +286,21 @@ export default function HomeScreen() {
           <Text style={styles.actionText}>{item.commentCount}</Text>
         </TouchableOpacity>
       </View>
+
+      {/* Mark as Solved button for help posts */}
+      {item.isHelpSection && !item.isSolved && user?.userId === item.userId && (
+        <TouchableOpacity
+          style={styles.markSolvedButton}
+          onPress={() => handleMarkAsSolved(item.id)}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="checkmark-circle" size={20} color="#fff" />
+          <Text style={styles.markSolvedButtonText}>Mark as Solved</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
+};
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -520,6 +561,12 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
+  postCardHelp: {
+    backgroundColor: '#ffe6e6', // Light red for help posts
+  },
+  postCardSolved: {
+    backgroundColor: '#e6ffe6', // Light green for solved posts
+  },
   postHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -596,6 +643,22 @@ const styles = StyleSheet.create({
   helpBadgeText: {
     color: '#fff',
     fontSize: 10,
+    fontWeight: '600',
+  },
+  markSolvedButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#4CAF50',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    marginTop: 12,
+  },
+  markSolvedButtonText: {
+    color: '#fff',
+    fontSize: 14,
     fontWeight: '600',
   },
   postContent: {
