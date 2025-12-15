@@ -223,7 +223,9 @@ export default function HomeScreen() {
         onPress={() => router.push(`/post/${item.id}`)}
         activeOpacity={0.7}
       >
-        <Text style={styles.postContent}>{item.content}</Text>
+        <Text style={styles.postContent} numberOfLines={3} ellipsizeMode="tail">
+          {item.content}
+        </Text>
         
         {item.mediaUrls && item.mediaUrls.length > 0 && (
           <Image
