@@ -239,8 +239,8 @@ export default function HomeScreen() {
           style={styles.actionButton}
           onPress={() => handleLike(item.id)}
         >
-          <IconSymbol
-            name={item.isLiked ? 'heart.fill' : 'heart'}
+          <Ionicons
+            name={item.isLiked ? 'heart' : 'heart-outline'}
             size={20}
             color={item.isLiked ? '#FF3B30' : '#666'}
           />
@@ -251,7 +251,7 @@ export default function HomeScreen() {
           style={styles.actionButton}
           onPress={() => router.push(`/post/${item.id}`)}
         >
-          <IconSymbol name="bubble.left" size={20} color="#666" />
+          <Ionicons name="chatbubble-outline" size={20} color="#666" />
           <Text style={styles.actionText}>{item.commentCount}</Text>
         </TouchableOpacity>
       </View>
@@ -389,7 +389,7 @@ export default function HomeScreen() {
         onPress={() => router.push('/create-post')}
         activeOpacity={0.8}
       >
-        <IconSymbol name="plus" size={24} color="#fff" />
+        <Ionicons name="add" size={24} color="#fff" />
       </TouchableOpacity>
 
       {/* SOS Modal controlled by header button */}
