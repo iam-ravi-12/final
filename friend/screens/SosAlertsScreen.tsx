@@ -12,6 +12,7 @@ import {
   Alert,
   Linking,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import * as Location from 'expo-location';
 import sosService, { SosAlertResponse, SosResponseRequest } from '../services/sosService';
@@ -297,7 +298,7 @@ const SosAlertsScreen = () => {
   );
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>🚨 Active SOS Alerts</Text>
       </View>
@@ -426,7 +427,7 @@ const SosAlertsScreen = () => {
           </View>
         </View>
       </Modal>
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -473,54 +474,54 @@ const styles = StyleSheet.create({
   alertCard: {
     backgroundColor: 'white',
     borderRadius: 12,
-    padding: 15,
-    marginBottom: 15,
-    borderWidth: 3,
+    padding: 12,
+    marginBottom: 12,
+    borderWidth: 2,
     borderColor: '#ff0000',
-    elevation: 4,
+    elevation: 3,
     shadowColor: '#ff0000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
   },
   alertHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 10,
   },
   emergencyBadge: {
     backgroundColor: '#ff0000',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 14,
   },
   emergencyBadgeText: {
     color: 'white',
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
   },
   timeBadge: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#666',
   },
   alertUser: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 10,
   },
   userAvatar: {
-    width: 45,
-    height: 45,
-    borderRadius: 22.5,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     backgroundColor: '#667eea',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
+    marginRight: 10,
   },
   avatarText: {
     color: 'white',
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
   },
   userInfo: {
@@ -538,60 +539,60 @@ const styles = StyleSheet.create({
   },
   descriptionContainer: {
     backgroundColor: '#f5f5f5',
-    padding: 12,
+    padding: 10,
     borderRadius: 8,
-    marginBottom: 12,
+    marginBottom: 10,
   },
   description: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#333',
-    lineHeight: 20,
+    lineHeight: 18,
   },
   distance: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#666',
     marginBottom: 8,
   },
   locationButton: {
     backgroundColor: '#4285f4',
-    padding: 12,
+    padding: 10,
     borderRadius: 8,
     alignItems: 'center',
     marginBottom: 8,
   },
   locationButtonText: {
     color: 'white',
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
   },
   emergencyButton: {
     backgroundColor: '#ff6b6b',
-    padding: 12,
+    padding: 10,
     borderRadius: 8,
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 10,
   },
   emergencyButtonText: {
     color: 'white',
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
   },
   statsContainer: {
-    marginBottom: 12,
+    marginBottom: 10,
   },
   stats: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#666',
   },
   respondedBadge: {
     backgroundColor: '#4caf50',
-    padding: 12,
+    padding: 10,
     borderRadius: 8,
-    marginBottom: 12,
+    marginBottom: 10,
   },
   respondedBadgeText: {
     color: 'white',
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
     textAlign: 'center',
   },
@@ -609,19 +610,19 @@ const styles = StyleSheet.create({
   },
   alertOwnerBadge: {
     backgroundColor: '#ff9800',
-    padding: 12,
+    padding: 10,
     borderRadius: 8,
-    marginBottom: 12,
+    marginBottom: 10,
   },
   alertOwnerBadgeText: {
     color: 'white',
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
     textAlign: 'center',
   },
   respondButton: {
     backgroundColor: '#4caf50',
-    padding: 14,
+    padding: 12,
     borderRadius: 8,
     alignItems: 'center',
   },
@@ -631,7 +632,7 @@ const styles = StyleSheet.create({
   },
   respondButtonText: {
     color: 'white',
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
   },
   modalOverlay: {
