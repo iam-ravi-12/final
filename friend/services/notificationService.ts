@@ -116,11 +116,34 @@ class NotificationServiceImpl implements NotificationService {
         }
     }
 
+<<<<<<< HEAD
     /**
      * Cancel all scheduled notifications
      */
     async cancelAllNotifications(): Promise<void> {
         await Notifications.cancelAllScheduledNotificationsAsync();
+=======
+    return true;
+  }
+
+  /**
+   * Setup notification channel for Android
+   */
+  async setupNotificationChannel(): Promise<void> {
+    if (Platform.OS === 'android') {
+      await Notifications.setNotificationChannelAsync('sos-alerts', {
+        name: 'SOS Alerts',
+        importance: Notifications.AndroidImportance.MAX,
+        vibrationPattern: [0, 250, 250, 250, 250, 250, 250, 250, 250, 250],
+        lightColor: '#FF0000',
+        sound: 'default',
+        enableLights: true,
+        enableVibrate: true,
+        showBadge: true,
+        lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
+        bypassDnd: true,
+      });
+>>>>>>> ee39bfd31fbb914f5fd7ed985e75cea1eba37d01
     }
 
     /**
@@ -158,12 +181,29 @@ export async function showSosAlertNotification(
         FIRE: '🔥 Fire',
     };
 
+<<<<<<< HEAD
     const title = emergencyLabels[emergencyType] || '🚨 SOS Alert';
     const distanceText = distance
         ? distance < 1
             ? `${(distance * 1000).toFixed(0)} meters away`
             : `${distance.toFixed(1)} km away`
         : 'nearby';
+=======
+  const title = emergencyLabels[emergencyType] || '🚨 SOS Alert';
+  
+  // Always show distance in meters if available, otherwise show "location unknown"
+  let distanceText = 'location unknown';
+  if (distance !== null && distance !== undefined) {
+    if (distance < 1) {
+      // Less than 1 km - show in meters
+      const meters = Math.round(distance * 1000);
+      distanceText = `${meters} meter${meters === 1 ? '' : 's'} away`;
+    } else {
+      // 1 km or more - show in km with one decimal
+      distanceText = `${distance.toFixed(1)} km away`;
+    }
+  }
+>>>>>>> ee39bfd31fbb914f5fd7ed985e75cea1eba37d01
 
     const body = `${username} needs help - ${distanceText}`;
 

@@ -65,7 +65,7 @@ const SosAlertsScreen = () => {
       const data = await sosService.getActiveAlerts(
         location?.latitude,
         location?.longitude,
-        50
+        5 // Changed to 5km radius to match notification filtering
       );
       setAlerts(data);
     } catch (error) {
