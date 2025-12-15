@@ -6,6 +6,7 @@ import * as Location from 'expo-location';
 
 import { HapticTab } from '@/components/haptic-tab';
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import sosService from '@/services/sosService';
@@ -203,14 +204,14 @@ export default function TabLayout() {
         name="community"
         options={{
           title: 'Community',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="person.3.fill" color={color} />,
+          tabBarIcon: ({ color }) => <Ionicons name="people" size={28} color={color} />,
         }}
       />
       <Tabs.Screen
         name="messages"
         options={{
           title: 'Messages',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="envelope.fill" color={color} />,
+          tabBarIcon: ({ color }) => <Ionicons name="chatbubbles" size={28} color={color} />,
         }}
       />
       <Tabs.Screen
@@ -232,15 +233,13 @@ export default function TabLayout() {
       <Tabs.Screen
         name="leaderboard"
         options={{
-          title: 'Leaderboard',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="trophy.fill" color={color} />,
+          href: null, // Hide from tab bar
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'Profile',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="person.fill" color={color} />,
+          href: null, // Hide from tab bar
         }}
       />
     </Tabs>

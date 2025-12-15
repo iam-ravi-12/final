@@ -14,9 +14,11 @@ import sosService, { SosAlertRequest } from '../services/sosService';
 
 interface SosButtonProps {
   style?: any;
+  showModal?: boolean;
+  onClose?: () => void;
 }
 
-const SosButton: React.FC<SosButtonProps> = ({ style }) => {
+const SosButton: React.FC<SosButtonProps> = ({ style, showModal: externalShowModal, onClose }) => {
   const [showModal, setShowModal] = useState(false);
   const [countdown, setCountdown] = useState(15);
   const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
@@ -24,6 +26,16 @@ const SosButton: React.FC<SosButtonProps> = ({ style }) => {
   const [emergencyType, setEmergencyType] = useState<'IMMEDIATE_EMERGENCY' | 'ACCIDENT' | 'WOMEN_SAFETY' | 'MEDICAL' | 'FIRE'>('IMMEDIATE_EMERGENCY');
   const [description, setDescription] = useState('');
   const [isSending, setIsSending] = useState(false);
+
+  // Sync external modal state
+  useEffect(() => {
+    if (externalShowModal !== undefined) {
+      setShowModal(externalShowModal);
+      if (externalShowModal) {
+        setCountdown(15);
+      }
+    }
+  }, [externalShowModal]);
 
   useEffect(() => {
     requestLocationPermission();
@@ -69,6 +81,9 @@ const SosButton: React.FC<SosButtonProps> = ({ style }) => {
     setShowModal(false);
     setCountdown(15);
     setDescription('');
+    if (onClose) {
+      onClose();
+    }
   };
 
   const sendSOS = async () => {
@@ -93,6 +108,9 @@ const SosButton: React.FC<SosButtonProps> = ({ style }) => {
       setShowModal(false);
       setCountdown(15);
       setDescription('');
+      if (onClose) {
+        onClose();
+      }
     } catch (error: any) {
       Alert.alert('Error', 'Failed to send SOS: ' + (error.message || error));
     } finally {
@@ -119,13 +137,15 @@ const SosButton: React.FC<SosButtonProps> = ({ style }) => {
 
   return (
     <>
-      <TouchableOpacity
-        style={[styles.sosButton, style]}
-        onPress={handleSosPress}
-        activeOpacity={0.7}
-      >
-        <Text style={styles.sosButtonText}>SOS</Text>
-      </TouchableOpacity>
+      {externalShowModal === undefined && (
+        <TouchableOpacity
+          style={[styles.sosButton, style]}
+          onPress={handleSosPress}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.sosButtonText}>SOS</Text>
+        </TouchableOpacity>
+      )}
 
       <Modal
         visible={showModal}

@@ -42,48 +42,64 @@ export interface CommunityPostRequest {
 const communityService = {
   // Get all public communities
   getPublicCommunities: async (): Promise<CommunityResponse[]> => {
-    const response = await api.get<CommunityResponse[]>('/communities/public');
+    const response = await api.get<CommunityResponse[]>('/api/communities/public');
     return response.data;
   },
 
   // Get user's communities (communities they've joined)
   getMyCommunities: async (): Promise<CommunityResponse[]> => {
-    const response = await api.get<CommunityResponse[]>('/communities/my');
+    const response = await api.get<CommunityResponse[]>('/api/communities/my');
     return response.data;
   },
 
   // Get community by ID
   getCommunityById: async (communityId: number): Promise<CommunityResponse> => {
-    const response = await api.get<CommunityResponse>(`/communities/${communityId}`);
+    const response = await api.get<CommunityResponse>(`/api/communities/${communityId}`);
     return response.data;
   },
 
   // Join a community
   joinCommunity: async (communityId: number): Promise<void> => {
-    await api.post(`/communities/${communityId}/join`);
+    await api.post(`/api/communities/${communityId}/join`);
   },
 
   // Leave a community
   leaveCommunity: async (communityId: number): Promise<void> => {
-    await api.post(`/communities/${communityId}/leave`);
+    await api.post(`/api/communities/${communityId}/leave`);
   },
 
   // Get posts in a community
   getCommunityPosts: async (communityId: number): Promise<CommunityPostResponse[]> => {
-    const response = await api.get<CommunityPostResponse[]>(`/communities/${communityId}/posts`);
+    const response = await api.get<CommunityPostResponse[]>(`/api/communities/${communityId}/posts`);
     return response.data;
   },
 
   // Create a post in a community
   createCommunityPost: async (communityId: number, data: CommunityPostRequest): Promise<CommunityPostResponse> => {
-    const response = await api.post<CommunityPostResponse>(`/communities/${communityId}/posts`, data);
+    const response = await api.post<CommunityPostResponse>(`/api/communities/${communityId}/posts`, data);
     return response.data;
   },
 
   // Create a new community
   createCommunity: async (data: CommunityRequest): Promise<CommunityResponse> => {
-    const response = await api.post<CommunityResponse>('/communities', data);
+    const response = await api.post<CommunityResponse>('/api/communities', data);
     return response.data;
+  },
+
+  // Get pending posts (admin only)
+  getPendingPosts: async (communityId: number): Promise<CommunityPostResponse[]> => {
+    const response = await api.get<CommunityPostResponse[]>(`/api/communities/${communityId}/posts/pending`);
+    return response.data;
+  },
+
+  // Approve a post (admin only)
+  approvePost: async (postId: number): Promise<void> => {
+    await api.post(`/api/communities/posts/${postId}/approve`);
+  },
+
+  // Reject a post (admin only)
+  rejectPost: async (postId: number): Promise<void> => {
+    await api.post(`/api/communities/posts/${postId}/reject`);
   },
 };
 
