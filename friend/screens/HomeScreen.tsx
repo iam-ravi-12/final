@@ -26,6 +26,7 @@ export default function HomeScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [menuVisible, setMenuVisible] = useState<number | null>(null);
+  const [showSosModal, setShowSosModal] = useState(false);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -255,7 +256,58 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Professional Network</Text>
+        <TouchableOpacity
+          style={styles.leaderboardButton}
+          onPress={() => router.push('/(tabs)/leaderboard')}
+          activeOpacity={0.6}
+        >
+          <IconSymbol name="trophy.fill" size={24} color="#007AFF" />
+        </TouchableOpacity>
+        
+        <TouchableOpacity
+          style={styles.profileInfo}
+          onPress={() => router.push('/(tabs)/profile')}
+          activeOpacity={0.7}
+        >
+          {user?.profilePicture ? (
+            <Image
+              source={{ uri: user.profilePicture }}
+              style={styles.headerAvatar}
+            />
+          ) : (
+            <View style={styles.headerAvatar}>
+              <Text style={styles.headerAvatarText}>
+                {user?.name?.charAt(0).toUpperCase() || user?.username?.charAt(0).toUpperCase() || 'U'}
+              </Text>
+            </View>
+          )}
+          <View style={styles.profileTextContainer}>
+            <Text style={styles.profileName} numberOfLines={1}>
+              {user?.name || user?.username || 'User'}
+            </Text>
+            <Text style={styles.profileProfession} numberOfLines={1}>
+              {user?.profession || 'Professional'}
+            </Text>
+          </View>
+        </TouchableOpacity>
+        
+        <View style={styles.headerActions}>
+          <TouchableOpacity
+            style={styles.headerActionButton}
+            activeOpacity={0.6}
+            disabled
+          >
+            <IconSymbol name="magnifyingglass" size={24} color="#999" />
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            style={styles.sosHeaderButton}
+            onPress={() => setShowSosModal(true)}
+            activeOpacity={0.6}
+          >
+            <IconSymbol name="exclamationmark.triangle.fill" size={24} color="#FF0000" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={styles.tabs}>
@@ -335,8 +387,12 @@ export default function HomeScreen() {
         <IconSymbol name="plus" size={24} color="#fff" />
       </TouchableOpacity>
 
-      {/* SOS Button - Always Visible */}
-      <SosButton style={styles.sosButton} />
+      {/* SOS Modal controlled by header button */}
+      <SosButton 
+        style={{ display: 'none' }} 
+        showModal={showSosModal}
+        onClose={() => setShowSosModal(false)}
+      />
     </View>
   );
 }
@@ -354,6 +410,62 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: '#e0e0e0',
+    paddingTop: 16,
+  },
+  leaderboardButton: {
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: '#f0f0f0',
+    marginRight: 12,
+  },
+  profileInfo: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  headerAvatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#007AFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
+  },
+  headerAvatarText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  profileTextContainer: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  profileName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+  },
+  profileProfession: {
+    fontSize: 13,
+    color: '#666',
+    marginTop: 2,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  headerActionButton: {
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: '#f0f0f0',
+  },
+  sosHeaderButton: {
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: '#fff0f0',
   },
   headerTitle: {
     fontSize: 20,
@@ -561,8 +673,5 @@ const styles = StyleSheet.create({
   menuDivider: {
     height: 1,
     backgroundColor: '#e0e0e0',
-  },
-  sosButton: {
-    bottom: 100, // Position above the FAB
   },
 });
