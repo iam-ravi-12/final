@@ -13,6 +13,7 @@ import {
   Pressable,
 } from 'react-native';
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 import postService, { PostResponse } from '../services/postService';
 import SosButton from '../components/SosButton';
 import { useAuth } from '../contexts/AuthContext';
@@ -293,7 +294,7 @@ export default function HomeScreen() {
             onPress={() => router.push('/(tabs)/leaderboard')}
             activeOpacity={0.6}
           >
-            <IconSymbol name="chart.bar.fill" size={24} color="#007AFF" />
+            <Ionicons name="trophy" size={24} color="#007AFF" />
           </TouchableOpacity>
           
           <TouchableOpacity
@@ -301,15 +302,15 @@ export default function HomeScreen() {
             activeOpacity={0.6}
             disabled
           >
-            <IconSymbol name="magnifyingglass" size={24} color="#999" />
+            <Ionicons name="search" size={24} color="#999" />
           </TouchableOpacity>
           
           <TouchableOpacity
-            style={styles.sosHeaderButton}
+            style={styles.sosCircleButton}
             onPress={() => setShowSosModal(true)}
-            activeOpacity={0.6}
+            activeOpacity={0.7}
           >
-            <IconSymbol name="exclamationmark.circle.fill" size={24} color="#FF0000" />
+            <Text style={styles.sosButtonText}>SOS</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -459,10 +460,23 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: '#f0f0f0',
   },
-  sosHeaderButton: {
-    padding: 8,
-    borderRadius: 8,
-    backgroundColor: '#fff0f0',
+  sosCircleButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#FF0000',
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 2,
+    shadowColor: '#FF0000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+  },
+  sosButtonText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: 'bold',
   },
   tabs: {
     flexDirection: 'row',
