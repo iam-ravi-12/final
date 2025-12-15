@@ -154,19 +154,22 @@ export default function HomeScreen() {
     return (user?.name?.charAt(0) || user?.username?.charAt(0) || 'U').toUpperCase();
   };
 
-  const renderPost = ({ item }: { item: PostResponse }) => {
-    // Determine background color based on help section status
-    let postCardStyle = styles.postCard;
+  const getPostCardStyle = (item: PostResponse) => {
     if (item.isHelpSection) {
-      if (item.isSolved) {
-        postCardStyle = [styles.postCard, styles.postCardSolved];
-      } else {
-        postCardStyle = [styles.postCard, styles.postCardHelp];
-      }
+      return item.isSolved 
+        ? [styles.postCard, styles.postCardSolved]
+        : [styles.postCard, styles.postCardHelp];
     }
+    return styles.postCard;
+  };
 
+  const shouldShowMarkSolvedButton = (item: PostResponse) => {
+    return item.isHelpSection && !item.isSolved && user?.userId === item.userId;
+  };
+
+  const renderPost = ({ item }: { item: PostResponse }) => {
     return (
-      <View style={postCardStyle}>
+      <View style={getPostCardStyle(item)}>
       <View style={styles.postHeader}>
         <View style={styles.userInfo}>
           {item.userProfilePicture ? (
@@ -288,7 +291,7 @@ export default function HomeScreen() {
       </View>
 
       {/* Mark as Solved button for help posts */}
-      {item.isHelpSection && !item.isSolved && user?.userId === item.userId && (
+      {shouldShowMarkSolvedButton(item) && (
         <TouchableOpacity
           style={styles.markSolvedButton}
           onPress={() => handleMarkAsSolved(item.id)}
