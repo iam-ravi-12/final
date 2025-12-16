@@ -294,7 +294,27 @@ const AdminDashboard = () => {
                           {sos.status}
                         </span>
                       </td>
-                      <td>{sos.locationAddress || `${sos.latitude}, ${sos.longitude}`}</td>
+                      <td>
+                        {sos.latitude && sos.longitude ? (
+                          <div>
+                            <a 
+                              href={`https://www.google.com/maps?q=${sos.latitude},${sos.longitude}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="map-link"
+                              title="View on Google Maps"
+                            >
+                              📍 View on Map
+                            </a>
+                            <br />
+                            <small style={{ color: '#666' }}>
+                              {sos.locationAddress || `${sos.latitude}, ${sos.longitude}`}
+                            </small>
+                          </div>
+                        ) : (
+                          sos.locationAddress || 'N/A'
+                        )}
+                      </td>
                       <td>{sos.description || 'N/A'}</td>
                       <td>{sos.responseCount}</td>
                       <td>{formatDate(sos.createdAt)}</td>

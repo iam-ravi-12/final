@@ -160,6 +160,24 @@
   background-color: #0056b3;
 }
 
+.map-link {
+  color: #007bff;
+  text-decoration: none;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.3s;
+}
+
+.map-link:hover {
+  background-color: #e3f2fd;
+  color: #0056b3;
+  text-decoration: none;
+}
+
 .status-badge {
   padding: 4px 12px;
   border-radius: 12px;
