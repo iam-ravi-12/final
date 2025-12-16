@@ -141,7 +141,7 @@ export default function UserProfileScreen() {
         </View>
       </TouchableOpacity>
     );
-  }, []);
+  }, [formatTimeAgo]);
 
   const displayedPosts = useMemo(() => {
     return showAllPosts ? userPosts : userPosts.slice(0, 3);
