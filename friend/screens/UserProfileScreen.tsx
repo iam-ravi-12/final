@@ -37,7 +37,11 @@ const formatTimeAgo = (dateString: string): string => {
 
 export default function UserProfileScreen() {
   const { userId: userIdParam } = useLocalSearchParams();
-  const userId = typeof userIdParam === 'string' ? parseInt(userIdParam, 10) : undefined;
+  const userId = Array.isArray(userIdParam) 
+    ? parseInt(userIdParam[0], 10) 
+    : typeof userIdParam === 'string' 
+    ? parseInt(userIdParam, 10) 
+    : undefined;
   
   const { user: currentUser } = useAuth();
   const [profileData, setProfileData] = useState<ProfileResponse | null>(null);
@@ -48,13 +52,7 @@ export default function UserProfileScreen() {
   const [showAllPosts, setShowAllPosts] = useState(false);
   const [loadingAction, setLoadingAction] = useState(false);
 
-  useEffect(() => {
-    if (userId) {
-      loadUserData();
-    }
-  }, [userId]);
-
-  const loadUserData = async () => {
+  const loadUserData = useCallback(async () => {
     if (!userId) return;
 
     try {
@@ -74,14 +72,20 @@ export default function UserProfileScreen() {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [userId]);
 
-  const onRefresh = async () => {
+  useEffect(() => {
+    if (userId) {
+      loadUserData();
+    }
+  }, [userId, loadUserData]);
+
+  const onRefresh = useCallback(async () => {
     setRefreshing(true);
     await loadUserData();
-  };
+  }, [loadUserData]);
 
-  const handleFollowAction = async () => {
+  const handleFollowAction = useCallback(async () => {
     if (!userId || loadingAction) return;
 
     try {
@@ -102,14 +106,14 @@ export default function UserProfileScreen() {
     } finally {
       setLoadingAction(false);
     }
-  };
+  }, [userId, loadingAction, followStats?.isFollowing]);
 
-  const getFollowButtonText = () => {
+  const getFollowButtonText = useCallback(() => {
     if (!followStats) return 'Follow';
     if (followStats.isFollowing) return 'Unfollow';
     if (followStats.followStatus === 'PENDING') return 'Requested';
     return 'Follow';
-  };
+  }, [followStats]);
 
   const renderPost = useCallback(({ item }: { item: PostResponse }) => {
     return (
