@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -111,7 +111,7 @@ export default function UserProfileScreen() {
     return postDate.toLocaleDateString();
   };
 
-  const renderPost = ({ item }: { item: PostResponse }) => {
+  const renderPost = useCallback(({ item }: { item: PostResponse }) => {
     return (
       <TouchableOpacity
         style={styles.postCard}
@@ -141,7 +141,11 @@ export default function UserProfileScreen() {
         </View>
       </TouchableOpacity>
     );
-  };
+  }, []);
+
+  const displayedPosts = useMemo(() => {
+    return showAllPosts ? userPosts : userPosts.slice(0, 3);
+  }, [userPosts, showAllPosts]);
 
   if (loading) {
     return (
@@ -203,7 +207,12 @@ export default function UserProfileScreen() {
               {loadingAction ? (
                 <ActivityIndicator size="small" color="#fff" />
               ) : (
-                <Text style={styles.followButtonText}>
+                <Text
+                  style={[
+                    styles.followButtonText,
+                    followStats?.isFollowing && styles.followingButtonText,
+                  ]}
+                >
                   {getFollowButtonText()}
                 </Text>
               )}
@@ -282,7 +291,7 @@ export default function UserProfileScreen() {
             </View>
           ) : (
             <View>
-              {(showAllPosts ? userPosts : userPosts.slice(0, 3)).map((post) => (
+              {displayedPosts.map((post) => (
                 <View key={post.id}>
                   {renderPost({ item: post })}
                 </View>
@@ -383,6 +392,9 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  followingButtonText: {
+    color: '#333',
   },
   statsContainer: {
     flexDirection: 'row',
