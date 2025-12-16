@@ -145,4 +145,12 @@ public class AuthService {
                 user.getProfilePicture()
         );
     }
+
+    public void registerFcmToken(String username, String fcmToken) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        user.setFcmToken(fcmToken);
+        userRepository.save(user);
+    }
 }
