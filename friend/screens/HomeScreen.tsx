@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -166,15 +166,15 @@ export default function HomeScreen() {
     }
   };
 
-  const filteredPosts = posts.filter(post => {
-    if (!searchQuery.trim()) return true;
+  const filteredPosts = useMemo(() => {
+    if (!searchQuery.trim()) return posts;
     const query = searchQuery.toLowerCase();
-    return (
+    return posts.filter(post =>
       post.content.toLowerCase().includes(query) ||
       post.username.toLowerCase().includes(query) ||
       post.userProfession?.toLowerCase().includes(query)
     );
-  });
+  }, [posts, searchQuery]);
 
   const getPostCardStyle = (item: PostResponse): StyleProp<ViewStyle> => {
     if (item.isHelpSection) {
