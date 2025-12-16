@@ -35,7 +35,24 @@ const AdminLogin = () => {
       await adminService.login(formData.username, formData.password);
       navigate('/admin');
     } catch (err) {
-      setError(err.response?.data || 'Admin login failed. Please check your credentials.');
+      console.error('Admin login error:', err);
+      
+      // Provide more helpful error messages
+      let errorMessage = 'Admin login failed. ';
+      
+      if (err.code === 'ERR_NETWORK' || err.message === 'Network Error') {
+        errorMessage = 'Cannot connect to server. Please ensure the backend is running and deployed with the latest admin panel code.';
+      } else if (err.response?.status === 404) {
+        errorMessage = 'Admin login endpoint not found. Please ensure the backend has been deployed with the latest admin panel code.';
+      } else if (err.response?.status === 400) {
+        errorMessage = 'Invalid credentials. Please use username: admin, password: adminfriend';
+      } else if (err.response?.data) {
+        errorMessage = err.response.data;
+      } else {
+        errorMessage += 'Please check your credentials and try again.';
+      }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
