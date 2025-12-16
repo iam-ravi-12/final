@@ -208,7 +208,7 @@ export default function CommunityPostsScreen() {
     }
   };
 
-  const handleRemoveMember = async (memberId: number, username: string) => {
+  const handleRemoveMember = async (userId: number, username: string) => {
     Alert.alert(
       'Remove Member',
       `Are you sure you want to remove ${username} from this community?`,
@@ -219,7 +219,7 @@ export default function CommunityPostsScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
-              await communityService.removeMember(communityId, memberId);
+              await communityService.removeMember(communityId, userId);
               Alert.alert('Success', 'Member removed successfully');
               // Reload members list
               const membersData = await communityService.getCommunityMembers(communityId);
