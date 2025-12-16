@@ -219,16 +219,30 @@ export default function CommunityPostsScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
+              console.log('Removing member:', { communityId, userId, username });
               await communityService.removeMember(communityId, userId);
-              Alert.alert('Success', 'Member removed successfully');
-              // Reload members list
-              const membersData = await communityService.getCommunityMembers(communityId);
-              setMembers(membersData);
-              // Update member count
+              console.log('Member removed successfully from backend');
+              
+              // Reload all community data to ensure everything is in sync
               await loadCommunityData();
+              
+              Alert.alert('Success', `${username} has been removed from the community`);
             } catch (error: any) {
               console.error('Error removing member:', error);
-              Alert.alert('Error', error.response?.data || 'Failed to remove member');
+              console.error('Error response:', error.response);
+              
+              // Extract error message properly
+              let errorMessage = 'Failed to remove member';
+              if (error.response?.data) {
+                // If data is a string, use it directly; if it's an object, try to extract message
+                errorMessage = typeof error.response.data === 'string' 
+                  ? error.response.data 
+                  : error.response.data.message || error.response.data;
+              } else if (error.message) {
+                errorMessage = error.message;
+              }
+              
+              Alert.alert('Error', errorMessage);
             }
           },
         },
