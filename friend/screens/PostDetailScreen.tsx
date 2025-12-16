@@ -133,18 +133,23 @@ export default function PostDetailScreen() {
         <View style={styles.postCard}>
           <View style={styles.postHeader}>
             <View style={styles.userInfo}>
-              {post.userProfilePicture ? (
-                <Image
-                  source={{ uri: post.userProfilePicture }}
-                  style={styles.avatar}
-                />
-              ) : (
-                <View style={[styles.avatar, styles.avatarPlaceholder]}>
-                  <Text style={styles.avatarText}>
-                    {post.username.charAt(0).toUpperCase()}
-                  </Text>
-                </View>
-              )}
+              <TouchableOpacity
+                onPress={() => router.push(`/user/${post.userId}`)}
+                activeOpacity={0.7}
+              >
+                {post.userProfilePicture ? (
+                  <Image
+                    source={{ uri: post.userProfilePicture }}
+                    style={styles.avatar}
+                  />
+                ) : (
+                  <View style={[styles.avatar, styles.avatarPlaceholder]}>
+                    <Text style={styles.avatarText}>
+                      {post.username.charAt(0).toUpperCase()}
+                    </Text>
+                  </View>
+                )}
+              </TouchableOpacity>
               <View>
                 <Text style={styles.username}>{post.username}</Text>
                 <Text style={styles.profession}>{post.userProfession}</Text>
@@ -206,18 +211,23 @@ export default function PostDetailScreen() {
             comments.map((comment) => (
               <View key={comment.id} style={styles.commentCard}>
                 <View style={styles.commentHeader}>
-                  {comment.userProfilePicture ? (
-                    <Image
-                      source={{ uri: comment.userProfilePicture }}
-                      style={styles.commentAvatar}
-                    />
-                  ) : (
-                    <View style={[styles.commentAvatar, styles.avatarPlaceholder]}>
-                      <Text style={styles.commentAvatarText}>
-                        {comment.username.charAt(0).toUpperCase()}
-                      </Text>
-                    </View>
-                  )}
+                  <TouchableOpacity
+                    onPress={() => router.push(`/user/${comment.userId}`)}
+                    activeOpacity={0.7}
+                  >
+                    {comment.userProfilePicture ? (
+                      <Image
+                        source={{ uri: comment.userProfilePicture }}
+                        style={styles.commentAvatar}
+                      />
+                    ) : (
+                      <View style={[styles.commentAvatar, styles.avatarPlaceholder]}>
+                        <Text style={styles.commentAvatarText}>
+                          {comment.username.charAt(0).toUpperCase()}
+                        </Text>
+                      </View>
+                    )}
+                  </TouchableOpacity>
                   <View style={styles.commentInfo}>
                     <Text style={styles.commentUsername}>{comment.username}</Text>
                     <Text style={styles.commentTime}>
