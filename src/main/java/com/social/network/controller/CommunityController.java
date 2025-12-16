@@ -1,5 +1,6 @@
 package com.social.network.controller;
 
+import com.social.network.dto.CommunityMemberResponse;
 import com.social.network.dto.CommunityPostRequest;
 import com.social.network.dto.CommunityPostResponse;
 import com.social.network.dto.CommunityRequest;
@@ -159,6 +160,33 @@ public class CommunityController {
             UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
             communityService.rejectPost(postId, userDetails.getId());
             return ResponseEntity.ok("Post rejected successfully");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/{communityId}/members")
+    public ResponseEntity<?> getCommunityMembers(
+            @PathVariable Long communityId,
+            Authentication authentication) {
+        try {
+            UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+            List<CommunityMemberResponse> members = communityService.getCommunityMembers(communityId, userDetails.getId());
+            return ResponseEntity.ok(members);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/{communityId}/members/{userId}")
+    public ResponseEntity<?> removeMember(
+            @PathVariable Long communityId,
+            @PathVariable Long userId,
+            Authentication authentication) {
+        try {
+            UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+            communityService.removeMember(communityId, userId, userDetails.getId());
+            return ResponseEntity.ok("Member removed successfully");
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }

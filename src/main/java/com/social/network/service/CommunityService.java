@@ -1,5 +1,6 @@
 package com.social.network.service;
 
+import com.social.network.dto.CommunityMemberResponse;
 import com.social.network.dto.CommunityPostRequest;
 import com.social.network.dto.CommunityPostResponse;
 import com.social.network.dto.CommunityRequest;
@@ -203,6 +204,42 @@ public class CommunityService {
         communityPostRepository.delete(post);
     }
 
+    public List<CommunityMemberResponse> getCommunityMembers(Long communityId, Long userId) {
+        Community community = communityRepository.findById(communityId)
+                .orElseThrow(() -> new RuntimeException("Community not found"));
+
+        // Only admin can view all members
+        if (!community.getAdmin().getId().equals(userId)) {
+            throw new RuntimeException("Only admin can view all members");
+        }
+
+        List<CommunityMember> members = communityMemberRepository.findByCommunityId(communityId);
+        return members.stream()
+                .map(m -> toCommunityMemberResponse(m, community.getAdmin().getId()))
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void removeMember(Long communityId, Long memberUserId, Long adminUserId) {
+        Community community = communityRepository.findById(communityId)
+                .orElseThrow(() -> new RuntimeException("Community not found"));
+
+        // Only admin can remove members
+        if (!community.getAdmin().getId().equals(adminUserId)) {
+            throw new RuntimeException("Only admin can remove members");
+        }
+
+        // Cannot remove the admin
+        if (memberUserId.equals(adminUserId)) {
+            throw new RuntimeException("Admin cannot be removed from the community");
+        }
+
+        CommunityMember member = communityMemberRepository.findByCommunityIdAndUserId(communityId, memberUserId)
+                .orElseThrow(() -> new RuntimeException("User is not a member of this community"));
+
+        communityMemberRepository.delete(member);
+    }
+
     private CommunityResponse toCommunityResponse(Community community, Long userId) {
         long memberCount = communityMemberRepository.countByCommunityId(community.getId());
         boolean isMember = communityMemberRepository.findByCommunityIdAndUserId(community.getId(), userId).isPresent();
@@ -235,6 +272,20 @@ public class CommunityService {
                 post.getUser().getProfilePicture(),
                 post.getIsApproved(),
                 post.getCreatedAt()
+        );
+    }
+
+    private CommunityMemberResponse toCommunityMemberResponse(CommunityMember member, Long adminId) {
+        User user = member.getUser();
+        return new CommunityMemberResponse(
+                member.getId(),
+                user.getId(),
+                user.getUsername(),
+                user.getName(),
+                user.getProfilePicture(),
+                user.getProfession(),
+                member.getJoinedAt(),
+                user.getId().equals(adminId)
         );
     }
 }
