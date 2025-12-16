@@ -34,6 +34,12 @@ export const adminService = {
     return response.data;
   },
 
+  // Get all posts
+  getAllPosts: async () => {
+    const response = await api.get('/admin/posts');
+    return response.data;
+  },
+
   // Get all communities
   getAllCommunities: async () => {
     const response = await api.get('/admin/communities');

@@ -10,12 +10,14 @@ const AdminDashboard = () => {
   
   const [users, setUsers] = useState([]);
   const [postsCount, setPostsCount] = useState(0);
+  const [posts, setPosts] = useState([]);
   const [communities, setCommunities] = useState([]);
   const [sosRequests, setSosRequests] = useState([]);
   const [selectedCommunity, setSelectedCommunity] = useState(null);
   const [communityMembers, setCommunityMembers] = useState([]);
   const [selectedSos, setSelectedSos] = useState(null);
   const [sosResponses, setSosResponses] = useState([]);
+  const [selectedPost, setSelectedPost] = useState(null);
   
   const [activeTab, setActiveTab] = useState('users');
 
@@ -34,15 +36,17 @@ const AdminDashboard = () => {
     setError('');
     
     try {
-      const [usersData, postsData, communitiesData, sosData] = await Promise.all([
+      const [usersData, postsData, postsListData, communitiesData, sosData] = await Promise.all([
         adminService.getAllUsers(),
         adminService.getPostsCount(),
+        adminService.getAllPosts(),
         adminService.getAllCommunities(),
         adminService.getAllSosRequests(),
       ]);
 
       setUsers(usersData);
       setPostsCount(postsData.totalPosts);
+      setPosts(postsListData);
       setCommunities(communitiesData);
       setSosRequests(sosData.sosRequests);
     } catch (err) {
@@ -127,6 +131,12 @@ const AdminDashboard = () => {
           Users
         </button>
         <button 
+          className={activeTab === 'posts' ? 'tab-active' : ''} 
+          onClick={() => setActiveTab('posts')}
+        >
+          Posts
+        </button>
+        <button 
           className={activeTab === 'communities' ? 'tab-active' : ''} 
           onClick={() => setActiveTab('communities')}
         >
@@ -176,6 +186,156 @@ const AdminDashboard = () => {
                 </tbody>
               </table>
             </div>
+          </div>
+        )}
+
+        {activeTab === 'posts' && (
+          <div className="posts-section">
+            <h2>All Posts ({posts.length})</h2>
+            <div className="table-container">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>User</th>
+                    <th>Content Preview</th>
+                    <th>Type</th>
+                    <th>Status</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {posts.map(post => (
+                    <tr key={post.id}>
+                      <td>{post.id}</td>
+                      <td>
+                        {post.userName} (@{post.userUsername})
+                      </td>
+                      <td>
+                        <div style={{ maxWidth: '300px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {post.content.substring(0, 100)}
+                          {post.content.length > 100 && '...'}
+                        </div>
+                      </td>
+                      <td>
+                        {post.isHelpSection ? (
+                          <span className="status-badge" style={{ backgroundColor: '#fff3cd', color: '#856404' }}>
+                            Help
+                          </span>
+                        ) : (
+                          <span className="status-badge" style={{ backgroundColor: '#d1ecf1', color: '#0c5460' }}>
+                            Post
+                          </span>
+                        )}
+                      </td>
+                      <td>
+                        {post.isHelpSection && (
+                          post.isSolved ? (
+                            <span className="status-badge" style={{ backgroundColor: '#d4edda', color: '#155724' }}>
+                              Solved
+                            </span>
+                          ) : (
+                            <span className="status-badge" style={{ backgroundColor: '#f8d7da', color: '#721c24' }}>
+                              Unsolved
+                            </span>
+                          )
+                        )}
+                        {!post.showInHome && (
+                          <span className="status-badge" style={{ backgroundColor: '#e2e3e5', color: '#383d41' }}>
+                            Hidden
+                          </span>
+                        )}
+                      </td>
+                      <td>{formatDate(post.createdAt)}</td>
+                      <td>
+                        <button 
+                          className="btn-small"
+                          onClick={() => setSelectedPost(post)}
+                        >
+                          Show More
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {selectedPost && (
+              <div className="modal-overlay" onClick={() => setSelectedPost(null)}>
+                <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                  <div className="modal-header">
+                    <h3>Post Details (ID: {selectedPost.id})</h3>
+                    <button 
+                      className="btn-close" 
+                      onClick={() => setSelectedPost(null)}
+                    >
+                      ×
+                    </button>
+                  </div>
+                  <div className="modal-body">
+                    <div style={{ marginBottom: '20px' }}>
+                      <h4 style={{ marginBottom: '10px', color: '#333' }}>Author</h4>
+                      <p style={{ margin: '5px 0' }}>
+                        <strong>Name:</strong> {selectedPost.userName}
+                      </p>
+                      <p style={{ margin: '5px 0' }}>
+                        <strong>Username:</strong> @{selectedPost.userUsername}
+                      </p>
+                      <p style={{ margin: '5px 0' }}>
+                        <strong>Profession:</strong> {selectedPost.userProfession || 'N/A'}
+                      </p>
+                    </div>
+
+                    <div style={{ marginBottom: '20px' }}>
+                      <h4 style={{ marginBottom: '10px', color: '#333' }}>Post Information</h4>
+                      <p style={{ margin: '5px 0' }}>
+                        <strong>Type:</strong> {selectedPost.isHelpSection ? 'Help Request' : 'Regular Post'}
+                      </p>
+                      {selectedPost.isHelpSection && (
+                        <p style={{ margin: '5px 0' }}>
+                          <strong>Solved:</strong> {selectedPost.isSolved ? 'Yes' : 'No'}
+                        </p>
+                      )}
+                      <p style={{ margin: '5px 0' }}>
+                        <strong>Visibility:</strong> {selectedPost.showInHome ? 'Visible' : 'Hidden'}
+                      </p>
+                      <p style={{ margin: '5px 0' }}>
+                        <strong>Created:</strong> {formatDate(selectedPost.createdAt)}
+                      </p>
+                      <p style={{ margin: '5px 0' }}>
+                        <strong>Updated:</strong> {formatDate(selectedPost.updatedAt)}
+                      </p>
+                    </div>
+
+                    <div style={{ marginBottom: '20px' }}>
+                      <h4 style={{ marginBottom: '10px', color: '#333' }}>Full Content</h4>
+                      <div style={{ 
+                        padding: '15px', 
+                        backgroundColor: '#f8f9fa', 
+                        borderRadius: '4px',
+                        whiteSpace: 'pre-wrap',
+                        wordBreak: 'break-word',
+                        maxHeight: '400px',
+                        overflowY: 'auto'
+                      }}>
+                        {selectedPost.content}
+                      </div>
+                    </div>
+
+                    {selectedPost.mediaUrls && (
+                      <div style={{ marginBottom: '20px' }}>
+                        <h4 style={{ marginBottom: '10px', color: '#333' }}>Media</h4>
+                        <p style={{ color: '#666', fontSize: '14px' }}>
+                          {selectedPost.mediaUrls}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
 

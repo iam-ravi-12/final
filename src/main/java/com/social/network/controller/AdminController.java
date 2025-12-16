@@ -106,6 +106,33 @@ public class AdminController {
         }
     }
 
+    @GetMapping("/posts")
+    public ResponseEntity<?> getAllPosts() {
+        try {
+            List<Post> posts = postRepository.findAllByOrderByCreatedAtDesc();
+            List<Map<String, Object>> postList = posts.stream().map(post -> {
+                Map<String, Object> postMap = new HashMap<>();
+                postMap.put("id", post.getId());
+                postMap.put("content", post.getContent());
+                postMap.put("mediaUrls", post.getMediaUrls());
+                postMap.put("isHelpSection", post.getIsHelpSection());
+                postMap.put("isSolved", post.getIsSolved());
+                postMap.put("showInHome", post.getShowInHome());
+                postMap.put("userId", post.getUser().getId());
+                postMap.put("userName", post.getUser().getName());
+                postMap.put("userUsername", post.getUser().getUsername());
+                postMap.put("userProfession", post.getUserProfession());
+                postMap.put("createdAt", post.getCreatedAt());
+                postMap.put("updatedAt", post.getUpdatedAt());
+                return postMap;
+            }).collect(Collectors.toList());
+            
+            return ResponseEntity.ok(postList);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error fetching posts: " + e.getMessage());
+        }
+    }
+
     @GetMapping("/communities")
     public ResponseEntity<?> getAllCommunities() {
         try {
