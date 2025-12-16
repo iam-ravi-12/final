@@ -13,6 +13,7 @@ import {
   Image,
   ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
@@ -21,6 +22,7 @@ import postService from '../services/postService';
 export default function CreatePostScreen() {
   const [content, setContent] = useState('');
   const [isHelpSection, setIsHelpSection] = useState(false);
+  const [showInHome, setShowInHome] = useState(true);
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
@@ -67,6 +69,7 @@ export default function CreatePostScreen() {
       const postData: any = {
         content,
         isHelpSection,
+        showInHome,
       };
       
       // If there's an image, include it in mediaUrls array
@@ -81,6 +84,7 @@ export default function CreatePostScreen() {
       setContent('');
       setImageUri(null);
       setIsHelpSection(false);
+      setShowInHome(true);
       router.back();
     } catch (error: any) {
       console.error('Error creating post:', error);
@@ -91,26 +95,27 @@ export default function CreatePostScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}
-    >
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Text style={styles.cancelButton}>Cancel</Text>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Create Post</Text>
-        <TouchableOpacity onPress={handleSubmit} disabled={loading}>
-          <Text
-            style={[
-              styles.postButton,
-              loading && styles.postButtonDisabled,
-            ]}
-          >
-            {loading ? 'Posting...' : 'Post'}
-          </Text>
-        </TouchableOpacity>
-      </View>
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.container}
+      >
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => router.back()}>
+            <Text style={styles.cancelButton}>Cancel</Text>
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Create Post</Text>
+          <TouchableOpacity onPress={handleSubmit} disabled={loading}>
+            <Text
+              style={[
+                styles.postButton,
+                loading && styles.postButtonDisabled,
+              ]}
+            >
+              {loading ? 'Posting...' : 'Post'}
+            </Text>
+          </TouchableOpacity>
+        </View>
 
       <ScrollView style={styles.content}>
         <TextInput
@@ -161,12 +166,31 @@ export default function CreatePostScreen() {
             disabled={loading}
           />
         </View>
+
+        <View style={styles.option}>
+          <View>
+            <Text style={styles.optionLabel}>Show in Home Page</Text>
+            <Text style={styles.optionDescription}>
+              Display this post on the home feed
+            </Text>
+          </View>
+          <Switch
+            value={showInHome}
+            onValueChange={setShowInHome}
+            disabled={loading}
+          />
+        </View>
       </ScrollView>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',

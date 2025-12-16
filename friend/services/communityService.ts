@@ -39,6 +39,17 @@ export interface CommunityPostRequest {
   mediaUrls?: string[];
 }
 
+export interface CommunityMemberResponse {
+  id: number;
+  userId: number;
+  username: string;
+  name?: string;
+  profilePicture?: string;
+  profession?: string;
+  joinedAt: string;
+  isAdmin: boolean;
+}
+
 const communityService = {
   // Get all public communities
   getPublicCommunities: async (): Promise<CommunityResponse[]> => {
@@ -100,6 +111,17 @@ const communityService = {
   // Reject a post (admin only)
   rejectPost: async (postId: number): Promise<void> => {
     await api.post(`/api/communities/posts/${postId}/reject`);
+  },
+
+  // Get community members (admin only)
+  getCommunityMembers: async (communityId: number): Promise<CommunityMemberResponse[]> => {
+    const response = await api.get<CommunityMemberResponse[]>(`/api/communities/${communityId}/members`);
+    return response.data;
+  },
+
+  // Remove a member from community (admin only)
+  removeMember: async (communityId: number, userId: number): Promise<void> => {
+    await api.delete(`/api/communities/${communityId}/members/${userId}`);
   },
 };
 

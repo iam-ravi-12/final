@@ -18,11 +18,11 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import communityService, { CommunityPostResponse, CommunityResponse } from '../services/communityService';
+import communityService, { CommunityPostResponse, CommunityResponse, CommunityMemberResponse } from '../services/communityService';
 import { APP_URL, MAX_POST_LENGTH } from '../constants/config';
 import { copyToClipboard, formatRelativeDate, formatMemberCount } from '../utils/helpers';
 
-type TabType = 'approved' | 'pending';
+type TabType = 'approved' | 'pending' | 'members';
 
 export default function CommunityPostsScreen() {
   const router = useRouter();
@@ -33,6 +33,7 @@ export default function CommunityPostsScreen() {
   const [community, setCommunity] = useState<CommunityResponse | null>(null);
   const [approvedPosts, setApprovedPosts] = useState<CommunityPostResponse[]>([]);
   const [pendingPosts, setPendingPosts] = useState<CommunityPostResponse[]>([]);
+  const [members, setMembers] = useState<CommunityMemberResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>('approved');
@@ -60,11 +61,15 @@ export default function CommunityPostsScreen() {
         if (communityData.isAdmin) {
           const pending = await communityService.getPendingPosts(communityId);
           setPendingPosts(pending);
+          // Load members list
+          const membersData = await communityService.getCommunityMembers(communityId);
+          setMembers(membersData);
         }
       } else {
         // Clear posts if not a member
         setApprovedPosts([]);
         setPendingPosts([]);
+        setMembers([]);
       }
     } catch (error) {
       console.error('Error loading community data:', error);
@@ -203,6 +208,49 @@ export default function CommunityPostsScreen() {
     }
   };
 
+  const handleRemoveMember = async (userId: number, username: string) => {
+    Alert.alert(
+      'Remove Member',
+      `Are you sure you want to remove ${username} from this community?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Remove',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await communityService.removeMember(communityId, userId);
+              
+              // Reload all community data to ensure everything is in sync
+              await loadCommunityData();
+              
+              Alert.alert('Success', `${username} has been removed from the community`);
+            } catch (error: any) {
+              console.error('Error removing member:', error);
+              
+              // Extract error message properly
+              let errorMessage = 'Failed to remove member';
+              if (error.response?.data) {
+                // If data is a string, use it directly; if it's an object, stringify it
+                if (typeof error.response.data === 'string') {
+                  errorMessage = error.response.data;
+                } else if (error.response.data.message) {
+                  errorMessage = error.response.data.message;
+                } else {
+                  errorMessage = 'Failed to remove member. Please try again.';
+                }
+              } else if (error.message) {
+                errorMessage = error.message;
+              }
+              
+              Alert.alert('Error', errorMessage);
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const formatDate = (dateString: string) => {
     return formatRelativeDate(dateString);
   };
@@ -213,13 +261,18 @@ export default function CommunityPostsScreen() {
     return (
       <View style={styles.postCard}>
         <View style={styles.postHeader}>
-          {item.userProfilePicture ? (
-            <Image source={{ uri: item.userProfilePicture }} style={styles.profilePic} />
-          ) : (
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>{initial}</Text>
-            </View>
-          )}
+          <TouchableOpacity
+            onPress={() => router.push(`/user/${item.userId}`)}
+            activeOpacity={0.7}
+          >
+            {item.userProfilePicture ? (
+              <Image source={{ uri: item.userProfilePicture }} style={styles.profilePic} />
+            ) : (
+              <View style={styles.avatar}>
+                <Text style={styles.avatarText}>{initial}</Text>
+              </View>
+            )}
+          </TouchableOpacity>
           <View style={styles.postHeaderInfo}>
             <Text style={styles.username}>@{item.username}</Text>
             <Text style={styles.postDate}>{formatDate(item.createdAt)}</Text>
@@ -263,6 +316,53 @@ export default function CommunityPostsScreen() {
               <Text style={styles.rejectButtonText}>Reject</Text>
             </TouchableOpacity>
           </View>
+        )}
+      </View>
+    );
+  };
+
+  const renderMember = ({ item }: { item: CommunityMemberResponse }) => {
+    return (
+      <View style={styles.memberCard}>
+        <TouchableOpacity
+          style={styles.memberInfo}
+          onPress={() => router.push(`/user/${item.userId}`)}
+          activeOpacity={0.7}
+        >
+          {item.profilePicture ? (
+            <Image source={{ uri: item.profilePicture }} style={styles.memberAvatar} />
+          ) : (
+            <View style={styles.memberAvatar}>
+              <Text style={styles.memberAvatarText}>
+                {(item.name || item.username).charAt(0).toUpperCase()}
+              </Text>
+            </View>
+          )}
+          <View style={styles.memberDetails}>
+            <View style={styles.memberNameContainer}>
+              <Text style={styles.memberName}>{item.name || item.username}</Text>
+              {item.isAdmin && (
+                <View style={styles.adminBadge}>
+                  <Text style={styles.adminBadgeText}>Admin</Text>
+                </View>
+              )}
+            </View>
+            <Text style={styles.memberUsername}>@{item.username}</Text>
+            {item.profession && (
+              <Text style={styles.memberProfession}>{item.profession}</Text>
+            )}
+            <Text style={styles.memberJoinDate}>
+              Joined {formatRelativeDate(item.joinedAt)}
+            </Text>
+          </View>
+        </TouchableOpacity>
+        {!item.isAdmin && community?.isAdmin && (
+          <TouchableOpacity
+            style={styles.removeMemberButton}
+            onPress={() => handleRemoveMember(item.userId, item.username)}
+          >
+            <Ionicons name="close-circle" size={24} color="#FF3B30" />
+          </TouchableOpacity>
         )}
       </View>
     );
@@ -371,6 +471,14 @@ export default function CommunityPostsScreen() {
               Pending ({pendingPosts.length})
             </Text>
           </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.tab, activeTab === 'members' && styles.activeTab]}
+            onPress={() => setActiveTab('members')}
+          >
+            <Text style={[styles.tabText, activeTab === 'members' && styles.activeTabText]}>
+              Members ({members.length})
+            </Text>
+          </TouchableOpacity>
         </View>
       )}
 
@@ -400,38 +508,58 @@ export default function CommunityPostsScreen() {
         </View>
       ) : (
         <>
-          {/* Create Post Button */}
-          <View style={styles.createPostSection}>
-            <TouchableOpacity
-              style={styles.createPostButton}
-              onPress={() => setShowCreatePost(true)}
-            >
-              <Ionicons name="add-circle-outline" size={20} color="#007AFF" />
-              <Text style={styles.createPostButtonText}>Create Post</Text>
-            </TouchableOpacity>
-          </View>
+          {/* Create Post Button - only show for posts tabs */}
+          {activeTab !== 'members' && (
+            <View style={styles.createPostSection}>
+              <TouchableOpacity
+                style={styles.createPostButton}
+                onPress={() => setShowCreatePost(true)}
+              >
+                <Ionicons name="add-circle-outline" size={20} color="#007AFF" />
+                <Text style={styles.createPostButtonText}>Create Post</Text>
+              </TouchableOpacity>
+            </View>
+          )}
 
-          {/* Posts List */}
-          <FlatList
-            data={currentPosts}
-            renderItem={({ item }) => renderPost({ item, isPending: activeTab === 'pending' })}
-            keyExtractor={(item) => item.id.toString()}
-            contentContainerStyle={styles.listContent}
-            refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-            }
-            ListEmptyComponent={
-              <View style={styles.emptyState}>
-                <Ionicons name="chatbubbles-outline" size={64} color="#ccc" />
-                <Text style={styles.emptyText}>
-                  {activeTab === 'approved' ? 'No posts yet' : 'No pending posts'}
-                </Text>
-                <Text style={styles.emptySubtext}>
-                  {activeTab === 'approved' && 'Be the first to post in this community!'}
-                </Text>
-              </View>
-            }
-          />
+          {/* Content based on active tab */}
+          {activeTab === 'members' ? (
+            <FlatList
+              data={members}
+              renderItem={renderMember}
+              keyExtractor={(item) => item.id.toString()}
+              contentContainerStyle={styles.listContent}
+              refreshControl={
+                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+              }
+              ListEmptyComponent={
+                <View style={styles.emptyState}>
+                  <Ionicons name="people-outline" size={64} color="#ccc" />
+                  <Text style={styles.emptyText}>No members yet</Text>
+                </View>
+              }
+            />
+          ) : (
+            <FlatList
+              data={currentPosts}
+              renderItem={({ item }) => renderPost({ item, isPending: activeTab === 'pending' })}
+              keyExtractor={(item) => item.id.toString()}
+              contentContainerStyle={styles.listContent}
+              refreshControl={
+                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+              }
+              ListEmptyComponent={
+                <View style={styles.emptyState}>
+                  <Ionicons name="chatbubbles-outline" size={64} color="#ccc" />
+                  <Text style={styles.emptyText}>
+                    {activeTab === 'approved' ? 'No posts yet' : 'No pending posts'}
+                  </Text>
+                  <Text style={styles.emptySubtext}>
+                    {activeTab === 'approved' && 'Be the first to post in this community!'}
+                  </Text>
+                </View>
+              }
+            />
+          )}
         </>
       )}
 
@@ -912,5 +1040,79 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  memberCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    padding: 16,
+    marginBottom: 8,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  memberInfo: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  memberAvatar: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: '#007AFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  memberAvatarText: {
+    color: '#fff',
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  memberDetails: {
+    flex: 1,
+  },
+  memberNameContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  memberName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    marginRight: 8,
+  },
+  memberUsername: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 2,
+  },
+  memberProfession: {
+    fontSize: 13,
+    color: '#888',
+    marginBottom: 2,
+  },
+  memberJoinDate: {
+    fontSize: 12,
+    color: '#999',
+  },
+  adminBadge: {
+    backgroundColor: '#FFD700',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  adminBadgeText: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#333',
+  },
+  removeMemberButton: {
+    padding: 8,
   },
 });
