@@ -1,6 +1,7 @@
 package com.social.network.controller;
 
 import com.social.network.dto.AuthResponse;
+import com.social.network.dto.FcmTokenRequest;
 import com.social.network.dto.LoginRequest;
 import com.social.network.dto.ProfileRequest;
 import com.social.network.dto.ProfileResponse;
@@ -71,6 +72,19 @@ public class AuthController {
         try {
             ProfileResponse profile = authService.getUserProfileById(userId);
             return ResponseEntity.ok(profile);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/fcm-token")
+    public ResponseEntity<?> registerFcmToken(
+            Authentication authentication,
+            @Valid @RequestBody FcmTokenRequest request) {
+        try {
+            String username = authentication.getName();
+            authService.registerFcmToken(username, request.getFcmToken());
+            return ResponseEntity.ok("FCM token registered successfully");
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
