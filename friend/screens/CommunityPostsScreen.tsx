@@ -213,13 +213,18 @@ export default function CommunityPostsScreen() {
     return (
       <View style={styles.postCard}>
         <View style={styles.postHeader}>
-          {item.userProfilePicture ? (
-            <Image source={{ uri: item.userProfilePicture }} style={styles.profilePic} />
-          ) : (
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>{initial}</Text>
-            </View>
-          )}
+          <TouchableOpacity
+            onPress={() => router.push(`/user/${item.userId}`)}
+            activeOpacity={0.7}
+          >
+            {item.userProfilePicture ? (
+              <Image source={{ uri: item.userProfilePicture }} style={styles.profilePic} />
+            ) : (
+              <View style={styles.avatar}>
+                <Text style={styles.avatarText}>{initial}</Text>
+              </View>
+            )}
+          </TouchableOpacity>
           <View style={styles.postHeaderInfo}>
             <Text style={styles.username}>@{item.username}</Text>
             <Text style={styles.postDate}>{formatDate(item.createdAt)}</Text>

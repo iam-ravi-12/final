@@ -206,18 +206,23 @@ export default function HomeScreen() {
       <View style={getPostCardStyle(item)}>
       <View style={styles.postHeader}>
         <View style={styles.userInfo}>
-          {item.userProfilePicture ? (
-            <Image
-              source={{ uri: item.userProfilePicture }}
-              style={styles.avatar}
-            />
-          ) : (
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>
-                {item.username.charAt(0).toUpperCase()}
-              </Text>
-            </View>
-          )}
+          <TouchableOpacity
+            onPress={() => router.push(`/user/${item.userId}`)}
+            activeOpacity={0.7}
+          >
+            {item.userProfilePicture ? (
+              <Image
+                source={{ uri: item.userProfilePicture }}
+                style={styles.avatar}
+              />
+            ) : (
+              <View style={styles.avatar}>
+                <Text style={styles.avatarText}>
+                  {item.username.charAt(0).toUpperCase()}
+                </Text>
+              </View>
+            )}
+          </TouchableOpacity>
           <View style={styles.userInfoText}>
             <Text style={styles.username}>{item.username}</Text>
             <Text style={styles.profession}>{item.userProfession}</Text>
