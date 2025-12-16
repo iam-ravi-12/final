@@ -3,6 +3,7 @@ import api from './api';
 export interface PostData {
   content: string;
   isHelpSection: boolean;
+  showInHome?: boolean;
   mediaUrls?: string[];
 }
 

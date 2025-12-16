@@ -13,6 +13,7 @@ import {
   Pressable,
   ViewStyle,
   StyleProp,
+  TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/ui/icon-symbol';
@@ -31,6 +32,8 @@ export default function HomeScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [menuVisible, setMenuVisible] = useState<number | null>(null);
   const [showSosModal, setShowSosModal] = useState(false);
+  const [showSearchBar, setShowSearchBar] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const { user } = useAuth();
 
   useEffect(() => {
@@ -155,6 +158,23 @@ export default function HomeScreen() {
   const getUserInitial = () => {
     return (user?.name?.charAt(0) || user?.username?.charAt(0) || 'U').toUpperCase();
   };
+
+  const handleSearchToggle = () => {
+    setShowSearchBar(!showSearchBar);
+    if (showSearchBar) {
+      setSearchQuery('');
+    }
+  };
+
+  const filteredPosts = posts.filter(post => {
+    if (!searchQuery.trim()) return true;
+    const query = searchQuery.toLowerCase();
+    return (
+      post.content.toLowerCase().includes(query) ||
+      post.username.toLowerCase().includes(query) ||
+      post.userProfession?.toLowerCase().includes(query)
+    );
+  });
 
   const getPostCardStyle = (item: PostResponse): StyleProp<ViewStyle> => {
     if (item.isHelpSection) {
@@ -344,7 +364,7 @@ export default function HomeScreen() {
               {user?.name || user?.username || 'User'}
             </Text>
             <Text style={styles.profileProfession} numberOfLines={1}>
-              {user?.profession || 'Professional'}
+              {user?.profession || 'Add your profession'}
             </Text>
           </View>
         </TouchableOpacity>
@@ -360,10 +380,10 @@ export default function HomeScreen() {
           
           <TouchableOpacity
             style={styles.headerActionButton}
+            onPress={handleSearchToggle}
             activeOpacity={0.6}
-            disabled
           >
-            <Ionicons name="search" size={24} color="#999" />
+            <Ionicons name="search" size={24} color="#007AFF" />
           </TouchableOpacity>
           
           <TouchableOpacity
@@ -375,6 +395,27 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
       </View>
+
+      {showSearchBar && (
+        <View style={styles.searchBarContainer}>
+          <Ionicons name="search" size={20} color="#666" style={styles.searchIcon} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search posts, users, professions..."
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            autoFocus
+            placeholderTextColor="#999"
+          />
+          <TouchableOpacity
+            onPress={handleSearchToggle}
+            style={styles.closeSearchButton}
+            activeOpacity={0.6}
+          >
+            <Ionicons name="close" size={24} color="#666" />
+          </TouchableOpacity>
+        </View>
+      )}
 
       <View style={styles.tabs}>
         <TouchableOpacity
@@ -429,7 +470,7 @@ export default function HomeScreen() {
         </View>
       ) : (
         <FlatList
-          data={posts}
+          data={filteredPosts}
           renderItem={renderPost}
           keyExtractor={(item) => item.id.toString()}
           refreshControl={
@@ -438,7 +479,9 @@ export default function HomeScreen() {
           contentContainerStyle={styles.listContainer}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>No posts yet</Text>
+              <Text style={styles.emptyText}>
+                {searchQuery ? 'No posts found' : 'No posts yet'}
+              </Text>
             </View>
           }
         />
@@ -522,9 +565,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#f0f0f0',
   },
   sosCircleButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
     backgroundColor: '#FF0000',
     justifyContent: 'center',
     alignItems: 'center',
@@ -536,7 +579,7 @@ const styles = StyleSheet.create({
   },
   sosButtonText: {
     color: '#FFFFFF',
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: 'bold',
   },
   tabs: {
@@ -762,5 +805,27 @@ const styles = StyleSheet.create({
   menuDivider: {
     height: 1,
     backgroundColor: '#e0e0e0',
+  },
+  searchBarContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+  },
+  searchIcon: {
+    marginRight: 8,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    color: '#333',
+    paddingVertical: 0,
+  },
+  closeSearchButton: {
+    padding: 4,
+    marginLeft: 8,
   },
 });
