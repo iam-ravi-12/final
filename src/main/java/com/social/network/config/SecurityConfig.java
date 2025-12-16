@@ -85,6 +85,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // public endpoints
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/admin/**").permitAll() // Admin endpoints handle auth internally
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/posts/**").permitAll()
                         .requestMatchers("/signup", "/signup.html","/login.html","/home.html", "/login", "/", "/index").permitAll()
                         .requestMatchers("/signup", "/login", "/","/home").permitAll()
