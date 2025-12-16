@@ -19,6 +19,22 @@ import authService, { ProfileResponse } from '../services/authService';
 import followService, { FollowStatsResponse } from '../services/followService';
 import postService, { PostResponse } from '../services/postService';
 
+const formatTimeAgo = (dateString: string): string => {
+  const now = new Date();
+  const postDate = new Date(dateString);
+  const diffInMs = now.getTime() - postDate.getTime();
+  const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
+  const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
+  const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+
+  if (diffInMinutes < 1) return 'just now';
+  if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+  if (diffInHours < 24) return `${diffInHours}h ago`;
+  if (diffInDays < 7) return `${diffInDays}d ago`;
+  
+  return postDate.toLocaleDateString();
+};
+
 export default function UserProfileScreen() {
   const { userId: userIdParam } = useLocalSearchParams();
   const userId = typeof userIdParam === 'string' ? parseInt(userIdParam, 10) : undefined;
@@ -95,22 +111,6 @@ export default function UserProfileScreen() {
     return 'Follow';
   };
 
-  const formatTimeAgo = (dateString: string): string => {
-    const now = new Date();
-    const postDate = new Date(dateString);
-    const diffInMs = now.getTime() - postDate.getTime();
-    const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
-    const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
-    const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
-
-    if (diffInMinutes < 1) return 'just now';
-    if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
-    if (diffInHours < 24) return `${diffInHours}h ago`;
-    if (diffInDays < 7) return `${diffInDays}d ago`;
-    
-    return postDate.toLocaleDateString();
-  };
-
   const renderPost = useCallback(({ item }: { item: PostResponse }) => {
     return (
       <TouchableOpacity
@@ -141,7 +141,7 @@ export default function UserProfileScreen() {
         </View>
       </TouchableOpacity>
     );
-  }, [formatTimeAgo]);
+  }, []);
 
   const displayedPosts = useMemo(() => {
     return showAllPosts ? userPosts : userPosts.slice(0, 3);
