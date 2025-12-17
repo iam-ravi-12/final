@@ -158,6 +158,9 @@ const SosAlerts = () => {
   };
 
   const handleCallEmergency = (phoneNumber) => {
+    // Immediately initiate call - this opens the phone's dialer
+    // Note: For security reasons, browsers cannot programmatically dial without user interaction
+    // This will open the dialer with the number pre-filled, which is the most direct approach possible
     window.location.href = `tel:${phoneNumber}`;
   };
 

@@ -15,6 +15,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import * as Location from 'expo-location';
+import * as Haptics from 'expo-haptics';
 import sosService, { SosAlertResponse, SosResponseRequest } from '../services/sosService';
 import notificationService from '../services/notificationService';
 
@@ -211,14 +212,33 @@ const SosAlertsScreen = () => {
     });
   };
 
-  const handleCallEmergency = (phoneNumber: string) => {
-    Linking.openURL(`tel:${phoneNumber}`).catch(err => {
+  const handleCallEmergency = async (phoneNumber: string) => {
+    try {
+      // Provide immediate haptic feedback
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+      
+      // Check if device can make calls
+      const canOpen = await Linking.canOpenURL(`tel:${phoneNumber}`);
+      
+      if (!canOpen) {
+        Alert.alert(
+          'Cannot Make Calls',
+          `This device cannot make phone calls. Emergency number: ${phoneNumber}`,
+          [{ text: 'OK' }]
+        );
+        return;
+      }
+      
+      // Immediately open dialer without confirmation
+      await Linking.openURL(`tel:${phoneNumber}`);
+    } catch (err) {
       Alert.alert(
-        'Unable to Make Call', 
-        `Could not initiate the call. Please dial manually: ${phoneNumber}`
+        'Unable to Make Call',
+        `Could not open the phone dialer. Please manually dial: ${phoneNumber}`,
+        [{ text: 'OK' }]
       );
       console.error('Failed to make call:', err);
-    });
+    }
   };
 
   const renderAlertCard = ({ item }: { item: SosAlertResponse }) => (
