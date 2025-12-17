@@ -129,6 +129,13 @@ export default function CreatePostScreen() {
     }
   };
 
+  // Computed variables for UI state
+  const isAddPhotoDisabled = loading || uploadingImage || imageUris.length >= MAX_IMAGES;
+  const addPhotoButtonText = uploadingImage ? 'Compressing...' : 
+                              imageUris.length === 0 ? 'Add Photos (up to 4)' : 
+                              imageUris.length >= MAX_IMAGES ? 'Maximum reached' : 
+                              'Add More Photos';
+
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       <KeyboardAvoidingView
@@ -193,14 +200,11 @@ export default function CreatePostScreen() {
         <TouchableOpacity
           style={styles.addPhotoButton}
           onPress={pickImage}
-          disabled={loading || uploadingImage || imageUris.length >= MAX_IMAGES}
+          disabled={isAddPhotoDisabled}
         >
           <Ionicons name="image-outline" size={24} color="#007AFF" />
           <Text style={styles.addPhotoText}>
-            {uploadingImage ? 'Compressing...' : 
-             imageUris.length === 0 ? 'Add Photos (up to 4)' : 
-             imageUris.length >= MAX_IMAGES ? 'Maximum reached' : 
-             'Add More Photos'}
+            {addPhotoButtonText}
           </Text>
         </TouchableOpacity>
 

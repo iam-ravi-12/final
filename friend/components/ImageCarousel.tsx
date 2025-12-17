@@ -7,9 +7,12 @@ import {
   Dimensions,
   TouchableOpacity,
   Text,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
 } from 'react-native';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const HORIZONTAL_MARGIN = 32; // Margin used for calculating carousel width
 
 interface ImageCarouselProps {
   images: string[];
@@ -40,15 +43,15 @@ export default function ImageCarousel({
     );
   }
 
-  const handleScroll = (event: any) => {
+  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const contentOffsetX = event.nativeEvent.contentOffset.x;
-    const currentIndex = Math.round(contentOffsetX / (SCREEN_WIDTH - 32));
+    const currentIndex = Math.round(contentOffsetX / (SCREEN_WIDTH - HORIZONTAL_MARGIN));
     setActiveIndex(currentIndex);
   };
 
   const scrollToIndex = (index: number) => {
     scrollViewRef.current?.scrollTo({
-      x: index * (SCREEN_WIDTH - 32),
+      x: index * (SCREEN_WIDTH - HORIZONTAL_MARGIN),
       animated: true,
     });
     setActiveIndex(index);
@@ -111,7 +114,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   image: {
-    width: SCREEN_WIDTH - 32,
+    width: SCREEN_WIDTH - HORIZONTAL_MARGIN,
   },
   paginationContainer: {
     flexDirection: 'row',
