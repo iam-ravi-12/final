@@ -133,6 +133,24 @@ public class AdminController {
         }
     }
 
+    @DeleteMapping("/posts/{postId}")
+    public ResponseEntity<?> deletePost(@PathVariable Long postId) {
+        try {
+            Post post = postRepository.findById(postId)
+                    .orElseThrow(() -> new RuntimeException("Post not found"));
+            
+            // Admin can delete any post
+            postRepository.delete(post);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "Post deleted successfully");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error deleting post: " + e.getMessage());
+        }
+    }
+
     @GetMapping("/communities")
     public ResponseEntity<?> getAllCommunities() {
         try {

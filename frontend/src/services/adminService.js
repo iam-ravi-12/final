@@ -63,4 +63,10 @@ export const adminService = {
     const response = await api.get(`/admin/sos/${sosId}/responses`);
     return response.data;
   },
+
+  // Delete a post
+  deletePost: async (postId) => {
+    const response = await api.delete(`/admin/posts/${postId}`);
+    return response.data;
+  },
 };

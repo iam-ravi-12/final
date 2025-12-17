@@ -81,6 +81,27 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleDeletePost = async (postId) => {
+    if (!window.confirm('Are you sure you want to delete this post? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      await adminService.deletePost(postId);
+      // Remove the post from the local state
+      setPosts(posts.filter(post => post.id !== postId));
+      setPostsCount(postsCount - 1);
+      // Close the modal if it's open
+      if (selectedPost && selectedPost.id === postId) {
+        setSelectedPost(null);
+      }
+      alert('Post deleted successfully');
+    } catch (err) {
+      setError('Error deleting post: ' + (err.response?.data || err.message));
+      alert('Failed to delete post: ' + (err.response?.data || err.message));
+    }
+  };
+
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
     const date = new Date(dateString);
@@ -252,8 +273,16 @@ const AdminDashboard = () => {
                         <button 
                           className="btn-small"
                           onClick={() => setSelectedPost(post)}
+                          style={{ marginRight: '5px' }}
                         >
                           Show More
+                        </button>
+                        <button 
+                          className="btn-small btn-danger"
+                          onClick={() => handleDeletePost(post.id)}
+                          style={{ backgroundColor: '#dc3545' }}
+                        >
+                          Delete
                         </button>
                       </td>
                     </tr>
@@ -403,6 +432,41 @@ const AdminDashboard = () => {
                         })()}
                       </div>
                     )}
+                  </div>
+                  <div className="modal-footer" style={{ 
+                    borderTop: '1px solid #dee2e6', 
+                    padding: '15px 20px',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                  }}>
+                    <button 
+                      className="btn-small btn-danger"
+                      onClick={() => {
+                        setSelectedPost(null);
+                        handleDeletePost(selectedPost.id);
+                      }}
+                      style={{ 
+                        backgroundColor: '#dc3545',
+                        color: 'white',
+                        border: 'none',
+                        padding: '8px 16px',
+                        borderRadius: '4px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Delete Post
+                    </button>
+                    <button 
+                      className="btn-small"
+                      onClick={() => setSelectedPost(null)}
+                      style={{ 
+                        backgroundColor: '#6c757d',
+                        color: 'white'
+                      }}
+                    >
+                      Close
+                    </button>
                   </div>
                 </div>
               </div>
