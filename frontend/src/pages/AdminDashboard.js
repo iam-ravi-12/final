@@ -326,10 +326,81 @@ const AdminDashboard = () => {
 
                     {selectedPost.mediaUrls && (
                       <div style={{ marginBottom: '20px' }}>
-                        <h4 style={{ marginBottom: '10px', color: '#333' }}>Media</h4>
-                        <p style={{ color: '#666', fontSize: '14px' }}>
-                          {selectedPost.mediaUrls}
-                        </p>
+                        <h4 style={{ marginBottom: '10px', color: '#333' }}>Media Attachments</h4>
+                        {(() => {
+                          try {
+                            // Parse mediaUrls if it's a JSON string
+                            const mediaArray = typeof selectedPost.mediaUrls === 'string' 
+                              ? JSON.parse(selectedPost.mediaUrls)
+                              : selectedPost.mediaUrls;
+                            
+                            if (Array.isArray(mediaArray) && mediaArray.length > 0) {
+                              return (
+                                <div style={{ 
+                                  display: 'grid', 
+                                  gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+                                  gap: '15px',
+                                  marginTop: '10px'
+                                }}>
+                                  {mediaArray.map((url, index) => {
+                                    const isVideo = url.startsWith('data:video');
+                                    return (
+                                      <div 
+                                        key={index} 
+                                        style={{ 
+                                          border: '1px solid #dee2e6',
+                                          borderRadius: '8px',
+                                          overflow: 'hidden',
+                                          backgroundColor: '#f8f9fa'
+                                        }}
+                                      >
+                                        {isVideo ? (
+                                          <video 
+                                            src={url} 
+                                            controls 
+                                            style={{ 
+                                              width: '100%', 
+                                              height: 'auto',
+                                              display: 'block'
+                                            }}
+                                          />
+                                        ) : (
+                                          <img 
+                                            src={url} 
+                                            alt={`Post media ${index + 1}`}
+                                            style={{ 
+                                              width: '100%', 
+                                              height: 'auto',
+                                              display: 'block',
+                                              cursor: 'pointer'
+                                            }}
+                                            onClick={(e) => {
+                                              // Open image in new tab when clicked
+                                              window.open(url, '_blank');
+                                            }}
+                                          />
+                                        )}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              );
+                            } else {
+                              return (
+                                <p style={{ color: '#666', fontSize: '14px', fontStyle: 'italic' }}>
+                                  No media attachments
+                                </p>
+                              );
+                            }
+                          } catch (e) {
+                            // If parsing fails, display the raw value or error message
+                            return (
+                              <p style={{ color: '#666', fontSize: '14px' }}>
+                                {selectedPost.mediaUrls || 'No media attachments'}
+                              </p>
+                            );
+                          }
+                        })()}
                       </div>
                     )}
                   </div>
