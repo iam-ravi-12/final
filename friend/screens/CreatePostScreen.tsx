@@ -12,7 +12,6 @@ import {
   Switch,
   Image,
   ActivityIndicator,
-  FlatList,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
