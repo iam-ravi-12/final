@@ -18,4 +18,11 @@ public class FollowResponse {
     private String profilePicture;
     private Boolean isAccepted;
     private LocalDateTime createdAt;
+    
+    // Additional fields for mobile app compatibility
+    private Long followerId;
+    private Long followingId;
+    private String followerUsername;
+    private String followingUsername;
+    private String status;
 }
