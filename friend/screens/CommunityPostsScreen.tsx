@@ -19,6 +19,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import communityService, { CommunityPostResponse, CommunityResponse, CommunityMemberResponse } from '../services/communityService';
+import ImageCarousel from '../components/ImageCarousel';
 import { APP_URL, MAX_POST_LENGTH } from '../constants/config';
 import { copyToClipboard, formatRelativeDate, formatMemberCount } from '../utils/helpers';
 
@@ -287,16 +288,7 @@ export default function CommunityPostsScreen() {
         <Text style={styles.postContent}>{item.content}</Text>
 
         {item.mediaUrls && item.mediaUrls.length > 0 && (
-          <View style={styles.mediaContainer}>
-            {item.mediaUrls.map((url, index) => (
-              <Image
-                key={index}
-                source={{ uri: url }}
-                style={styles.mediaImage}
-                resizeMode="cover"
-              />
-            ))}
-          </View>
+          <ImageCarousel images={item.mediaUrls} height={250} borderRadius={8} />
         )}
 
         {isPending && community?.isAdmin && (
@@ -869,17 +861,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#333',
     lineHeight: 22,
-  },
-  mediaContainer: {
-    marginTop: 12,
-    borderRadius: 8,
-    overflow: 'hidden',
-  },
-  mediaImage: {
-    width: '100%',
-    height: 200,
-    marginBottom: 8,
-    borderRadius: 8,
   },
   adminActions: {
     flexDirection: 'row',

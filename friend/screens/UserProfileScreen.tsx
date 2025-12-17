@@ -18,6 +18,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import authService, { ProfileResponse } from '../services/authService';
 import followService, { FollowStatsResponse } from '../services/followService';
 import postService, { PostResponse } from '../services/postService';
+import ImageCarousel from '../components/ImageCarousel';
 
 const formatTimeAgo = (dateString: string): string => {
   const now = new Date();
@@ -131,11 +132,7 @@ export default function UserProfileScreen() {
           {item.content}
         </Text>
         {item.mediaUrls && item.mediaUrls.length > 0 && (
-          <Image
-            source={{ uri: item.mediaUrls[0] }}
-            style={styles.postImage}
-            resizeMode="cover"
-          />
+          <ImageCarousel images={item.mediaUrls} height={200} borderRadius={8} />
         )}
         <View style={styles.postActions}>
           <View style={styles.actionItem}>
@@ -531,12 +528,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#333',
     lineHeight: 22,
-    marginBottom: 12,
-  },
-  postImage: {
-    width: '100%',
-    height: 200,
-    borderRadius: 8,
     marginBottom: 12,
   },
   postActions: {

@@ -20,6 +20,7 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 import postService, { PostResponse } from '../services/postService';
 import SosButton from '../components/SosButton';
+import ImageCarousel from '../components/ImageCarousel';
 import { useAuth } from '../contexts/AuthContext';
 import { router } from 'expo-router';
 
@@ -299,11 +300,7 @@ export default function HomeScreen() {
         </Text>
         
         {item.mediaUrls && item.mediaUrls.length > 0 && (
-          <Image
-            source={{ uri: item.mediaUrls[0] }}
-            style={styles.postImage}
-            resizeMode="cover"
-          />
+          <ImageCarousel images={item.mediaUrls} height={250} borderRadius={8} />
         )}
       </TouchableOpacity>
 
@@ -730,13 +727,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#333',
     lineHeight: 22,
-    marginBottom: 12,
-  },
-  postImage: {
-    width: '100%',
-    height: 250,
-    borderRadius: 8,
-    marginTop: 8,
     marginBottom: 12,
   },
   postActions: {
