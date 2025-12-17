@@ -12,23 +12,49 @@ import {
   Switch,
   Image,
   ActivityIndicator,
+  FlatList,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
+import * as ImageManipulator from 'expo-image-manipulator';
 import { Ionicons } from '@expo/vector-icons';
 import postService from '../services/postService';
+
+const MAX_IMAGES = 4;
+const IMAGE_COMPRESSION_QUALITY = 0.7;
+const MAX_IMAGE_WIDTH = 1200;
+const MAX_IMAGE_HEIGHT = 1200;
 
 export default function CreatePostScreen() {
   const [content, setContent] = useState('');
   const [isHelpSection, setIsHelpSection] = useState(false);
   const [showInHome, setShowInHome] = useState(true);
-  const [imageUri, setImageUri] = useState<string | null>(null);
+  const [imageUris, setImageUris] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
 
+  const compressImage = async (uri: string): Promise<string> => {
+    try {
+      const manipulatedImage = await ImageManipulator.manipulateAsync(
+        uri,
+        [{ resize: { width: MAX_IMAGE_WIDTH, height: MAX_IMAGE_HEIGHT } }],
+        { compress: IMAGE_COMPRESSION_QUALITY, format: ImageManipulator.SaveFormat.JPEG }
+      );
+      return manipulatedImage.uri;
+    } catch (error) {
+      console.error('Error compressing image:', error);
+      return uri; // Return original if compression fails
+    }
+  };
+
   const pickImage = async () => {
     try {
+      if (imageUris.length >= MAX_IMAGES) {
+        Alert.alert('Maximum Images', `You can only upload up to ${MAX_IMAGES} images per post.`);
+        return;
+      }
+
       // Request permission
       const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
       
@@ -37,25 +63,48 @@ export default function CreatePostScreen() {
         return;
       }
 
-      // Launch image picker
+      setUploadingImage(true);
+
+      // Launch image picker - allow multiple selection
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [4, 3],
+        allowsMultipleSelection: true,
+        selectionLimit: MAX_IMAGES - imageUris.length,
         quality: 0.8,
       });
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
-        setImageUri(result.assets[0].uri);
+        // Compress all selected images with error handling for each
+        const compressionResults = await Promise.allSettled(
+          result.assets.map(asset => compressImage(asset.uri))
+        );
+        
+        // Extract successful compressions
+        const compressedUris = compressionResults
+          .filter((result): result is PromiseFulfilledResult<string> => result.status === 'fulfilled')
+          .map(result => result.value);
+        
+        // Show warning if some compressions failed
+        const failedCount = compressionResults.length - compressedUris.length;
+        if (failedCount > 0) {
+          Alert.alert(
+            'Warning',
+            `${failedCount} image(s) could not be compressed but will be uploaded as-is.`
+          );
+        }
+        
+        setImageUris([...imageUris, ...compressedUris].slice(0, MAX_IMAGES));
       }
     } catch (error) {
       console.error('Error picking image:', error);
       Alert.alert('Error', 'Failed to pick image');
+    } finally {
+      setUploadingImage(false);
     }
   };
 
-  const removeImage = () => {
-    setImageUri(null);
+  const removeImage = (index: number) => {
+    setImageUris(imageUris.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async () => {
@@ -72,23 +121,41 @@ export default function CreatePostScreen() {
         showInHome,
       };
       
-      // If there's an image, include it in mediaUrls array
-      // Note: The image URI must be a publicly accessible URL
-      // Local file paths (file://...) won't work
-      if (imageUri) {
-        postData.mediaUrls = [imageUri];
+      // If there are images, upload them first and get URLs
+      if (imageUris.length > 0) {
+        setUploadingImage(true);
+        try {
+          console.log('Starting image upload...', imageUris.length, 'images');
+          const uploadedUrls = await postService.uploadImages(imageUris);
+          console.log('Images uploaded successfully:', uploadedUrls);
+          postData.mediaUrls = uploadedUrls;
+        } catch (uploadError: any) {
+          console.error('Error uploading images:', uploadError);
+          const errorMsg = uploadError.response?.data?.message 
+            || uploadError.response?.data 
+            || uploadError.message 
+            || 'Failed to upload images';
+          Alert.alert('Error', `Failed to upload images: ${errorMsg}`);
+          setLoading(false);
+          setUploadingImage(false);
+          return;
+        } finally {
+          setUploadingImage(false);
+        }
       }
       
+      console.log('Creating post with data:', postData);
       await postService.createPost(postData);
       Alert.alert('Success', 'Post created successfully!');
       setContent('');
-      setImageUri(null);
+      setImageUris([]);
       setIsHelpSection(false);
       setShowInHome(true);
       router.back();
     } catch (error: any) {
       console.error('Error creating post:', error);
-      Alert.alert('Error', error.response?.data?.message || error.message || 'Failed to create post');
+      const errorMsg = error.response?.data?.message || error.message || 'Failed to create post';
+      Alert.alert('Error', errorMsg);
     } finally {
       setLoading(false);
     }
@@ -129,28 +196,51 @@ export default function CreatePostScreen() {
           editable={!loading}
         />
 
-        {imageUri && (
-          <View style={styles.imageContainer}>
-            <Image source={{ uri: imageUri }} style={styles.image} />
-            <TouchableOpacity
-              style={styles.removeImageButton}
-              onPress={removeImage}
-              disabled={loading}
-            >
-              <Ionicons name="close-circle" size={28} color="#fff" />
-            </TouchableOpacity>
+        {imageUris.length > 0 && (
+          <View style={styles.imagesContainer}>
+            <FlatList
+              data={imageUris}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              keyExtractor={(item, index) => index.toString()}
+              renderItem={({ item, index }) => (
+                <View style={styles.imageWrapper}>
+                  <Image source={{ uri: item }} style={styles.imagePreview} />
+                  <TouchableOpacity
+                    style={styles.removeImageButton}
+                    onPress={() => removeImage(index)}
+                    disabled={loading}
+                  >
+                    <Ionicons name="close-circle" size={28} color="#fff" />
+                  </TouchableOpacity>
+                </View>
+              )}
+            />
+            <Text style={styles.imageCount}>
+              {imageUris.length} / {MAX_IMAGES} images
+            </Text>
           </View>
         )}
 
         <TouchableOpacity
           style={styles.addPhotoButton}
           onPress={pickImage}
-          disabled={loading || uploadingImage}
+          disabled={loading || uploadingImage || imageUris.length >= MAX_IMAGES}
         >
-          <Ionicons name="image-outline" size={24} color="#007AFF" />
-          <Text style={styles.addPhotoText}>
-            {imageUri ? 'Change Photo' : 'Add Photo'}
-          </Text>
+          {uploadingImage ? (
+            <ActivityIndicator size="small" color="#007AFF" />
+          ) : (
+            <>
+              <Ionicons name="image-outline" size={24} color="#007AFF" />
+              <Text style={styles.addPhotoText}>
+                {imageUris.length === 0
+                  ? 'Add Photos'
+                  : imageUris.length >= MAX_IMAGES
+                  ? 'Maximum Images Added'
+                  : 'Add More Photos'}
+              </Text>
+            </>
+          )}
         </TouchableOpacity>
 
         <View style={styles.option}>
@@ -232,6 +322,28 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#e0e0e0',
   },
+  imagesContainer: {
+    backgroundColor: '#fff',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+  },
+  imageWrapper: {
+    position: 'relative',
+    marginRight: 12,
+  },
+  imagePreview: {
+    width: 150,
+    height: 150,
+    borderRadius: 12,
+    resizeMode: 'cover',
+  },
+  imageCount: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 8,
+    textAlign: 'center',
+  },
   imageContainer: {
     position: 'relative',
     backgroundColor: '#fff',
@@ -247,8 +359,8 @@ const styles = StyleSheet.create({
   },
   removeImageButton: {
     position: 'absolute',
-    top: 24,
-    right: 24,
+    top: 8,
+    right: 8,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     borderRadius: 14,
   },

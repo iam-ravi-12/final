@@ -38,6 +38,66 @@ export interface CommentResponse {
 }
 
 const postService = {
+  uploadImages: async (imageUris: string[]): Promise<string[]> => {
+    try {
+      const formData = new FormData();
+      
+      for (let i = 0; i < imageUris.length; i++) {
+        const uri = imageUris[i];
+        
+        // Extract filename and determine file type
+        const uriParts = uri.split('/');
+        const filename = uriParts[uriParts.length - 1];
+        
+        // Determine MIME type from file extension or default to JPEG
+        let mimeType = 'image/jpeg';
+        if (filename.toLowerCase().endsWith('.png')) {
+          mimeType = 'image/png';
+        } else if (filename.toLowerCase().endsWith('.jpg') || filename.toLowerCase().endsWith('.jpeg')) {
+          mimeType = 'image/jpeg';
+        } else if (filename.toLowerCase().endsWith('.gif')) {
+          mimeType = 'image/gif';
+        }
+        
+        // Create file object for React Native FormData
+        const fileObject: any = {
+          uri: uri,
+          type: mimeType,
+          name: filename || `image_${Date.now()}_${i}.jpg`,
+        };
+        
+        console.log('Appending file to FormData:', fileObject);
+        formData.append('files', fileObject);
+      }
+
+      console.log('Uploading', imageUris.length, 'image(s) to server...');
+      
+      // Don't set Content-Type header - let React Native/axios handle it
+      // for multipart/form-data with proper boundary
+      const config = {
+        // Increase timeout for image uploads
+        timeout: 60000, // 60 seconds
+      };
+      
+      const response = await api.post('/api/upload/images', formData, config);
+      
+      console.log('Upload successful:', response.data);
+      
+      if (!response.data.urls || response.data.urls.length === 0) {
+        throw new Error('No URLs returned from server');
+      }
+      
+      return response.data.urls;
+    } catch (error: any) {
+      console.error('Error uploading images:', error);
+      if (error.response) {
+        console.error('Server response:', error.response.data);
+        console.error('Status code:', error.response.status);
+      }
+      throw error;
+    }
+  },
+
   createPost: async (data: PostData): Promise<PostResponse> => {
     const response = await api.post('/api/posts', data);
     return response.data;
