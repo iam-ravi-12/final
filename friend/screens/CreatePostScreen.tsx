@@ -107,9 +107,21 @@ export default function CreatePostScreen() {
         showInHome,
       };
       
-      // If there are images, include them in mediaUrls array
+      // If there are images, upload them first and get URLs
       if (imageUris.length > 0) {
-        postData.mediaUrls = imageUris;
+        setUploadingImage(true);
+        try {
+          const uploadedUrls = await postService.uploadImages(imageUris);
+          postData.mediaUrls = uploadedUrls;
+        } catch (uploadError: any) {
+          console.error('Error uploading images:', uploadError);
+          Alert.alert('Error', 'Failed to upload images. Please try again.');
+          setLoading(false);
+          setUploadingImage(false);
+          return;
+        } finally {
+          setUploadingImage(false);
+        }
       }
       
       await postService.createPost(postData);

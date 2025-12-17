@@ -32,6 +32,9 @@ build/
 ### VS Code ###
 .vscode/
 
+### Uploads Directory ###
+uploads/
+
 ### Maven ###
 #.mvn/
 #mvnw

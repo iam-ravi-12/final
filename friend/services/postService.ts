@@ -38,6 +38,37 @@ export interface CommentResponse {
 }
 
 const postService = {
+  uploadImages: async (imageUris: string[]): Promise<string[]> => {
+    try {
+      const formData = new FormData();
+      
+      for (let i = 0; i < imageUris.length; i++) {
+        const uri = imageUris[i];
+        const filename = uri.split('/').pop() || `image_${i}.jpg`;
+        const match = /\.(\w+)$/.exec(filename);
+        const type = match ? `image/${match[1]}` : 'image/jpeg';
+        
+        // For React Native, we need to create a file-like object
+        formData.append('files', {
+          uri,
+          type,
+          name: filename,
+        } as any);
+      }
+
+      const response = await api.post('/api/upload/images', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      
+      return response.data.urls || [];
+    } catch (error) {
+      console.error('Error uploading images:', error);
+      throw error;
+    }
+  },
+
   createPost: async (data: PostData): Promise<PostResponse> => {
     const response = await api.post('/api/posts', data);
     return response.data;
