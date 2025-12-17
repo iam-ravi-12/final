@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export interface SignupData {
   username: string;
+  name: string;
   email: string;
   password: string;
 }
@@ -13,6 +14,7 @@ export interface LoginData {
 }
 
 export interface ProfileData {
+  name?: string;
   profession: string;
   organization: string;
   location: string;
@@ -70,6 +72,9 @@ const authService = {
     const userStr = await AsyncStorage.getItem('user');
     if (userStr) {
       const user = JSON.parse(userStr);
+      if (data.name) {
+        user.name = data.name;
+      }
       user.profession = data.profession;
       user.organization = data.organization;
       user.location = data.location;
