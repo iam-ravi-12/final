@@ -9,7 +9,9 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  Image,
 } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useAuth } from '../contexts/AuthContext';
 import { router } from 'expo-router';
@@ -24,6 +26,30 @@ export default function EditProfileScreen() {
   const [profilePicture, setProfilePicture] = useState(user?.profilePicture || '');
   const [loading, setLoading] = useState(false);
 
+  const pickImage = async () => {
+    // Request permissions
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    
+    if (status !== 'granted') {
+      Alert.alert('Permission Denied', 'We need camera roll permissions to select a profile picture.');
+      return;
+    }
+
+    // Launch image picker
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      // For now, we'll use the local URI
+      // In production, you would upload this to a server and get a URL
+      setProfilePicture(result.assets[0].uri);
+    }
+  };
+
   const handleSave = async () => {
     if (!profession || !organization || !location) {
       Alert.alert('Error', 'Please fill in all required fields (Profession, Organization, Location)');
@@ -33,6 +59,7 @@ export default function EditProfileScreen() {
     setLoading(true);
     try {
       await authService.updateProfile({ 
+        name: name || undefined,
         profession, 
         organization, 
         location,
@@ -61,9 +88,16 @@ export default function EditProfileScreen() {
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.content}>
           <View style={styles.avatarContainer}>
-            <TouchableOpacity style={styles.avatarLarge}>
+            <TouchableOpacity 
+              style={styles.avatarLarge}
+              onPress={pickImage}
+              disabled={loading}
+            >
               {profilePicture ? (
-                <Text style={styles.avatarTextLarge}>🖼️</Text>
+                <Image 
+                  source={{ uri: profilePicture }} 
+                  style={styles.avatarImage}
+                />
               ) : (
                 <Text style={styles.avatarTextLarge}>
                   {name?.charAt(0).toUpperCase() || user?.username?.charAt(0).toUpperCase() || 'U'}
@@ -75,7 +109,7 @@ export default function EditProfileScreen() {
             </TouchableOpacity>
             <Text style={styles.username}>{user?.username}</Text>
             <Text style={styles.email}>{user?.email}</Text>
-            <Text style={styles.hint}>Tap camera icon to change picture</Text>
+            <Text style={styles.hint}>Tap to change profile picture</Text>
           </View>
 
           <View style={styles.form}>
@@ -89,20 +123,7 @@ export default function EditProfileScreen() {
                 editable={!loading}
                 autoCapitalize="words"
               />
-            </View>
-
-            <View style={styles.fieldContainer}>
-              <Text style={styles.label}>Profile Picture URL</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="https://example.com/photo.jpg"
-                value={profilePicture}
-                onChangeText={setProfilePicture}
-                editable={!loading}
-                autoCapitalize="none"
-                keyboardType="url"
-              />
-              <Text style={styles.fieldHint}>Enter a URL to your profile picture</Text>
+              <Text style={styles.fieldHint}>This is how others will see your name</Text>
             </View>
 
             <View style={styles.fieldContainer}>
@@ -190,6 +211,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 16,
     position: 'relative',
+    overflow: 'hidden',
+  },
+  avatarImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 50,
   },
   avatarTextLarge: {
     color: '#fff',
