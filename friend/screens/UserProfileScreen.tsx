@@ -232,7 +232,7 @@ export default function UserProfileScreen() {
                 style={styles.messageButton}
                 onPress={handleMessage}
               >
-                <Ionicons name="chatbubble-outline" size={20} color="#007AFF" />
+                <Ionicons name="chatbubble-outline" size={20} color="#fff" />
                 <Text style={styles.messageButtonText}>Message</Text>
               </TouchableOpacity>
             </View>
@@ -421,12 +421,10 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   messageButton: {
-    backgroundColor: '#fff',
-    paddingHorizontal: 24,
+    backgroundColor: '#007AFF',
+    paddingHorizontal: 32,
     paddingVertical: 10,
     borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#007AFF',
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
@@ -434,7 +432,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   messageButtonText: {
-    color: '#007AFF',
+    color: '#fff',
     fontSize: 16,
     fontWeight: '600',
   },
