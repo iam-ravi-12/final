@@ -19,7 +19,7 @@ function RootNavigator() {
     if (!navigationState?.key || loading) return;
 
     const inAuthGroup = segments[0] === 'login' || segments[0] === 'signup' || segments[0] === 'profile-setup';
-    const inAppGroup = segments[0] === '(tabs)' || segments[0] === 'create-post' || segments[0] === 'chat' || segments[0] === 'post' || segments[0] === 'edit-profile' || segments[0] === 'follows' || segments[0] === 'community' || segments[0] === 'user';
+    const inAppGroup = segments[0] === '(tabs)' || segments[0] === 'create-post' || segments[0] === 'chat' || segments[0] === 'post' || segments[0] === 'edit-profile' || segments[0] === 'follows' || segments[0] === 'follow-requests' || segments[0] === 'community' || segments[0] === 'user';
 
     if (!user && !inAuthGroup) {
       // Redirect to login if not authenticated
@@ -48,6 +48,7 @@ function RootNavigator() {
         <Stack.Screen name="chat/[userId]" options={{ title: 'Chat' }} />
         <Stack.Screen name="user/[userId]" options={{ title: 'Profile', headerShown: false }} />
         <Stack.Screen name="follows/[userId]" options={{ title: 'Connections' }} />
+        <Stack.Screen name="follow-requests" options={{ headerShown: false }} />
         <Stack.Screen name="community/[communityId]" options={{ headerShown: false }} />
         <Stack.Screen name="post/[postId]" options={{ title: 'Post' }} />
         <Stack.Screen name="edit-profile" options={{ title: 'Edit Profile' }} />
