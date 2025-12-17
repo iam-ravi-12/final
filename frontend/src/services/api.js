@@ -13,7 +13,10 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
-    if (token) {
+    const adminToken = localStorage.getItem('adminToken');
+    if (adminToken) {
+      config.headers.Authorization = `Bearer ${adminToken}`;
+    } else if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
@@ -23,14 +26,22 @@ api.interceptors.request.use(
   }
 );
 
-// Handle 401 responses by clearing token and redirecting to //login
+// Handle 401 responses by clearing token and redirecting to login
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
+      const isAdmin = localStorage.getItem('isAdmin') === 'true';
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      window.location.href = '/login';
+      localStorage.removeItem('adminToken');
+      localStorage.removeItem('isAdmin');
+      
+      if (isAdmin) {
+        window.location.href = '/admin-login';
+      } else {
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }

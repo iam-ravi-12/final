@@ -1,0 +1,685 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { adminService } from '../services/adminService';
+import './Admin.css';
+
+const AdminDashboard = () => {
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  
+  const [users, setUsers] = useState([]);
+  const [postsCount, setPostsCount] = useState(0);
+  const [posts, setPosts] = useState([]);
+  const [communities, setCommunities] = useState([]);
+  const [sosRequests, setSosRequests] = useState([]);
+  const [selectedCommunity, setSelectedCommunity] = useState(null);
+  const [communityMembers, setCommunityMembers] = useState([]);
+  const [selectedSos, setSelectedSos] = useState(null);
+  const [sosResponses, setSosResponses] = useState([]);
+  const [selectedPost, setSelectedPost] = useState(null);
+  
+  const [activeTab, setActiveTab] = useState('users');
+
+  useEffect(() => {
+    // Check if admin is logged in
+    if (!adminService.isAdminLoggedIn()) {
+      navigate('/admin-login');
+      return;
+    }
+
+    fetchAllData();
+  }, [navigate]);
+
+  const fetchAllData = async () => {
+    setLoading(true);
+    setError('');
+    
+    try {
+      const [usersData, postsData, postsListData, communitiesData, sosData] = await Promise.all([
+        adminService.getAllUsers(),
+        adminService.getPostsCount(),
+        adminService.getAllPosts(),
+        adminService.getAllCommunities(),
+        adminService.getAllSosRequests(),
+      ]);
+
+      setUsers(usersData);
+      setPostsCount(postsData.totalPosts);
+      setPosts(postsListData);
+      setCommunities(communitiesData);
+      setSosRequests(sosData.sosRequests);
+    } catch (err) {
+      setError('Error fetching admin data: ' + (err.response?.data || err.message));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLogout = () => {
+    adminService.logout();
+    navigate('/admin-login');
+  };
+
+  const viewCommunityMembers = async (community) => {
+    try {
+      setSelectedCommunity(community);
+      const members = await adminService.getCommunityMembers(community.id);
+      setCommunityMembers(members);
+    } catch (err) {
+      setError('Error fetching community members: ' + (err.response?.data || err.message));
+    }
+  };
+
+  const viewSosResponses = async (sos) => {
+    try {
+      setSelectedSos(sos);
+      const responses = await adminService.getSosResponses(sos.id);
+      setSosResponses(responses);
+    } catch (err) {
+      setError('Error fetching SOS responses: ' + (err.response?.data || err.message));
+    }
+  };
+
+  const handleDeletePost = async (postId) => {
+    if (!window.confirm('Are you sure you want to delete this post? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      await adminService.deletePost(postId);
+      // Remove the post from the local state
+      setPosts(posts.filter(post => post.id !== postId));
+      setPostsCount(postsCount - 1);
+      // Close the modal if it's open
+      if (selectedPost && selectedPost.id === postId) {
+        setSelectedPost(null);
+      }
+      alert('Post deleted successfully');
+    } catch (err) {
+      setError('Error deleting post: ' + (err.response?.data || err.message));
+      alert('Failed to delete post: ' + (err.response?.data || err.message));
+    }
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleString();
+  };
+
+  if (loading) {
+    return (
+      <div className="admin-container">
+        <div className="loading">Loading admin data...</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="admin-container">
+      <div className="admin-header">
+        <h1>Admin Panel</h1>
+        <button onClick={handleLogout} className="btn-logout">Logout</button>
+      </div>
+
+      {error && <div className="error-message">{error}</div>}
+
+      <div className="admin-stats">
+        <div className="stat-card">
+          <h3>Total Users</h3>
+          <p className="stat-number">{users.length}</p>
+        </div>
+        <div className="stat-card">
+          <h3>Total Posts</h3>
+          <p className="stat-number">{postsCount}</p>
+        </div>
+        <div className="stat-card">
+          <h3>Total Communities</h3>
+          <p className="stat-number">{communities.length}</p>
+        </div>
+        <div className="stat-card">
+          <h3>Total SOS Requests</h3>
+          <p className="stat-number">{sosRequests.length}</p>
+        </div>
+      </div>
+
+      <div className="admin-tabs">
+        <button 
+          className={activeTab === 'users' ? 'tab-active' : ''} 
+          onClick={() => setActiveTab('users')}
+        >
+          Users
+        </button>
+        <button 
+          className={activeTab === 'posts' ? 'tab-active' : ''} 
+          onClick={() => setActiveTab('posts')}
+        >
+          Posts
+        </button>
+        <button 
+          className={activeTab === 'communities' ? 'tab-active' : ''} 
+          onClick={() => setActiveTab('communities')}
+        >
+          Communities
+        </button>
+        <button 
+          className={activeTab === 'sos' ? 'tab-active' : ''} 
+          onClick={() => setActiveTab('sos')}
+        >
+          SOS Requests
+        </button>
+      </div>
+
+      <div className="admin-content">
+        {activeTab === 'users' && (
+          <div className="users-section">
+            <h2>All Users ({users.length})</h2>
+            <div className="table-container">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Profession</th>
+                    <th>Organization</th>
+                    <th>Location</th>
+                    <th>Points</th>
+                    <th>Joined</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {users.map(user => (
+                    <tr key={user.id}>
+                      <td>{user.id}</td>
+                      <td>{user.username}</td>
+                      <td>{user.name || 'N/A'}</td>
+                      <td>{user.email}</td>
+                      <td>{user.profession || 'N/A'}</td>
+                      <td>{user.organization || 'N/A'}</td>
+                      <td>{user.location || 'N/A'}</td>
+                      <td>{user.leaderboardPoints}</td>
+                      <td>{formatDate(user.createdAt)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'posts' && (
+          <div className="posts-section">
+            <h2>All Posts ({posts.length})</h2>
+            <div className="table-container">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>User</th>
+                    <th>Content Preview</th>
+                    <th>Type</th>
+                    <th>Status</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {posts.map(post => (
+                    <tr key={post.id}>
+                      <td>{post.id}</td>
+                      <td>
+                        {post.userName} (@{post.userUsername})
+                      </td>
+                      <td>
+                        <div style={{ maxWidth: '300px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {post.content.substring(0, 100)}
+                          {post.content.length > 100 && '...'}
+                        </div>
+                      </td>
+                      <td>
+                        {post.isHelpSection ? (
+                          <span className="status-badge" style={{ backgroundColor: '#fff3cd', color: '#856404' }}>
+                            Help
+                          </span>
+                        ) : (
+                          <span className="status-badge" style={{ backgroundColor: '#d1ecf1', color: '#0c5460' }}>
+                            Post
+                          </span>
+                        )}
+                      </td>
+                      <td>
+                        {post.isHelpSection && (
+                          post.isSolved ? (
+                            <span className="status-badge" style={{ backgroundColor: '#d4edda', color: '#155724' }}>
+                              Solved
+                            </span>
+                          ) : (
+                            <span className="status-badge" style={{ backgroundColor: '#f8d7da', color: '#721c24' }}>
+                              Unsolved
+                            </span>
+                          )
+                        )}
+                        {!post.showInHome && (
+                          <span className="status-badge" style={{ backgroundColor: '#e2e3e5', color: '#383d41' }}>
+                            Hidden
+                          </span>
+                        )}
+                      </td>
+                      <td>{formatDate(post.createdAt)}</td>
+                      <td>
+                        <button 
+                          className="btn-small"
+                          onClick={() => setSelectedPost(post)}
+                          style={{ marginRight: '5px' }}
+                        >
+                          Show More
+                        </button>
+                        <button 
+                          className="btn-small btn-danger"
+                          onClick={() => handleDeletePost(post.id)}
+                          style={{ backgroundColor: '#dc3545' }}
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {selectedPost && (
+              <div className="modal-overlay" onClick={() => setSelectedPost(null)}>
+                <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                  <div className="modal-header">
+                    <h3>Post Details (ID: {selectedPost.id})</h3>
+                    <button 
+                      className="btn-close" 
+                      onClick={() => setSelectedPost(null)}
+                    >
+                      ×
+                    </button>
+                  </div>
+                  <div className="modal-body">
+                    <div style={{ marginBottom: '20px' }}>
+                      <h4 style={{ marginBottom: '10px', color: '#333' }}>Author</h4>
+                      <p style={{ margin: '5px 0' }}>
+                        <strong>Name:</strong> {selectedPost.userName}
+                      </p>
+                      <p style={{ margin: '5px 0' }}>
+                        <strong>Username:</strong> @{selectedPost.userUsername}
+                      </p>
+                      <p style={{ margin: '5px 0' }}>
+                        <strong>Profession:</strong> {selectedPost.userProfession || 'N/A'}
+                      </p>
+                    </div>
+
+                    <div style={{ marginBottom: '20px' }}>
+                      <h4 style={{ marginBottom: '10px', color: '#333' }}>Post Information</h4>
+                      <p style={{ margin: '5px 0' }}>
+                        <strong>Type:</strong> {selectedPost.isHelpSection ? 'Help Request' : 'Regular Post'}
+                      </p>
+                      {selectedPost.isHelpSection && (
+                        <p style={{ margin: '5px 0' }}>
+                          <strong>Solved:</strong> {selectedPost.isSolved ? 'Yes' : 'No'}
+                        </p>
+                      )}
+                      <p style={{ margin: '5px 0' }}>
+                        <strong>Visibility:</strong> {selectedPost.showInHome ? 'Visible' : 'Hidden'}
+                      </p>
+                      <p style={{ margin: '5px 0' }}>
+                        <strong>Created:</strong> {formatDate(selectedPost.createdAt)}
+                      </p>
+                      <p style={{ margin: '5px 0' }}>
+                        <strong>Updated:</strong> {formatDate(selectedPost.updatedAt)}
+                      </p>
+                    </div>
+
+                    <div style={{ marginBottom: '20px' }}>
+                      <h4 style={{ marginBottom: '10px', color: '#333' }}>Full Content</h4>
+                      <div style={{ 
+                        padding: '15px', 
+                        backgroundColor: '#f8f9fa', 
+                        borderRadius: '4px',
+                        whiteSpace: 'pre-wrap',
+                        wordBreak: 'break-word',
+                        maxHeight: '400px',
+                        overflowY: 'auto'
+                      }}>
+                        {selectedPost.content}
+                      </div>
+                    </div>
+
+                    {selectedPost.mediaUrls && (
+                      <div style={{ marginBottom: '20px' }}>
+                        <h4 style={{ marginBottom: '10px', color: '#333' }}>Media Attachments</h4>
+                        {(() => {
+                          try {
+                            // Parse mediaUrls if it's a JSON string
+                            const mediaArray = typeof selectedPost.mediaUrls === 'string' 
+                              ? JSON.parse(selectedPost.mediaUrls)
+                              : selectedPost.mediaUrls;
+                            
+                            if (Array.isArray(mediaArray) && mediaArray.length > 0) {
+                              return (
+                                <div style={{ 
+                                  display: 'grid', 
+                                  gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+                                  gap: '15px',
+                                  marginTop: '10px'
+                                }}>
+                                  {mediaArray.map((url, index) => {
+                                    const isVideo = url.startsWith('data:video');
+                                    return (
+                                      <div 
+                                        key={index} 
+                                        style={{ 
+                                          border: '1px solid #dee2e6',
+                                          borderRadius: '8px',
+                                          overflow: 'hidden',
+                                          backgroundColor: '#f8f9fa'
+                                        }}
+                                      >
+                                        {isVideo ? (
+                                          <video 
+                                            src={url} 
+                                            controls 
+                                            style={{ 
+                                              width: '100%', 
+                                              height: 'auto',
+                                              display: 'block'
+                                            }}
+                                          />
+                                        ) : (
+                                          <img 
+                                            src={url} 
+                                            alt={`Post media ${index + 1}`}
+                                            style={{ 
+                                              width: '100%', 
+                                              height: 'auto',
+                                              display: 'block',
+                                              cursor: 'pointer'
+                                            }}
+                                            onClick={(e) => {
+                                              // Open image in new tab when clicked
+                                              window.open(url, '_blank');
+                                            }}
+                                          />
+                                        )}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              );
+                            } else {
+                              return (
+                                <p style={{ color: '#666', fontSize: '14px', fontStyle: 'italic' }}>
+                                  No media attachments
+                                </p>
+                              );
+                            }
+                          } catch (e) {
+                            // If parsing fails, display the raw value or error message
+                            return (
+                              <p style={{ color: '#666', fontSize: '14px' }}>
+                                {selectedPost.mediaUrls || 'No media attachments'}
+                              </p>
+                            );
+                          }
+                        })()}
+                      </div>
+                    )}
+                  </div>
+                  <div className="modal-footer" style={{ 
+                    borderTop: '1px solid #dee2e6', 
+                    padding: '15px 20px',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                  }}>
+                    <button 
+                      className="btn-small btn-danger"
+                      onClick={() => {
+                        setSelectedPost(null);
+                        handleDeletePost(selectedPost.id);
+                      }}
+                      style={{ 
+                        backgroundColor: '#dc3545',
+                        color: 'white',
+                        border: 'none',
+                        padding: '8px 16px',
+                        borderRadius: '4px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Delete Post
+                    </button>
+                    <button 
+                      className="btn-small"
+                      onClick={() => setSelectedPost(null)}
+                      style={{ 
+                        backgroundColor: '#6c757d',
+                        color: 'white'
+                      }}
+                    >
+                      Close
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'communities' && (
+          <div className="communities-section">
+            <h2>All Communities ({communities.length})</h2>
+            <div className="table-container">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Admin</th>
+                    <th>Privacy</th>
+                    <th>Members</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {communities.map(community => (
+                    <tr key={community.id}>
+                      <td>{community.id}</td>
+                      <td>{community.name}</td>
+                      <td>{community.description}</td>
+                      <td>{community.adminName}</td>
+                      <td>{community.isPrivate ? 'Private' : 'Public'}</td>
+                      <td>{community.memberCount}</td>
+                      <td>{formatDate(community.createdAt)}</td>
+                      <td>
+                        <button 
+                          className="btn-small"
+                          onClick={() => viewCommunityMembers(community)}
+                        >
+                          View Members
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {selectedCommunity && (
+              <div className="modal-overlay" onClick={() => setSelectedCommunity(null)}>
+                <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                  <div className="modal-header">
+                    <h3>Members of {selectedCommunity.name}</h3>
+                    <button 
+                      className="btn-close" 
+                      onClick={() => setSelectedCommunity(null)}
+                    >
+                      ×
+                    </button>
+                  </div>
+                  <div className="modal-body">
+                    <table className="admin-table">
+                      <thead>
+                        <tr>
+                          <th>User ID</th>
+                          <th>Username</th>
+                          <th>Name</th>
+                          <th>Profession</th>
+                          <th>Joined At</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {communityMembers.map(member => (
+                          <tr key={member.userId}>
+                            <td>{member.userId}</td>
+                            <td>{member.username}</td>
+                            <td>{member.name || 'N/A'}</td>
+                            <td>{member.profession || 'N/A'}</td>
+                            <td>{formatDate(member.joinedAt)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'sos' && (
+          <div className="sos-section">
+            <h2>All SOS Requests ({sosRequests.length})</h2>
+            <div className="table-container">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>User</th>
+                    <th>Emergency Type</th>
+                    <th>Status</th>
+                    <th>Location</th>
+                    <th>Description</th>
+                    <th>Responses</th>
+                    <th>Created</th>
+                    <th>Resolved</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sosRequests.map(sos => (
+                    <tr key={sos.id}>
+                      <td>{sos.id}</td>
+                      <td>
+                        {sos.userName} (@{sos.userUsername})
+                      </td>
+                      <td>{sos.emergencyType}</td>
+                      <td>
+                        <span className={`status-badge status-${sos.status.toLowerCase()}`}>
+                          {sos.status}
+                        </span>
+                      </td>
+                      <td>
+                        {sos.latitude && sos.longitude ? (
+                          <div>
+                            <a 
+                              href={`https://www.google.com/maps?q=${sos.latitude},${sos.longitude}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="map-link"
+                              title="View on Google Maps"
+                            >
+                              📍 View on Map
+                            </a>
+                            <br />
+                            <small style={{ color: '#666' }}>
+                              {sos.locationAddress || `${sos.latitude}, ${sos.longitude}`}
+                            </small>
+                          </div>
+                        ) : (
+                          sos.locationAddress || 'N/A'
+                        )}
+                      </td>
+                      <td>{sos.description || 'N/A'}</td>
+                      <td>{sos.responseCount}</td>
+                      <td>{formatDate(sos.createdAt)}</td>
+                      <td>{formatDate(sos.resolvedAt)}</td>
+                      <td>
+                        <button 
+                          className="btn-small"
+                          onClick={() => viewSosResponses(sos)}
+                        >
+                          View Responses
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {selectedSos && (
+              <div className="modal-overlay" onClick={() => setSelectedSos(null)}>
+                <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                  <div className="modal-header">
+                    <h3>Responses to SOS #{selectedSos.id}</h3>
+                    <button 
+                      className="btn-close" 
+                      onClick={() => setSelectedSos(null)}
+                    >
+                      ×
+                    </button>
+                  </div>
+                  <div className="modal-body">
+                    {sosResponses.length === 0 ? (
+                      <p>No responses yet.</p>
+                    ) : (
+                      <table className="admin-table">
+                        <thead>
+                          <tr>
+                            <th>Responder</th>
+                            <th>Response Type</th>
+                            <th>Message</th>
+                            <th>Points Awarded</th>
+                            <th>Confirmed</th>
+                            <th>Responded At</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {sosResponses.map(response => (
+                            <tr key={response.id}>
+                              <td>
+                                {response.responderName} (@{response.responderUsername})
+                              </td>
+                              <td>{response.responseType}</td>
+                              <td>{response.message || 'N/A'}</td>
+                              <td>{response.pointsAwarded}</td>
+                              <td>{response.confirmedByAlertOwner ? 'Yes' : 'No'}</td>
+                              <td>{formatDate(response.createdAt)}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default AdminDashboard;
