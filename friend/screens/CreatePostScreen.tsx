@@ -74,10 +74,24 @@ export default function CreatePostScreen() {
       });
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
-        // Compress all selected images
-        const compressedUris = await Promise.all(
+        // Compress all selected images with error handling for each
+        const compressionResults = await Promise.allSettled(
           result.assets.map(asset => compressImage(asset.uri))
         );
+        
+        // Extract successful compressions
+        const compressedUris = compressionResults
+          .filter((result): result is PromiseFulfilledResult<string> => result.status === 'fulfilled')
+          .map(result => result.value);
+        
+        // Show warning if some compressions failed
+        const failedCount = compressionResults.length - compressedUris.length;
+        if (failedCount > 0) {
+          Alert.alert(
+            'Warning',
+            `${failedCount} image(s) could not be compressed but will be uploaded as-is.`
+          );
+        }
         
         setImageUris([...imageUris, ...compressedUris].slice(0, MAX_IMAGES));
       }

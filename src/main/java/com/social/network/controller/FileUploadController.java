@@ -12,6 +12,8 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.ArrayList;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/upload")
@@ -21,48 +23,61 @@ public class FileUploadController {
     @Value("${file.upload-dir:./uploads}")
     private String uploadDir;
 
+    private String getFileExtension(String filename) {
+        if (filename != null && filename.contains(".")) {
+            return filename.substring(filename.lastIndexOf("."));
+        }
+        return ".jpg";
+    }
+
+    private Path ensureUploadDirectory() throws IOException {
+        Path uploadPath = Paths.get(uploadDir);
+        if (!Files.exists(uploadPath)) {
+            Files.createDirectories(uploadPath);
+        }
+        return uploadPath;
+    }
+
+    private String validateAndSaveFile(MultipartFile file, Path uploadPath) throws IOException {
+        // Validate file
+        if (file.isEmpty()) {
+            throw new IllegalArgumentException("File is empty");
+        }
+
+        // Validate file type
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            throw new IllegalArgumentException("Only image files are allowed");
+        }
+
+        // Validate file size (max 5MB)
+        if (file.getSize() > 5 * 1024 * 1024) {
+            throw new IllegalArgumentException("File size should not exceed 5MB");
+        }
+
+        // Generate unique filename
+        String fileExtension = getFileExtension(file.getOriginalFilename());
+        String fileName = UUID.randomUUID().toString() + fileExtension;
+
+        // Save file
+        Path filePath = uploadPath.resolve(fileName);
+        Files.write(filePath, file.getBytes());
+
+        return "/uploads/" + fileName;
+    }
+
     @PostMapping("/image")
     public ResponseEntity<?> uploadImage(@RequestParam("file") MultipartFile file) {
         try {
-            // Validate file
-            if (file.isEmpty()) {
-                return ResponseEntity.badRequest().body("Please select a file to upload");
-            }
+            Path uploadPath = ensureUploadDirectory();
+            String fileUrl = validateAndSaveFile(file, uploadPath);
 
-            // Validate file type
-            String contentType = file.getContentType();
-            if (contentType == null || !contentType.startsWith("image/")) {
-                return ResponseEntity.badRequest().body("Only image files are allowed");
-            }
-
-            // Validate file size (max 5MB)
-            if (file.getSize() > 5 * 1024 * 1024) {
-                return ResponseEntity.badRequest().body("File size should not exceed 5MB");
-            }
-
-            // Generate unique filename
-            String originalFilename = file.getOriginalFilename();
-            String fileExtension = originalFilename != null && originalFilename.contains(".")
-                    ? originalFilename.substring(originalFilename.lastIndexOf("."))
-                    : ".jpg";
-            String fileName = UUID.randomUUID().toString() + fileExtension;
-
-            // Create upload directory if it doesn't exist
-            Path uploadPath = Paths.get(uploadDir);
-            if (!Files.exists(uploadPath)) {
-                Files.createDirectories(uploadPath);
-            }
-
-            // Save file
-            Path filePath = uploadPath.resolve(fileName);
-            Files.write(filePath, file.getBytes());
-
-            // Return the URL where the file can be accessed
-            String fileUrl = "/uploads/" + fileName;
             Map<String, String> response = new HashMap<>();
             response.put("url", fileUrl);
             return ResponseEntity.ok(response);
 
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         } catch (IOException e) {
             return ResponseEntity.status(500).body("Failed to upload file: " + e.getMessage());
         }
@@ -76,49 +91,34 @@ public class FileUploadController {
                 return ResponseEntity.badRequest().body("Maximum 4 images allowed per upload");
             }
 
+            Path uploadPath = ensureUploadDirectory();
+            
             Map<String, Object> response = new HashMap<>();
-            java.util.List<String> urls = new java.util.ArrayList<>();
+            List<String> urls = new ArrayList<>();
+            List<String> errors = new ArrayList<>();
 
-            for (MultipartFile file : files) {
-                // Validate file
-                if (file.isEmpty()) {
-                    continue;
+            for (int i = 0; i < files.length; i++) {
+                MultipartFile file = files[i];
+                try {
+                    String fileUrl = validateAndSaveFile(file, uploadPath);
+                    urls.add(fileUrl);
+                } catch (IllegalArgumentException e) {
+                    errors.add("File " + (i + 1) + ": " + e.getMessage());
+                } catch (IOException e) {
+                    errors.add("File " + (i + 1) + ": Failed to save - " + e.getMessage());
                 }
-
-                // Validate file type
-                String contentType = file.getContentType();
-                if (contentType == null || !contentType.startsWith("image/")) {
-                    continue;
-                }
-
-                // Validate file size (max 5MB)
-                if (file.getSize() > 5 * 1024 * 1024) {
-                    continue;
-                }
-
-                // Generate unique filename
-                String originalFilename = file.getOriginalFilename();
-                String fileExtension = originalFilename != null && originalFilename.contains(".")
-                        ? originalFilename.substring(originalFilename.lastIndexOf("."))
-                        : ".jpg";
-                String fileName = UUID.randomUUID().toString() + fileExtension;
-
-                // Create upload directory if it doesn't exist
-                Path uploadPath = Paths.get(uploadDir);
-                if (!Files.exists(uploadPath)) {
-                    Files.createDirectories(uploadPath);
-                }
-
-                // Save file
-                Path filePath = uploadPath.resolve(fileName);
-                Files.write(filePath, file.getBytes());
-
-                // Add URL to response
-                String fileUrl = "/uploads/" + fileName;
-                urls.add(fileUrl);
             }
 
             response.put("urls", urls);
+            if (!errors.isEmpty()) {
+                response.put("errors", errors);
+            }
+
+            // If no files were successfully uploaded, return error
+            if (urls.isEmpty()) {
+                return ResponseEntity.badRequest().body(response);
+            }
+
             return ResponseEntity.ok(response);
 
         } catch (IOException e) {
