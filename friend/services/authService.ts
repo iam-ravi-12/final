@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export interface SignupData {
   username: string;
+  name: string;
   email: string;
   password: string;
 }
