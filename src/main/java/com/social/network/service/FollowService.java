@@ -120,6 +120,7 @@ public class FollowService {
         FollowStatsResponse stats = new FollowStatsResponse();
         stats.setFollowerCount(followerCount);
         stats.setFollowingCount(followingCount);
+        stats.setFollowersCount(followerCount);  // Alias for mobile app
         
         if (currentUsername != null) {
             User currentUser = userRepository.findByUsername(currentUsername).orElse(null);
@@ -130,10 +131,21 @@ public class FollowService {
                     stats.setIsFollowing(follow != null && follow.getIsAccepted());
                     stats.setHasPendingRequest(follow != null && !follow.getIsAccepted());
                     
+                    // Set followStatus for mobile app
+                    if (follow != null) {
+                        stats.setFollowStatus(follow.getIsAccepted() ? "ACCEPTED" : "PENDING");
+                    } else {
+                        stats.setFollowStatus("NONE");
+                    }
+                    
                     Follow reverseFollow = followRepository.findByFollowerAndFollowing(targetUser, currentUser).orElse(null);
                     stats.setHasRequestedYou(reverseFollow != null && !reverseFollow.getIsAccepted());
                 }
+            } else {
+                stats.setFollowStatus("SELF");
             }
+        } else {
+            stats.setFollowStatus("NONE");
         }
         
         return stats;
@@ -151,6 +163,14 @@ public class FollowService {
         response.setProfilePicture(user.getProfilePicture());
         response.setIsAccepted(follow.getIsAccepted());
         response.setCreatedAt(follow.getCreatedAt());
+        
+        // Additional fields for mobile app compatibility
+        response.setFollowerId(follow.getFollower().getId());
+        response.setFollowingId(follow.getFollowing().getId());
+        response.setFollowerUsername(follow.getFollower().getUsername());
+        response.setFollowingUsername(follow.getFollowing().getUsername());
+        response.setStatus(follow.getIsAccepted() ? "ACCEPTED" : "PENDING");
+        
         return response;
     }
 }
