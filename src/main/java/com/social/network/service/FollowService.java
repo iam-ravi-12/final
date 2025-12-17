@@ -146,9 +146,13 @@ public class FollowService {
                     
                     Follow reverseFollow = followRepository.findByFollowerAndFollowing(targetUser, currentUser).orElse(null);
                     stats.setHasRequestedYou(reverseFollow != null && !reverseFollow.getIsAccepted());
+                } else {
+                    stats.setFollowStatus(STATUS_NONE);
                 }
-            } else {
+            } else if (currentUser != null && currentUser.getId().equals(userId)) {
                 stats.setFollowStatus(STATUS_SELF);
+            } else {
+                stats.setFollowStatus(STATUS_NONE);
             }
         } else {
             stats.setFollowStatus(STATUS_NONE);
