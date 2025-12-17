@@ -16,6 +16,7 @@ import { useLocalSearchParams, router } from 'expo-router';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Ionicons } from '@expo/vector-icons';
 import postService, { PostResponse, CommentResponse } from '../services/postService';
+import ImageCarousel from '../components/ImageCarousel';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function PostDetailScreen() {
@@ -166,11 +167,7 @@ export default function PostDetailScreen() {
           <Text style={styles.postContent}>{post.content}</Text>
           
           {post.mediaUrls && post.mediaUrls.length > 0 && (
-            <Image
-              source={{ uri: post.mediaUrls[0] }}
-              style={styles.postImage}
-              resizeMode="cover"
-            />
+            <ImageCarousel images={post.mediaUrls} height={300} borderRadius={8} />
           )}
 
           <View style={styles.postActions}>
