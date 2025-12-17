@@ -15,6 +15,12 @@ import java.util.stream.Collectors;
 @Service
 public class FollowService {
 
+    // Follow status constants for mobile app compatibility
+    private static final String STATUS_ACCEPTED = "ACCEPTED";
+    private static final String STATUS_PENDING = "PENDING";
+    private static final String STATUS_NONE = "NONE";
+    private static final String STATUS_SELF = "SELF";
+
     private final FollowRepository followRepository;
     private final UserRepository userRepository;
 
@@ -120,7 +126,7 @@ public class FollowService {
         FollowStatsResponse stats = new FollowStatsResponse();
         stats.setFollowerCount(followerCount);
         stats.setFollowingCount(followingCount);
-        stats.setFollowersCount(followerCount);  // Alias for mobile app
+        stats.setFollowersCount(followerCount);  // Alias field for mobile app compatibility
         
         if (currentUsername != null) {
             User currentUser = userRepository.findByUsername(currentUsername).orElse(null);
@@ -131,21 +137,21 @@ public class FollowService {
                     stats.setIsFollowing(follow != null && follow.getIsAccepted());
                     stats.setHasPendingRequest(follow != null && !follow.getIsAccepted());
                     
-                    // Set followStatus for mobile app
+                    // Set followStatus for mobile app compatibility
                     if (follow != null) {
-                        stats.setFollowStatus(follow.getIsAccepted() ? "ACCEPTED" : "PENDING");
+                        stats.setFollowStatus(follow.getIsAccepted() ? STATUS_ACCEPTED : STATUS_PENDING);
                     } else {
-                        stats.setFollowStatus("NONE");
+                        stats.setFollowStatus(STATUS_NONE);
                     }
                     
                     Follow reverseFollow = followRepository.findByFollowerAndFollowing(targetUser, currentUser).orElse(null);
                     stats.setHasRequestedYou(reverseFollow != null && !reverseFollow.getIsAccepted());
                 }
             } else {
-                stats.setFollowStatus("SELF");
+                stats.setFollowStatus(STATUS_SELF);
             }
         } else {
-            stats.setFollowStatus("NONE");
+            stats.setFollowStatus(STATUS_NONE);
         }
         
         return stats;
@@ -169,7 +175,7 @@ public class FollowService {
         response.setFollowingId(follow.getFollowing().getId());
         response.setFollowerUsername(follow.getFollower().getUsername());
         response.setFollowingUsername(follow.getFollowing().getUsername());
-        response.setStatus(follow.getIsAccepted() ? "ACCEPTED" : "PENDING");
+        response.setStatus(follow.getIsAccepted() ? STATUS_ACCEPTED : STATUS_PENDING);
         
         return response;
     }

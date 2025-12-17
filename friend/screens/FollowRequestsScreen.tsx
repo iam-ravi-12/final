@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Alert,
   RefreshControl,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -111,11 +112,10 @@ export default function FollowRequestsScreen() {
         >
           <View style={styles.avatar}>
             {item.profilePicture ? (
-              <View style={styles.avatarPlaceholder}>
-                <Text style={styles.avatarText}>
-                  {item.followerUsername?.charAt(0).toUpperCase() || 'U'}
-                </Text>
-              </View>
+              <Image
+                source={{ uri: item.profilePicture }}
+                style={styles.avatarPlaceholder}
+              />
             ) : (
               <View style={styles.avatarPlaceholder}>
                 <Text style={styles.avatarText}>
