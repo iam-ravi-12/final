@@ -44,27 +44,56 @@ const postService = {
       
       for (let i = 0; i < imageUris.length; i++) {
         const uri = imageUris[i];
-        const filename = uri.split('/').pop() || `image_${i}.jpg`;
-        const match = /\.(\w+)$/.exec(filename);
-        const type = match ? `image/${match[1]}` : 'image/jpeg';
         
-        // For React Native, we need to create a file-like object
-        formData.append('files', {
-          uri,
-          type,
-          name: filename,
-        } as any);
+        // Extract filename and determine file type
+        const uriParts = uri.split('/');
+        const filename = uriParts[uriParts.length - 1];
+        
+        // Determine MIME type from file extension or default to JPEG
+        let mimeType = 'image/jpeg';
+        if (filename.toLowerCase().endsWith('.png')) {
+          mimeType = 'image/png';
+        } else if (filename.toLowerCase().endsWith('.jpg') || filename.toLowerCase().endsWith('.jpeg')) {
+          mimeType = 'image/jpeg';
+        } else if (filename.toLowerCase().endsWith('.gif')) {
+          mimeType = 'image/gif';
+        }
+        
+        // Create file object for React Native FormData
+        const fileObject: any = {
+          uri: uri,
+          type: mimeType,
+          name: filename || `image_${Date.now()}_${i}.jpg`,
+        };
+        
+        console.log('Appending file to FormData:', fileObject);
+        formData.append('files', fileObject);
       }
 
-      const response = await api.post('/api/upload/images', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+      console.log('Uploading', imageUris.length, 'image(s) to server...');
       
-      return response.data.urls || [];
-    } catch (error) {
+      // Don't set Content-Type header - let React Native/axios handle it
+      // for multipart/form-data with proper boundary
+      const config = {
+        // Increase timeout for image uploads
+        timeout: 60000, // 60 seconds
+      };
+      
+      const response = await api.post('/api/upload/images', formData, config);
+      
+      console.log('Upload successful:', response.data);
+      
+      if (!response.data.urls || response.data.urls.length === 0) {
+        throw new Error('No URLs returned from server');
+      }
+      
+      return response.data.urls;
+    } catch (error: any) {
       console.error('Error uploading images:', error);
+      if (error.response) {
+        console.error('Server response:', error.response.data);
+        console.error('Status code:', error.response.status);
+      }
       throw error;
     }
   },

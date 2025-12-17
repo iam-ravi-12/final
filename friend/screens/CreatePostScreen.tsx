@@ -125,11 +125,17 @@ export default function CreatePostScreen() {
       if (imageUris.length > 0) {
         setUploadingImage(true);
         try {
+          console.log('Starting image upload...', imageUris.length, 'images');
           const uploadedUrls = await postService.uploadImages(imageUris);
+          console.log('Images uploaded successfully:', uploadedUrls);
           postData.mediaUrls = uploadedUrls;
         } catch (uploadError: any) {
           console.error('Error uploading images:', uploadError);
-          Alert.alert('Error', 'Failed to upload images. Please try again.');
+          const errorMsg = uploadError.response?.data?.message 
+            || uploadError.response?.data 
+            || uploadError.message 
+            || 'Failed to upload images';
+          Alert.alert('Error', `Failed to upload images: ${errorMsg}`);
           setLoading(false);
           setUploadingImage(false);
           return;
@@ -138,6 +144,7 @@ export default function CreatePostScreen() {
         }
       }
       
+      console.log('Creating post with data:', postData);
       await postService.createPost(postData);
       Alert.alert('Success', 'Post created successfully!');
       setContent('');
@@ -147,7 +154,8 @@ export default function CreatePostScreen() {
       router.back();
     } catch (error: any) {
       console.error('Error creating post:', error);
-      Alert.alert('Error', error.response?.data?.message || error.message || 'Failed to create post');
+      const errorMsg = error.response?.data?.message || error.message || 'Failed to create post';
+      Alert.alert('Error', errorMsg);
     } finally {
       setLoading(false);
     }

@@ -24,6 +24,14 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    
+    // Don't override Content-Type if it's already set (e.g., for multipart/form-data)
+    // Remove the default Content-Type for FormData requests
+    if (config.data instanceof FormData) {
+      // Let axios/react-native handle the Content-Type for FormData
+      delete config.headers['Content-Type'];
+    }
+    
     return config;
   },
   (error) => {
