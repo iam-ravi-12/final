@@ -217,7 +217,7 @@ public class PostService {
         response.setCreatedAt(post.getCreatedAt());
         response.setLikeCount(likeRepository.countByPost(post));
         response.setCommentCount(commentRepository.countByPost(post));
-        response.setLikedByCurrentUser(currentUser != null && likeRepository.existsByPostAndUser(post, currentUser));
+        response.setLiked(currentUser != null && likeRepository.existsByPostAndUser(post, currentUser));
         return response;
     }
 }
