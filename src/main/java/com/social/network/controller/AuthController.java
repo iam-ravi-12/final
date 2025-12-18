@@ -5,7 +5,9 @@ import com.social.network.dto.FcmTokenRequest;
 import com.social.network.dto.LoginRequest;
 import com.social.network.dto.ProfileRequest;
 import com.social.network.dto.ProfileResponse;
+import com.social.network.dto.SendOtpRequest;
 import com.social.network.dto.SignupRequest;
+import com.social.network.dto.VerifyOtpRequest;
 import com.social.network.service.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -85,6 +87,26 @@ public class AuthController {
             String username = authentication.getName();
             authService.registerFcmToken(username, request.getFcmToken());
             return ResponseEntity.ok("FCM token registered successfully");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/send-otp")
+    public ResponseEntity<?> sendOTP(@Valid @RequestBody SendOtpRequest request) {
+        try {
+            authService.sendOTP(request.getEmail());
+            return ResponseEntity.ok("OTP sent successfully");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/verify-otp")
+    public ResponseEntity<?> verifyOTP(@Valid @RequestBody VerifyOtpRequest request) {
+        try {
+            authService.verifyEmailOTP(request.getEmail(), request.getOtp());
+            return ResponseEntity.ok("Email verified successfully");
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }

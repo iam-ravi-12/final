@@ -23,15 +23,18 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
+    private final OTPService otpService;
 
     public AuthService(UserRepository userRepository, 
                       PasswordEncoder passwordEncoder,
                       AuthenticationManager authenticationManager,
-                      JwtTokenProvider jwtTokenProvider) {
+                      JwtTokenProvider jwtTokenProvider,
+                      OTPService otpService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.jwtTokenProvider = jwtTokenProvider;
+        this.otpService = otpService;
     }
 
     public AuthResponse signup(SignupRequest signupRequest) {
@@ -49,8 +52,12 @@ public class AuthService {
         user.setEmail(signupRequest.getEmail());
         user.setPassword(passwordEncoder.encode(signupRequest.getPassword()));
         user.setProfileCompleted(false);
+        user.setEmailVerified(false);
 
         User savedUser = userRepository.save(user);
+
+        // Send OTP for email verification
+        otpService.generateAndSendOTP(savedUser.getEmail());
 
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -67,7 +74,8 @@ public class AuthService {
                 savedUser.getId(),
                 savedUser.getUsername(),
                 savedUser.getEmail(),
-                savedUser.getProfileCompleted()
+                savedUser.getProfileCompleted(),
+                savedUser.getEmailVerified()
         );
     }
 
@@ -91,8 +99,31 @@ public class AuthService {
                 user.getId(),
                 user.getUsername(),
                 user.getEmail(),
-                user.getProfileCompleted()
+                user.getProfileCompleted(),
+                user.getEmailVerified()
         );
+    }
+
+    public void sendOTP(String email) {
+        // Check if email exists
+        if (!userRepository.existsByEmail(email)) {
+            throw new RuntimeException("Email not found");
+        }
+        
+        otpService.generateAndSendOTP(email);
+    }
+
+    public void verifyEmailOTP(String email, String otp) {
+        if (!otpService.verifyOTP(email, otp)) {
+            throw new RuntimeException("Invalid or expired OTP");
+        }
+        
+        // Update user's email verification status
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        user.setEmailVerified(true);
+        userRepository.save(user);
     }
 
     public void updateProfile(String username, ProfileRequest profileRequest) {
