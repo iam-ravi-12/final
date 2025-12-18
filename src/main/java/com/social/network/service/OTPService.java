@@ -2,6 +2,7 @@ package com.social.network.service;
 
 import com.social.network.entity.EmailOTP;
 import com.social.network.repository.EmailOTPRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,7 +20,7 @@ public class OTPService {
     private static final int OTP_LENGTH = 6;
     private static final int OTP_EXPIRY_MINUTES = 10;
 
-    public OTPService(EmailOTPRepository otpRepository, EmailService emailService) {
+    public OTPService(EmailOTPRepository otpRepository, @Autowired(required = false) EmailService emailService) {
         this.otpRepository = otpRepository;
         this.emailService = emailService;
         this.secureRandom = new SecureRandom();
@@ -42,8 +43,18 @@ public class OTPService {
         
         otpRepository.save(emailOTP);
         
-        // Send OTP via email
-        emailService.sendOTPEmail(email, otp);
+        // Send OTP via email if email service is available
+        if (emailService != null) {
+            emailService.sendOTPEmail(email, otp);
+        } else {
+            // Log OTP for development/testing when email is not configured
+            System.out.println("=================================================");
+            System.out.println("EMAIL SERVICE NOT CONFIGURED - OTP for testing:");
+            System.out.println("Email: " + email);
+            System.out.println("OTP: " + otp);
+            System.out.println("Expires at: " + emailOTP.getExpiresAt());
+            System.out.println("=================================================");
+        }
     }
 
     @Transactional

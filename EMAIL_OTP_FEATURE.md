@@ -62,10 +62,11 @@ CREATE TABLE IF NOT EXISTS email_otp (
 
 #### Configuration
 
-Add mail configuration to `application.properties`:
+Add mail configuration to `application.properties` (optional):
 
 ```properties
-# Email Configuration (example with Gmail)
+# Email Configuration (Optional - for OTP verification)
+# Uncomment and configure these properties to enable email OTP sending
 spring.mail.host=smtp.gmail.com
 spring.mail.port=587
 spring.mail.username=your-email@gmail.com
@@ -73,6 +74,12 @@ spring.mail.password=your-app-password
 spring.mail.properties.mail.smtp.auth=true
 spring.mail.properties.mail.smtp.starttls.enable=true
 ```
+
+**Important**: 
+- Email configuration is **optional** for development/testing
+- If email is not configured, OTPs will be printed to the console for testing
+- For production, configure SMTP settings to enable actual email delivery
+- For Gmail, use [App Passwords](https://support.google.com/accounts/answer/185833) instead of regular password
 
 ### Frontend Web (React)
 
@@ -150,15 +157,31 @@ Updated `_layout.tsx` to enforce OTP verification flow:
 
 ### Email Service Testing
 
-If email service is not configured or fails:
-- Backend logs the error
-- Generic error message shown to user
-- OTP is still stored in database for testing with direct DB queries
+**Without Email Configuration (Development/Testing)**:
+- OTP is printed to console in a clear format:
+  ```
+  =================================================
+  EMAIL SERVICE NOT CONFIGURED - OTP for testing:
+  Email: user@example.com
+  OTP: 123456
+  Expires at: 2025-12-18T16:30:00
+  =================================================
+  ```
+- OTP is still stored in database and can be verified normally
+- Use the printed OTP to test the verification flow
+- This allows development and testing without SMTP configuration
+
+**With Email Configuration (Production)**:
+- OTP is sent via email using configured SMTP server
+- Check spam folder if email is not received
+- Backend logs any email sending errors
 
 ## Configuration Requirements
 
 ### Backend
-- Configure SMTP settings in `application.properties`
+- **Email configuration is OPTIONAL** - application will start without it
+- If not configured, OTPs are printed to console for testing
+- For production, configure SMTP settings in `application.properties`
 - For Gmail, use App Passwords (not regular password)
 - For other providers, adjust host, port, and TLS settings
 
@@ -171,6 +194,15 @@ If email service is not configured or fails:
 - No additional configuration needed
 
 ## Troubleshooting
+
+### Application Won't Start
+
+**Error**: `Parameter 0 of constructor in com.social.network.service.EmailService required a bean of type 'org.springframework.mail.javamail.JavaMailSender'`
+
+**Solution**: This error occurs when Spring Boot Mail dependency is present but not configured. The latest version handles this gracefully:
+- EmailService is conditional and only loads when `spring.mail.host` is configured
+- If email is not configured, OTPs are printed to console
+- Application will start successfully without email configuration
 
 ### Emails Not Sending
 
