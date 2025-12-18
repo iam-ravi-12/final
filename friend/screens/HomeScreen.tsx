@@ -231,28 +231,29 @@ export default function HomeScreen() {
         
         <View style={styles.postHeaderRight}>
           <Text style={styles.timestamp}>{formatTimeAgo(item.createdAt)}</Text>
-          {user?.id === item.userId && (
-            <TouchableOpacity
-              onPress={() => setMenuVisible(menuVisible === item.id ? null : item.id)}
-              style={styles.menuButton}
-              activeOpacity={0.6}
-            >
-              <View style={styles.dotsContainer}>
-                <View style={styles.dot} />
-                <View style={styles.dot} />
-                <View style={styles.dot} />
-              </View>
-            </TouchableOpacity>
-          )}
+
+            {item.isHelpSection && (
+                <View style={styles.helpBadge}>
+                    <Text style={styles.helpBadgeText}>
+                        {item.isSolved ? 'Solved' : 'Help'}
+                    </Text>
+                </View>
+            )}
         </View>
 
-        {item.isHelpSection && (
-          <View style={styles.helpBadge}>
-            <Text style={styles.helpBadgeText}>
-              {item.isSolved ? 'Solved' : 'Help'}
-            </Text>
-          </View>
-        )}
+          {user?.id === item.userId && (
+              <TouchableOpacity
+                  onPress={() => setMenuVisible(menuVisible === item.id ? null : item.id)}
+                  style={styles.menuButton}
+                  activeOpacity={0.6}
+              >
+                  <View style={styles.dotsContainer}>
+                      <View style={styles.dot} />
+                      <View style={styles.dot} />
+                      <View style={styles.dot} />
+                  </View>
+              </TouchableOpacity>
+          )}
       </View>
 
       {/* Menu Modal */}
@@ -566,7 +567,7 @@ const styles = StyleSheet.create({
   },
   headerActionButton: {
     padding: 8,
-    borderRadius: 8,
+    borderRadius: 50,
     backgroundColor: '#f0f0f0',
   },
   sosCircleButton: {
@@ -653,19 +654,22 @@ const styles = StyleSheet.create({
   timestamp: {
     fontSize: 12,
     color: '#999',
+      marginRight:4,
     marginBottom: 4,
   },
   menuButton: {
-    padding: 8,
+      // marginLeft:4,
+      paddingLeft:12,
+    // padding: 8,
     borderRadius: 16,
-    backgroundColor: '#f0f0f0',
-    minWidth: 32,
-    minHeight: 32,
+    // backgroundColor: '#000',
+    minWidth: 10,
+    minHeight: 10,
     justifyContent: 'center',
     alignItems: 'center',
   },
   dotsContainer: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     gap: 3,
     alignItems: 'center',
   },

@@ -194,26 +194,30 @@ export default function PostDetailScreen() {
             
             <View style={styles.postHeaderRight}>
               <Text style={styles.timestamp}>{formatDate(post.createdAt)}</Text>
-              {user?.id === post.userId && (
-                <TouchableOpacity
-                  onPress={() => setMenuVisible(!menuVisible)}
-                  style={styles.menuButton}
-                  activeOpacity={0.6}
-                >
-                  <View style={styles.dotsContainer}>
-                    <View style={styles.dot} />
-                    <View style={styles.dot} />
-                    <View style={styles.dot} />
-                  </View>
-                </TouchableOpacity>
-              )}
+
+                {post.isHelpSection && (
+                    <View style={styles.helpBadge}>
+                        <Text style={styles.helpBadgeText}>Help</Text>
+                        {/*<Text style={styles.helpBadgeText}>*/}
+                        {/*    {item.isSolved ? 'Solved' : 'Help'}*/}
+                        {/*</Text>*/}
+                    </View>
+                )}
             </View>
 
-            {post.isHelpSection && (
-              <View style={styles.helpBadge}>
-                <Text style={styles.helpBadgeText}>Help</Text>
-              </View>
-            )}
+              {user?.id === post.userId && (
+                  <TouchableOpacity
+                      onPress={() => setMenuVisible(!menuVisible)}
+                      style={styles.menuButton}
+                      activeOpacity={0.6}
+                  >
+                      <View style={styles.dotsContainer}>
+                          <View style={styles.dot} />
+                          <View style={styles.dot} />
+                          <View style={styles.dot} />
+                      </View>
+                  </TouchableOpacity>
+              )}
           </View>
 
           {/* Menu Modal */}
@@ -443,7 +447,8 @@ const styles = StyleSheet.create({
   timestamp: {
     fontSize: 12,
     color: '#999',
-    marginBottom: 12,
+      marginTop:6,
+    marginBottom: 6,
   },
   postContent: {
     fontSize: 15,
@@ -580,16 +585,17 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   menuButton: {
+      marginLeft: 4,
     padding: 8,
     borderRadius: 16,
     backgroundColor: '#f0f0f0',
-    minWidth: 32,
-    minHeight: 32,
+    minWidth: 10,
+    minHeight: 10,
     justifyContent: 'center',
     alignItems: 'center',
   },
   dotsContainer: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     gap: 3,
     alignItems: 'center',
   },
