@@ -5,6 +5,7 @@ import com.social.network.dto.LoginRequest;
 import com.social.network.dto.ProfileRequest;
 import com.social.network.dto.ProfileResponse;
 import com.social.network.dto.SignupRequest;
+import com.social.network.dto.SignupResponse;
 import com.social.network.entity.User;
 import com.social.network.repository.UserRepository;
 import com.social.network.security.JwtTokenProvider;
@@ -23,18 +24,21 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
+    private final OTPService otpService;
 
     public AuthService(UserRepository userRepository, 
                       PasswordEncoder passwordEncoder,
                       AuthenticationManager authenticationManager,
-                      JwtTokenProvider jwtTokenProvider) {
+                      JwtTokenProvider jwtTokenProvider,
+                      OTPService otpService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.jwtTokenProvider = jwtTokenProvider;
+        this.otpService = otpService;
     }
 
-    public AuthResponse signup(SignupRequest signupRequest) {
+    public SignupResponse signup(SignupRequest signupRequest) {
         if (userRepository.existsByUsername(signupRequest.getUsername())) {
             throw new RuntimeException("Username is already taken");
         }
@@ -49,25 +53,17 @@ public class AuthService {
         user.setEmail(signupRequest.getEmail());
         user.setPassword(passwordEncoder.encode(signupRequest.getPassword()));
         user.setProfileCompleted(false);
+        user.setEmailVerified(false);
 
         User savedUser = userRepository.save(user);
 
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        signupRequest.getUsername(),
-                        signupRequest.getPassword()
-                )
-        );
+        // Send OTP for email verification
+        otpService.generateAndSendOTP(savedUser.getEmail());
 
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        String jwt = jwtTokenProvider.generateToken(authentication);
-
-        return new AuthResponse(
-                jwt,
-                savedUser.getId(),
-                savedUser.getUsername(),
+        return new SignupResponse(
+                "Account created successfully. Please verify your email with the OTP sent.",
                 savedUser.getEmail(),
-                savedUser.getProfileCompleted()
+                true
         );
     }
 
@@ -91,7 +87,56 @@ public class AuthService {
                 user.getId(),
                 user.getUsername(),
                 user.getEmail(),
-                user.getProfileCompleted()
+                user.getProfileCompleted(),
+                user.getEmailVerified()
+        );
+    }
+
+    public void sendOTP(String email) {
+        // Always generate and send OTP if email exists, but don't reveal if it doesn't
+        // This prevents user enumeration attacks
+        if (userRepository.existsByEmail(email)) {
+            otpService.generateAndSendOTP(email);
+        }
+        // Note: We silently ignore non-existent emails to prevent user enumeration
+    }
+
+    public AuthResponse verifyEmailOTP(String email, String otp) {
+        if (!otpService.verifyOTP(email, otp)) {
+            throw new RuntimeException("Invalid or expired OTP");
+        }
+        
+        // Update user's email verification status
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        user.setEmailVerified(true);
+        userRepository.save(user);
+
+        // Create authentication token manually since user has verified via OTP
+        UserDetailsImpl userDetails = new UserDetailsImpl(
+                user.getId(),
+                user.getUsername(),
+                user.getEmail(),
+                user.getPassword()
+        );
+        
+        Authentication auth = new UsernamePasswordAuthenticationToken(
+                userDetails,
+                null,
+                userDetails.getAuthorities()
+        );
+        
+        SecurityContextHolder.getContext().setAuthentication(auth);
+        String jwt = jwtTokenProvider.generateToken(auth);
+
+        return new AuthResponse(
+                jwt,
+                user.getId(),
+                user.getUsername(),
+                user.getEmail(),
+                user.getProfileCompleted(),
+                user.getEmailVerified()
         );
     }
 
