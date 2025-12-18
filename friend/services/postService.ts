@@ -16,6 +16,7 @@ export interface PostResponse {
   content: string;
   isHelpSection: boolean;
   isSolved: boolean;
+  showInHome?: boolean;
   mediaUrls?: string[];
   userId: number;
   username: string;
