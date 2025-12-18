@@ -17,6 +17,7 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Ionicons } from '@expo/vector-icons';
 import messageService, { MessageResponse } from '../../services/messageService';
 import { useAuth } from '../../contexts/AuthContext';
+import { parseUTCDate } from '../../utils/helpers';
 
 export default function ChatScreen() {
   const { userId } = useLocalSearchParams();
@@ -88,7 +89,7 @@ export default function ChatScreen() {
   };
 
   const formatTime = (timestamp: string) => {
-    const date = new Date(timestamp);
+    const date = parseUTCDate(timestamp);
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
