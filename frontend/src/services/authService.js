@@ -54,4 +54,17 @@ export const authService = {
   isAuthenticated: () => {
     return !!localStorage.getItem('token');
   },
+
+  sendOTP: async (email) => {
+    const response = await api.post('/auth/send-otp', { email });
+    return response.data;
+  },
+
+  verifyOTP: async (email, otp) => {
+    const response = await api.post('/auth/verify-otp', { email, otp });
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    user.emailVerified = true;
+    localStorage.setItem('user', JSON.stringify(user));
+    return response.data;
+  },
 };

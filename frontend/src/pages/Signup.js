@@ -42,7 +42,7 @@ const Signup = () => {
 
     try {
       await authService.signup(formData.username, formData.name, formData.email, formData.password);
-      navigate('/profile-setup');
+      navigate('/verify-otp', { state: { email: formData.email } });
     } catch (err) {
       setError(err.response?.data || 'Signup failed. Please try again.');
     } finally {
