@@ -18,16 +18,19 @@ function RootNavigator() {
   useEffect(() => {
     if (!navigationState?.key || loading) return;
 
-    const inAuthGroup = segments[0] === 'login' || segments[0] === 'signup' || segments[0] === 'profile-setup';
+    const inAuthGroup = segments[0] === 'login' || segments[0] === 'signup' || segments[0] === 'verify-otp' || segments[0] === 'profile-setup';
     const inAppGroup = segments[0] === '(tabs)' || segments[0] === 'create-post' || segments[0] === 'chat' || segments[0] === 'post' || segments[0] === 'edit-profile' || segments[0] === 'follows' || segments[0] === 'follow-requests' || segments[0] === 'community' || segments[0] === 'user';
 
     if (!user && !inAuthGroup) {
       // Redirect to login if not authenticated
       router.replace('/login');
-    } else if (user && !user.profileCompleted && segments[0] !== 'profile-setup') {
+    } else if (user && !user.emailVerified && segments[0] !== 'verify-otp') {
+      // Redirect to OTP verification if email not verified
+      router.replace('/verify-otp');
+    } else if (user && user.emailVerified && !user.profileCompleted && segments[0] !== 'profile-setup') {
       // Redirect to profile setup if profile not completed
       router.replace('/profile-setup');
-    } else if (user && user.profileCompleted && !inAppGroup) {
+    } else if (user && user.profileCompleted && user.emailVerified && !inAppGroup) {
       // Redirect to main app if authenticated and profile completed
       router.replace('/(tabs)');
     }
@@ -42,6 +45,7 @@ function RootNavigator() {
       <Stack>
         <Stack.Screen name="login" options={{ headerShown: false }} />
         <Stack.Screen name="signup" options={{ title: 'Sign Up' }} />
+        <Stack.Screen name="verify-otp" options={{ title: 'Verify Email' }} />
         <Stack.Screen name="profile-setup" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="create-post" options={{ presentation: 'modal', headerShown: false }} />

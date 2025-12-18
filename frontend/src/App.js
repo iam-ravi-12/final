@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
+import OTPVerification from './pages/OTPVerification';
 import ProfileSetup from './pages/ProfileSetup';
 import Profile from './pages/Profile';
 import ProfileEdit from './pages/ProfileEdit';
@@ -28,6 +29,14 @@ function App() {
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route
+              path="/verify-otp"
+              element={
+                <PrivateRoute>
+                  <OTPVerification />
+                </PrivateRoute>
+              }
+            />
           <Route
             path="/profile-setup"
             element={
