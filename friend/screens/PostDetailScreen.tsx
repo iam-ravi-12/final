@@ -19,6 +19,7 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Ionicons } from '@expo/vector-icons';
 import postService, { PostResponse, CommentResponse } from '../services/postService';
 import { useAuth } from '../contexts/AuthContext';
+import { parseUTCDate } from '../utils/helpers';
 
 export default function PostDetailScreen() {
   const { postId } = useLocalSearchParams<{ postId: string }>();
@@ -127,7 +128,7 @@ export default function PostDetailScreen() {
   };
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
+    const date = parseUTCDate(dateString);
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
     const diffMins = Math.floor(diffMs / 60000);
