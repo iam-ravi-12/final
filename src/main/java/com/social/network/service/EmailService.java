@@ -4,6 +4,8 @@ import com.sendgrid.*;
 import com.sendgrid.helpers.mail.Mail;
 import com.sendgrid.helpers.mail.objects.Content;
 import com.sendgrid.helpers.mail.objects.Email;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
@@ -14,14 +16,19 @@ import java.io.IOException;
 @ConditionalOnProperty(name = "sendgrid.api.key")
 public class EmailService {
 
-    @Value("${sendgrid.api.key}")
-    private String sendGridApiKey;
+    private static final Logger logger = LoggerFactory.getLogger(EmailService.class);
+    
+    private final SendGrid sendGrid;
     
     @Value("${sendgrid.from.email:noreply@socialnetwork.com}")
     private String fromEmail;
     
     @Value("${sendgrid.from.name:Friends Social Network}")
     private String fromName;
+
+    public EmailService(@Value("${sendgrid.api.key}") String sendGridApiKey) {
+        this.sendGrid = new SendGrid(sendGridApiKey);
+    }
 
     public void sendOTPEmail(String toEmail, String otp) {
         try {
@@ -31,24 +38,24 @@ public class EmailService {
             Content content = new Content("text/plain", buildOTPEmailContent(otp));
             Mail mail = new Mail(from, subject, to, content);
 
-            SendGrid sg = new SendGrid(sendGridApiKey);
             Request request = new Request();
-            
             request.setMethod(Method.POST);
             request.setEndpoint("mail/send");
             request.setBody(mail.build());
             
-            Response response = sg.api(request);
+            Response response = sendGrid.api(request);
             
             // SendGrid returns 202 for successful acceptance
             if (response.getStatusCode() < 200 || response.getStatusCode() >= 300) {
-                System.err.println("Failed to send OTP email. Status: " + response.getStatusCode());
-                System.err.println("Response body: " + response.getBody());
+                logger.error("Failed to send OTP email. Status: {}, Response: {}", 
+                    response.getStatusCode(), response.getBody());
                 throw new RuntimeException("Failed to send verification email. Please try again later.");
             }
+            
+            logger.info("OTP email sent successfully to {}", toEmail);
         } catch (IOException e) {
             // Log the detailed error for debugging but throw a generic message
-            System.err.println("Failed to send OTP email: " + e.getMessage());
+            logger.error("Failed to send OTP email to {}: {}", toEmail, e.getMessage(), e);
             throw new RuntimeException("Failed to send verification email. Please try again later.");
         }
     }
