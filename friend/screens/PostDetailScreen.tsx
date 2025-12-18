@@ -193,7 +193,7 @@ export default function PostDetailScreen() {
             
             <View style={styles.postHeaderRight}>
               <Text style={styles.timestamp}>{formatDate(post.createdAt)}</Text>
-              {user?.userId === post.userId && (
+              {user?.id === post.userId && (
                 <TouchableOpacity
                   onPress={() => setMenuVisible(!menuVisible)}
                   style={styles.menuButton}

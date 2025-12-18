@@ -185,14 +185,14 @@ export default function HomeScreen() {
   };
 
   const shouldShowMarkSolvedButton = (item: PostResponse): boolean => {
-    const result = item.isHelpSection === true && item.isSolved !== true && user?.userId === item.userId;
+    const result = item.isHelpSection === true && item.isSolved !== true && user?.id === item.userId;
     // Debug: Log button visibility conditions
     if (item.isHelpSection) {
       console.log('Help post debug:', {
         postId: item.id,
         isHelpSection: item.isHelpSection,
         isSolved: item.isSolved,
-        currentUserId: user?.userId,
+        currentUserId: user?.id,
         postUserId: item.userId,
         shouldShow: result
       });
@@ -230,7 +230,7 @@ export default function HomeScreen() {
         
         <View style={styles.postHeaderRight}>
           <Text style={styles.timestamp}>{formatTimeAgo(item.createdAt)}</Text>
-          {user?.userId === item.userId && (
+          {user?.id === item.userId && (
             <TouchableOpacity
               onPress={() => setMenuVisible(menuVisible === item.id ? null : item.id)}
               style={styles.menuButton}
