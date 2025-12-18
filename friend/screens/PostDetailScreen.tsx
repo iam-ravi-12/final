@@ -11,6 +11,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   Image,
+  Modal,
+  Pressable,
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { IconSymbol } from '@/components/ui/icon-symbol';
@@ -25,6 +27,7 @@ export default function PostDetailScreen() {
   const [newComment, setNewComment] = useState('');
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [menuVisible, setMenuVisible] = useState(false);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -91,6 +94,38 @@ export default function PostDetailScreen() {
     }
   };
 
+  const handleDeletePost = async () => {
+    if (!post) return;
+    
+    Alert.alert(
+      'Delete Post',
+      'Are you sure you want to delete this post?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await postService.deletePost(post.id);
+              setMenuVisible(false);
+              Alert.alert('Success', 'Post deleted successfully');
+              router.back();
+            } catch (error) {
+              Alert.alert('Error', 'Failed to delete post');
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleEditPost = () => {
+    if (!post) return;
+    setMenuVisible(false);
+    router.push(`/edit-post/${post.id}`);
+  };
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -155,6 +190,24 @@ export default function PostDetailScreen() {
                 <Text style={styles.profession}>{post.userProfession}</Text>
               </View>
             </View>
+            
+            <View style={styles.postHeaderRight}>
+              <Text style={styles.timestamp}>{formatDate(post.createdAt)}</Text>
+              {user?.userId === post.userId && (
+                <TouchableOpacity
+                  onPress={() => setMenuVisible(!menuVisible)}
+                  style={styles.menuButton}
+                  activeOpacity={0.6}
+                >
+                  <View style={styles.dotsContainer}>
+                    <View style={styles.dot} />
+                    <View style={styles.dot} />
+                    <View style={styles.dot} />
+                  </View>
+                </TouchableOpacity>
+              )}
+            </View>
+
             {post.isHelpSection && (
               <View style={styles.helpBadge}>
                 <Text style={styles.helpBadgeText}>Help</Text>
@@ -162,7 +215,41 @@ export default function PostDetailScreen() {
             )}
           </View>
 
-          <Text style={styles.timestamp}>{formatDate(post.createdAt)}</Text>
+          {/* Menu Modal */}
+          {menuVisible && (
+            <Modal
+              transparent
+              visible={menuVisible}
+              animationType="fade"
+              onRequestClose={() => setMenuVisible(false)}
+            >
+              <Pressable
+                style={styles.menuOverlay}
+                onPress={() => setMenuVisible(false)}
+              >
+                <View style={styles.menuContainer}>
+                  <TouchableOpacity
+                    style={styles.menuItem}
+                    onPress={handleEditPost}
+                  >
+                    <Ionicons name="create-outline" size={20} color="#007AFF" />
+                    <Text style={styles.menuItemText}>Edit Post</Text>
+                  </TouchableOpacity>
+                  <View style={styles.menuDivider} />
+                  <TouchableOpacity
+                    style={styles.menuItem}
+                    onPress={handleDeletePost}
+                  >
+                    <Ionicons name="trash-outline" size={20} color="#FF3B30" />
+                    <Text style={[styles.menuItemText, { color: '#FF3B30' }]}>
+                      Delete Post
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </Pressable>
+            </Modal>
+          )}
+
           <Text style={styles.postContent}>{post.content}</Text>
           
           {post.mediaUrls && post.mediaUrls.length > 0 && (
@@ -486,5 +573,59 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  postHeaderRight: {
+    alignItems: 'flex-end',
+    gap: 4,
+  },
+  menuButton: {
+    padding: 8,
+    borderRadius: 16,
+    backgroundColor: '#f0f0f0',
+    minWidth: 32,
+    minHeight: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  dotsContainer: {
+    flexDirection: 'row',
+    gap: 3,
+    alignItems: 'center',
+  },
+  dot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#666',
+  },
+  menuOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  menuContainer: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    width: 200,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    gap: 12,
+  },
+  menuItemText: {
+    fontSize: 16,
+    color: '#333',
+  },
+  menuDivider: {
+    height: 1,
+    backgroundColor: '#e0e0e0',
   },
 });
