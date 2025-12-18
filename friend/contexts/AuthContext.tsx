@@ -9,6 +9,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   updateUserProfile: (profession: string, organization: string, location: string) => Promise<void>;
   refreshUser: () => Promise<void>;
+  setUserFromStorage: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -71,6 +72,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const setUserFromStorage = async () => {
+    try {
+      const currentUser = await authService.getCurrentUser();
+      setUser(currentUser);
+    } catch (error) {
+      console.error('Failed to load user from storage:', error);
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -81,6 +91,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         logout,
         updateUserProfile,
         refreshUser,
+        setUserFromStorage,
       }}
     >
       {children}

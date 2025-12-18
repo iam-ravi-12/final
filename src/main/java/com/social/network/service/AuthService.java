@@ -113,17 +113,7 @@ public class AuthService {
         user.setEmailVerified(true);
         userRepository.save(user);
 
-        // Generate JWT token after successful OTP verification
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        user.getUsername(),
-                        // We can't authenticate with password here since it's hashed
-                        // Instead, we'll create the authentication directly
-                        null
-                )
-        );
-
-        // Create authentication token manually since we don't have the password
+        // Create authentication token manually since user has verified via OTP
         UserDetailsImpl userDetails = new UserDetailsImpl(
                 user.getId(),
                 user.getUsername(),

@@ -16,7 +16,7 @@ import { useAuth } from '../contexts/AuthContext';
 
 export default function OTPVerificationScreen() {
   const { email } = useLocalSearchParams();
-  const { refreshUser } = useAuth();
+  const { setUserFromStorage } = useAuth();
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
@@ -73,11 +73,12 @@ export default function OTPVerificationScreen() {
     setLoading(true);
     try {
       await authService.verifyOTP(email as string, otpValue);
-      // Refresh user context after successful verification
-      await refreshUser();
-      Alert.alert('Success', 'Email verified successfully!');
+      // Load the user from storage after successful verification
+      await setUserFromStorage();
+      // Navigate to profile setup - the layout will handle authentication state
       router.replace('/profile-setup');
     } catch (error: any) {
+      console.error('OTP Verification error:', error);
       Alert.alert(
         'Verification Failed',
         error.response?.data || 'Invalid or expired OTP. Please try again.'
