@@ -12,9 +12,11 @@ import {
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import authService from '../services/authService';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function OTPVerificationScreen() {
   const { email } = useLocalSearchParams();
+  const { refreshUser } = useAuth();
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
@@ -71,6 +73,8 @@ export default function OTPVerificationScreen() {
     setLoading(true);
     try {
       await authService.verifyOTP(email as string, otpValue);
+      // Refresh user context after successful verification
+      await refreshUser();
       Alert.alert('Success', 'Email verified successfully!');
       router.replace('/profile-setup');
     } catch (error: any) {

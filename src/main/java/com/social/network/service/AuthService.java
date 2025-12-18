@@ -5,6 +5,7 @@ import com.social.network.dto.LoginRequest;
 import com.social.network.dto.ProfileRequest;
 import com.social.network.dto.ProfileResponse;
 import com.social.network.dto.SignupRequest;
+import com.social.network.dto.SignupResponse;
 import com.social.network.entity.User;
 import com.social.network.repository.UserRepository;
 import com.social.network.security.JwtTokenProvider;
@@ -37,7 +38,7 @@ public class AuthService {
         this.otpService = otpService;
     }
 
-    public AuthResponse signup(SignupRequest signupRequest) {
+    public SignupResponse signup(SignupRequest signupRequest) {
         if (userRepository.existsByUsername(signupRequest.getUsername())) {
             throw new RuntimeException("Username is already taken");
         }
@@ -59,23 +60,10 @@ public class AuthService {
         // Send OTP for email verification
         otpService.generateAndSendOTP(savedUser.getEmail());
 
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        signupRequest.getUsername(),
-                        signupRequest.getPassword()
-                )
-        );
-
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        String jwt = jwtTokenProvider.generateToken(authentication);
-
-        return new AuthResponse(
-                jwt,
-                savedUser.getId(),
-                savedUser.getUsername(),
+        return new SignupResponse(
+                "Account created successfully. Please verify your email with the OTP sent.",
                 savedUser.getEmail(),
-                savedUser.getProfileCompleted(),
-                savedUser.getEmailVerified()
+                true
         );
     }
 
@@ -113,7 +101,7 @@ public class AuthService {
         // Note: We silently ignore non-existent emails to prevent user enumeration
     }
 
-    public void verifyEmailOTP(String email, String otp) {
+    public AuthResponse verifyEmailOTP(String email, String otp) {
         if (!otpService.verifyOTP(email, otp)) {
             throw new RuntimeException("Invalid or expired OTP");
         }
@@ -124,6 +112,42 @@ public class AuthService {
         
         user.setEmailVerified(true);
         userRepository.save(user);
+
+        // Generate JWT token after successful OTP verification
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        user.getUsername(),
+                        // We can't authenticate with password here since it's hashed
+                        // Instead, we'll create the authentication directly
+                        null
+                )
+        );
+
+        // Create authentication token manually since we don't have the password
+        UserDetailsImpl userDetails = new UserDetailsImpl(
+                user.getId(),
+                user.getUsername(),
+                user.getEmail(),
+                user.getPassword()
+        );
+        
+        Authentication auth = new UsernamePasswordAuthenticationToken(
+                userDetails,
+                null,
+                userDetails.getAuthorities()
+        );
+        
+        SecurityContextHolder.getContext().setAuthentication(auth);
+        String jwt = jwtTokenProvider.generateToken(auth);
+
+        return new AuthResponse(
+                jwt,
+                user.getId(),
+                user.getUsername(),
+                user.getEmail(),
+                user.getProfileCompleted(),
+                user.getEmailVerified()
+        );
     }
 
     public void updateProfile(String username, ProfileRequest profileRequest) {

@@ -8,6 +8,12 @@ export interface SignupData {
   password: string;
 }
 
+export interface SignupResponse {
+  message: string;
+  email: string;
+  otpSent: boolean;
+}
+
 export interface LoginData {
   username: string;
   password: string;
@@ -49,12 +55,9 @@ export interface ProfileResponse {
 }
 
 const authService = {
-  signup: async (data: SignupData): Promise<AuthResponse> => {
+  signup: async (data: SignupData): Promise<SignupResponse> => {
     const response = await api.post('/api/auth/signup', data);
-    if (response.data.token) {
-      await AsyncStorage.setItem('token', response.data.token);
-      await AsyncStorage.setItem('user', JSON.stringify(response.data));
-    }
+    // Signup no longer returns token - only confirmation
     return response.data;
   },
 
@@ -120,12 +123,10 @@ const authService = {
 
   verifyOTP: async (email: string, otp: string): Promise<string> => {
     const response = await api.post('/api/auth/verify-otp', { email, otp });
-    // Update stored user data
-    const userStr = await AsyncStorage.getItem('user');
-    if (userStr) {
-      const user = JSON.parse(userStr);
-      user.emailVerified = true;
-      await AsyncStorage.setItem('user', JSON.stringify(user));
+    // Now returns AuthResponse with token after successful OTP verification
+    if (response.data.token) {
+      await AsyncStorage.setItem('token', response.data.token);
+      await AsyncStorage.setItem('user', JSON.stringify(response.data));
     }
     return response.data;
   },

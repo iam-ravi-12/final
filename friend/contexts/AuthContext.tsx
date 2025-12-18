@@ -38,8 +38,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signup = async (username: string, name: string, email: string, password: string) => {
-    const response = await authService.signup({ username, name, email, password });
-    setUser(response);
+    // Signup now only returns confirmation, not token
+    // Token will be set after OTP verification
+    await authService.signup({ username, name, email, password });
+    // Don't set user here - will be set after OTP verification
   };
 
   const logout = async () => {

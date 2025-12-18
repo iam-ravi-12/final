@@ -7,6 +7,7 @@ import com.social.network.dto.ProfileRequest;
 import com.social.network.dto.ProfileResponse;
 import com.social.network.dto.SendOtpRequest;
 import com.social.network.dto.SignupRequest;
+import com.social.network.dto.SignupResponse;
 import com.social.network.dto.VerifyOtpRequest;
 import com.social.network.service.AuthService;
 import jakarta.validation.Valid;
@@ -28,7 +29,7 @@ public class AuthController {
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@Valid @RequestBody SignupRequest signupRequest) {
         try {
-            AuthResponse response = authService.signup(signupRequest);
+            SignupResponse response = authService.signup(signupRequest);
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -105,8 +106,8 @@ public class AuthController {
     @PostMapping("/verify-otp")
     public ResponseEntity<?> verifyOTP(@Valid @RequestBody VerifyOtpRequest request) {
         try {
-            authService.verifyEmailOTP(request.getEmail(), request.getOtp());
-            return ResponseEntity.ok("Email verified successfully");
+            AuthResponse response = authService.verifyEmailOTP(request.getEmail(), request.getOtp());
+            return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
