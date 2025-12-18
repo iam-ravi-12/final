@@ -44,7 +44,7 @@ export default function EditPostScreen() {
       const post = await postService.getPostById(Number(postId));
       setContent(post.content);
       setIsHelpSection(post.isHelpSection || false);
-      setShowInHome(true); // Default to true, as the backend doesn't seem to return this field
+      setShowInHome(post.showInHome !== undefined ? post.showInHome : true);
       
       // Set image if exists
       if (post.mediaUrls && post.mediaUrls.length > 0) {
@@ -107,14 +107,8 @@ export default function EditPostScreen() {
         content,
         isHelpSection,
         showInHome,
+        mediaUrls: imageUri ? [imageUri] : [],
       };
-      
-      // If there's an image, include it in mediaUrls array
-      if (imageUri) {
-        postData.mediaUrls = [imageUri];
-      } else {
-        postData.mediaUrls = [];
-      }
       
       await postService.updatePost(Number(postId), postData);
       Alert.alert('Success', 'Post updated successfully!');
