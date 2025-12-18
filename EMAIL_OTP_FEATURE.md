@@ -206,10 +206,44 @@ Updated `_layout.tsx` to enforce OTP verification flow:
 
 ### Emails Not Sending
 
+**Error**: `Failed to send OTP email: Authentication failed`
+
+This typically occurs with Gmail when using a regular password. Follow these steps:
+
+#### For Gmail with 2-Step Verification (Recommended):
+1. Go to your Google Account: https://myaccount.google.com/
+2. Navigate to **Security** → **2-Step Verification** (enable if not already)
+3. Scroll down to **App passwords** (at the bottom of 2-Step Verification page)
+4. Click **App passwords**
+5. Select **Mail** for app and **Other** for device
+6. Enter a name (e.g., "Social Network OTP")
+7. Click **Generate**
+8. Copy the 16-character password (format: `xxxx xxxx xxxx xxxx`)
+9. Use this App Password in `spring.mail.password` (remove spaces)
+
+**Example configuration:**
+```properties
+spring.mail.host=smtp.gmail.com
+spring.mail.port=587
+spring.mail.username=your-email@gmail.com
+spring.mail.password=abcdabcdabcdabcd  # 16-char App Password, no spaces
+spring.mail.properties.mail.smtp.auth=true
+spring.mail.properties.mail.smtp.starttls.enable=true
+```
+
+#### For Gmail WITHOUT 2-Step Verification (Not Recommended):
+1. Go to: https://myaccount.google.com/lesssecureapps
+2. Turn ON "Less secure app access"
+3. Use your regular Gmail password in `spring.mail.password`
+
+**Note**: Google may block this method and requires 2-Step Verification + App Passwords for better security.
+
+#### Other Common Issues:
 1. Check SMTP configuration in `application.properties`
 2. Verify email credentials are correct
-3. For Gmail, ensure "Less secure app access" is enabled or use App Password
-4. Check firewall/network settings for SMTP port access
+3. Check firewall/network settings for SMTP port access (port 587)
+4. Ensure no typos in email/password (spaces, special characters)
+5. Check backend console logs for detailed error messages
 
 ### OTP Not Working
 
