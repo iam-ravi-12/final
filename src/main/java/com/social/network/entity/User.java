@@ -44,6 +44,9 @@ public class User {
     @Column(name = "profile_completed")
     private Boolean profileCompleted = false;
 
+    @Column(name = "email_verified")
+    private Boolean emailVerified = false;
+
     @Column(name = "profile_picture", columnDefinition = "TEXT")
     private String profilePicture;
 

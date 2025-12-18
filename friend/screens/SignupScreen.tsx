@@ -44,7 +44,11 @@ export default function SignupScreen() {
     setLoading(true);
     try {
       await signup(username, name, email, password);
-      // Navigation will be handled by the root layout
+      // Navigate to OTP verification screen
+      router.push({
+        pathname: '/verify-otp',
+        params: { email },
+      });
     } catch (error: any) {
       console.error('Signup error:', error);
       let errorMessage = 'Could not create account';
