@@ -105,12 +105,12 @@ public class AuthService {
     }
 
     public void sendOTP(String email) {
-        // Check if email exists
-        if (!userRepository.existsByEmail(email)) {
-            throw new RuntimeException("Email not found");
+        // Always generate and send OTP if email exists, but don't reveal if it doesn't
+        // This prevents user enumeration attacks
+        if (userRepository.existsByEmail(email)) {
+            otpService.generateAndSendOTP(email);
         }
-        
-        otpService.generateAndSendOTP(email);
+        // Note: We silently ignore non-existent emails to prevent user enumeration
     }
 
     public void verifyEmailOTP(String email, String otp) {

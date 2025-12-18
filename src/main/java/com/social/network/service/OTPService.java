@@ -64,11 +64,4 @@ public class OTPService {
         
         return false;
     }
-
-    public boolean isEmailVerified(String email) {
-        Optional<EmailOTP> otpRecord = otpRepository
-            .findFirstByEmailAndVerifiedFalseOrderByCreatedAtDesc(email);
-        
-        return otpRecord.isEmpty() || otpRecord.get().getVerified();
-    }
 }

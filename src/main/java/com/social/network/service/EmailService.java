@@ -27,7 +27,9 @@ public class EmailService {
             
             mailSender.send(message);
         } catch (Exception e) {
-            throw new RuntimeException("Failed to send OTP email: " + e.getMessage());
+            // Log the detailed error for debugging but throw a generic message
+            System.err.println("Failed to send OTP email: " + e.getMessage());
+            throw new RuntimeException("Failed to send verification email. Please try again later.");
         }
     }
 
