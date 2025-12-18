@@ -28,6 +28,7 @@ export interface AuthResponse {
   username: string;
   email: string;
   profileCompleted: boolean;
+  emailVerified: boolean;
   name?: string;
   profession?: string;
   organization?: string;
@@ -110,6 +111,23 @@ const authService = {
   isAuthenticated: async (): Promise<boolean> => {
     const token = await AsyncStorage.getItem('token');
     return !!token;
+  },
+
+  sendOTP: async (email: string): Promise<string> => {
+    const response = await api.post('/api/auth/send-otp', { email });
+    return response.data;
+  },
+
+  verifyOTP: async (email: string, otp: string): Promise<string> => {
+    const response = await api.post('/api/auth/verify-otp', { email, otp });
+    // Update stored user data
+    const userStr = await AsyncStorage.getItem('user');
+    if (userStr) {
+      const user = JSON.parse(userStr);
+      user.emailVerified = true;
+      await AsyncStorage.setItem('user', JSON.stringify(user));
+    }
+    return response.data;
   },
 
   registerFcmToken: async (fcmToken: string): Promise<void> => {
