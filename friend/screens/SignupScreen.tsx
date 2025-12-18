@@ -45,10 +45,21 @@ export default function SignupScreen() {
     try {
       await signup(username, name, email, password);
       // Navigate to OTP verification screen
-      router.push({
-        pathname: '/verify-otp',
-        params: { email },
-      });
+      Alert.alert(
+        'Success',
+        'Account created! Please check your email for the verification code.',
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              router.push({
+                pathname: '/verify-otp',
+                params: { email },
+              });
+            }
+          }
+        ]
+      );
     } catch (error: any) {
       console.error('Signup error:', error);
       let errorMessage = 'Could not create account';
@@ -58,7 +69,11 @@ export default function SignupScreen() {
         errorMessage = error.response.data?.message || error.response.data || errorMessage;
       } else if (error.request) {
         // Request made but no response
-        errorMessage = 'Cannot connect to server. Please check:\n1. Backend is running on port 8080\n2. API URL is correct in .env file\n3. Network connection';
+        if (error.code === 'ECONNABORTED') {
+          errorMessage = 'Request timed out. Please check your internet connection and try again.';
+        } else {
+          errorMessage = 'Cannot connect to server. Please check:\n1. Backend is running\n2. Network connection\n3. Try again in a moment';
+        }
       } else {
         // Other error
         errorMessage = error.message || errorMessage;

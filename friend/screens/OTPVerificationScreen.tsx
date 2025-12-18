@@ -79,10 +79,18 @@ export default function OTPVerificationScreen() {
       router.replace('/profile-setup');
     } catch (error: any) {
       console.error('OTP Verification error:', error);
-      Alert.alert(
-        'Verification Failed',
-        error.response?.data || 'Invalid or expired OTP. Please try again.'
-      );
+      let errorMessage = 'Invalid or expired OTP. Please try again.';
+      
+      if (error.code === 'ECONNABORTED') {
+        errorMessage = 'Request timed out. Please check your internet connection and try again.';
+      } else if (error.response?.data) {
+        errorMessage = error.response.data;
+      }
+      
+      Alert.alert('Verification Failed', errorMessage);
+      // Clear OTP inputs on error for retry
+      setOtp(['', '', '', '', '', '']);
+      inputRefs.current[0]?.focus();
     } finally {
       setLoading(false);
     }
@@ -92,15 +100,25 @@ export default function OTPVerificationScreen() {
     setResending(true);
     try {
       await authService.sendOTP(email as string);
-      Alert.alert('Success', 'OTP sent successfully');
+      Alert.alert(
+        'Success', 
+        'A new verification code has been sent to your email. Please check your inbox.',
+        [{ text: 'OK' }]
+      );
       setTimer(60);
       setOtp(['', '', '', '', '', '']);
       inputRefs.current[0]?.focus();
     } catch (error: any) {
-      Alert.alert(
-        'Error',
-        error.response?.data || 'Failed to resend OTP. Please try again.'
-      );
+      console.error('Resend OTP error:', error);
+      let errorMessage = 'Failed to resend OTP. Please try again.';
+      
+      if (error.code === 'ECONNABORTED') {
+        errorMessage = 'Request timed out. Please check your internet connection and try again.';
+      } else if (error.response?.data) {
+        errorMessage = error.response.data;
+      }
+      
+      Alert.alert('Error', errorMessage);
     } finally {
       setResending(false);
     }
