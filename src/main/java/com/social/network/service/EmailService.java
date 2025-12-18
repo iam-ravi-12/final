@@ -1,5 +1,7 @@
 package com.social.network.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.mail.SimpleMailMessage;
@@ -11,10 +13,18 @@ import org.springframework.stereotype.Service;
 @ConditionalOnProperty(name = "spring.mail.host")
 public class EmailService {
 
+    private static final Logger logger = LoggerFactory.getLogger(EmailService.class);
+    
     private final JavaMailSender mailSender;
     
     @Value("${spring.mail.username:noreply@socialnetwork.com}")
     private String fromEmail;
+    
+    @Value("${email.otp.max-retries:3}")
+    private int maxRetries;
+    
+    @Value("${email.otp.retry-delay-ms:1000}")
+    private int retryDelay;
 
     public EmailService(JavaMailSender mailSender) {
         this.mailSender = mailSender;
@@ -22,9 +32,6 @@ public class EmailService {
 
     @Async
     public void sendOTPEmail(String toEmail, String otp) {
-        int maxRetries = 3;
-        int retryDelay = 1000; // 1 second initial delay
-        
         for (int attempt = 1; attempt <= maxRetries; attempt++) {
             try {
                 SimpleMailMessage message = new SimpleMailMessage();
@@ -34,21 +41,22 @@ public class EmailService {
                 message.setText(buildOTPEmailContent(otp));
                 
                 mailSender.send(message);
-                System.out.println("OTP email sent successfully to: " + toEmail + " (attempt " + attempt + ")");
+                logger.info("OTP email sent successfully to: {} (attempt {})", toEmail, attempt);
                 return; // Success - exit the method
             } catch (Exception e) {
-                System.err.println("Failed to send OTP email (attempt " + attempt + "/" + maxRetries + "): " + e.getMessage());
+                logger.warn("Failed to send OTP email (attempt {}/{}): {}", attempt, maxRetries, e.getMessage());
                 
                 if (attempt == maxRetries) {
                     // Log final failure but don't throw exception as this is async
-                    System.err.println("All attempts to send OTP email failed for: " + toEmail);
-                    System.err.println("Error details: " + e.getClass().getName() + " - " + e.getMessage());
+                    logger.error("All attempts to send OTP email failed for: {}. Error: {} - {}", 
+                                toEmail, e.getClass().getName(), e.getMessage());
                 } else {
                     // Wait before retry with exponential backoff
                     try {
                         Thread.sleep(retryDelay * attempt);
                     } catch (InterruptedException ie) {
                         Thread.currentThread().interrupt();
+                        logger.warn("Email retry interrupted for: {}", toEmail);
                         return;
                     }
                 }
