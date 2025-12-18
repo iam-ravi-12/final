@@ -17,6 +17,7 @@ import { useRouter } from 'expo-router';
 import * as Location from 'expo-location';
 import sosService, { SosAlertResponse, SosResponseRequest } from '../services/sosService';
 import notificationService from '../services/notificationService';
+import { parseUTCDate } from '../utils/helpers';
 
 const SosAlertsScreen = () => {
   const router = useRouter();
@@ -179,9 +180,8 @@ const SosAlertsScreen = () => {
   };
 
   const formatTime = (timestamp: string) => {
-    // Parse the timestamp - backend returns LocalDateTime which may not include timezone
-    // Assume UTC and convert to local time
-    const date = new Date(timestamp);
+    // Parse the timestamp - backend returns LocalDateTime in UTC
+    const date = parseUTCDate(timestamp);
     
     // Check if date is valid
     if (isNaN(date.getTime())) {

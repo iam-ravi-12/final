@@ -18,6 +18,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { MaterialIcons, Ionicons } from '@expo/vector-icons';
+import { parseUTCDate } from '@/utils/helpers';
 import postService, { PostResponse } from '../services/postService';
 import SosButton from '../components/SosButton';
 import { useAuth } from '../contexts/AuthContext';
@@ -96,7 +97,7 @@ export default function HomeScreen() {
 
   const formatTimeAgo = (dateString: string): string => {
     const now = new Date();
-    const postDate = new Date(dateString);
+    const postDate = parseUTCDate(dateString);
     const diffInMs = now.getTime() - postDate.getTime();
     const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
     const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));

@@ -17,7 +17,7 @@ public class JacksonConfig {
         return Jackson2ObjectMapperBuilder.json()
                 .modules(new JavaTimeModule())
                 .featuresToDisable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-                .timeZone(TimeZone.getTimeZone("Asia/Kolkata"))
+                .timeZone(TimeZone.getTimeZone("UTC"))
                 .build();
     }
 }

@@ -12,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { router } from 'expo-router';
 import messageService, { ConversationResponse } from '../services/messageService';
+import { parseUTCDate } from '../utils/helpers';
 
 export default function MessagesScreen() {
   const [conversations, setConversations] = useState<ConversationResponse[]>([]);
@@ -33,7 +34,7 @@ export default function MessagesScreen() {
   };
 
   const formatTime = (timestamp: string) => {
-    const date = new Date(timestamp);
+    const date = parseUTCDate(timestamp);
     const now = new Date();
     const diff = now.getTime() - date.getTime();
     const minutes = Math.floor(diff / 60000);

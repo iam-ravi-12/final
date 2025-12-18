@@ -18,10 +18,11 @@ import { router, useLocalSearchParams } from 'expo-router';
 import authService, { ProfileResponse } from '../services/authService';
 import followService, { FollowStatsResponse } from '../services/followService';
 import postService, { PostResponse } from '../services/postService';
+import { parseUTCDate } from '../utils/helpers';
 
 const formatTimeAgo = (dateString: string): string => {
   const now = new Date();
-  const postDate = new Date(dateString);
+  const postDate = parseUTCDate(dateString);
   const diffInMs = now.getTime() - postDate.getTime();
   const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
   const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
