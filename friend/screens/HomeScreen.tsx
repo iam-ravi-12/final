@@ -151,8 +151,7 @@ export default function HomeScreen() {
 
   const handleEditPost = (postId: number) => {
     setMenuVisible(null);
-    // Navigate to edit post screen (you can implement this later)
-    Alert.alert('Edit Post', 'Edit functionality will be implemented');
+    router.push(`/edit-post/${postId}`);
   };
 
   const getUserInitial = () => {
