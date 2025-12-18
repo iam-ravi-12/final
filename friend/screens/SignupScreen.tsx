@@ -44,22 +44,11 @@ export default function SignupScreen() {
     setLoading(true);
     try {
       await signup(username, name, email, password);
-      // Navigate to OTP verification screen
-      Alert.alert(
-        'Success',
-        'Account created! Please check your email for the verification code.',
-        [
-          {
-            text: 'OK',
-            onPress: () => {
-              router.push({
-                pathname: '/verify-otp',
-                params: { email },
-              });
-            }
-          }
-        ]
-      );
+      // Navigate to OTP verification screen immediately
+      router.push({
+        pathname: '/verify-otp',
+        params: { email },
+      });
     } catch (error: any) {
       console.error('Signup error:', error);
       let errorMessage = 'Could not create account';
