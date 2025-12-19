@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.UUID;
 
@@ -185,7 +186,7 @@ public class FirebaseStorageService {
                 String[] parts = url.split("/o/", 2);
                 if (parts.length == 2) {
                     String encodedPath = parts[1].split("\\?")[0];
-                    return java.net.URLDecoder.decode(encodedPath, "UTF-8");
+                    return java.net.URLDecoder.decode(encodedPath, StandardCharsets.UTF_8);
                 }
             }
         } catch (Exception e) {
