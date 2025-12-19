@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Default API URL - can be overridden with environment variable
 // Note: Must include /api suffix for backend endpoints
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://final-okus.onrender.com';
+const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://sos-check.onrender.com';
 
 console.log('API Configuration:', {
   url: API_URL,
