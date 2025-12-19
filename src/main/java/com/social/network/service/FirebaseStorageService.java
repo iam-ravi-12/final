@@ -6,11 +6,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.util.Base64;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 @Service
 public class FirebaseStorageService {
@@ -38,6 +35,13 @@ public class FirebaseStorageService {
         }
 
         try {
+            // Check if StorageClient is initialized
+            Bucket bucket = StorageClient.getInstance().bucket(BUCKET_NAME);
+            if (bucket == null) {
+                logger.warn("Firebase Storage bucket not available. Falling back to base64 storage.");
+                return base64Image;
+            }
+
             // Remove data URI prefix if present (e.g., "data:image/png;base64,")
             String base64Data = base64Image;
             String contentType = "image/jpeg"; // Default
@@ -59,31 +63,20 @@ public class FirebaseStorageService {
             // Generate unique filename
             String filename = folder + "/" + UUID.randomUUID().toString() + getFileExtension(contentType);
 
-            // Get storage bucket
-            Bucket bucket = StorageClient.getInstance().bucket(BUCKET_NAME);
-            
-            // Create blob with metadata
-            BlobId blobId = BlobId.of(BUCKET_NAME, filename);
-            BlobInfo blobInfo = BlobInfo.newBuilder(blobId)
-                    .setContentType(contentType)
-                    .build();
+            // Upload to Firebase Storage using bucket
+            Blob blob = bucket.create(filename, imageBytes, contentType);
 
-            // Upload to Firebase Storage
-            Storage storage = StorageOptions.getDefaultInstance().getService();
-            Blob blob = storage.create(blobInfo, imageBytes);
-
-            // Make the file publicly accessible
-            blob.createAcl(Acl.of(Acl.User.ofAllUsers(), Acl.Role.READER));
-
-            // Generate public URL
+            // Generate public URL (tokens not required for public buckets)
             String publicUrl = String.format("https://storage.googleapis.com/%s/%s", BUCKET_NAME, filename);
             
             logger.info("Successfully uploaded image to Firebase Storage: {}", publicUrl);
             return publicUrl;
 
+        } catch (IllegalStateException e) {
+            logger.error("Firebase not initialized. Falling back to base64 storage.", e);
+            return base64Image;
         } catch (Exception e) {
-            logger.error("Error uploading image to Firebase Storage", e);
-            // Return base64 as fallback
+            logger.error("Error uploading image to Firebase Storage. Falling back to base64.", e);
             return base64Image;
         }
     }
@@ -112,6 +105,12 @@ public class FirebaseStorageService {
         }
 
         try {
+            Bucket bucket = StorageClient.getInstance().bucket(BUCKET_NAME);
+            if (bucket == null) {
+                logger.warn("Firebase Storage bucket not available");
+                return false;
+            }
+
             // Extract filename from URL
             String filename = extractFilenameFromUrl(imageUrl);
             if (filename == null) {
@@ -120,18 +119,23 @@ public class FirebaseStorageService {
             }
 
             // Delete from Firebase Storage
-            Storage storage = StorageOptions.getDefaultInstance().getService();
-            BlobId blobId = BlobId.of(BUCKET_NAME, filename);
-            boolean deleted = storage.delete(blobId);
-
-            if (deleted) {
-                logger.info("Successfully deleted image from Firebase Storage: {}", filename);
+            Blob blob = bucket.get(filename);
+            if (blob != null && blob.exists()) {
+                boolean deleted = blob.delete();
+                if (deleted) {
+                    logger.info("Successfully deleted image from Firebase Storage: {}", filename);
+                } else {
+                    logger.warn("Failed to delete image from Firebase Storage: {}", filename);
+                }
+                return deleted;
             } else {
                 logger.warn("Image not found in Firebase Storage: {}", filename);
+                return false;
             }
 
-            return deleted;
-
+        } catch (IllegalStateException e) {
+            logger.error("Firebase not initialized", e);
+            return false;
         } catch (Exception e) {
             logger.error("Error deleting image from Firebase Storage", e);
             return false;
