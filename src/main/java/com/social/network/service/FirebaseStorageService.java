@@ -4,6 +4,7 @@ import com.google.cloud.storage.*;
 import com.google.firebase.cloud.StorageClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
@@ -14,7 +15,9 @@ import java.util.UUID;
 public class FirebaseStorageService {
 
     private static final Logger logger = LoggerFactory.getLogger(FirebaseStorageService.class);
-    private static final String BUCKET_NAME = System.getenv("FIREBASE_STORAGE_BUCKET");
+    
+    @Value("${FIREBASE_STORAGE_BUCKET:#{null}}")
+    private String bucketName;
 
     /**
      * Upload a base64 encoded image to Firebase Storage
@@ -30,14 +33,14 @@ public class FirebaseStorageService {
         }
 
         // Check if Firebase Storage is configured
-        if (BUCKET_NAME == null || BUCKET_NAME.isEmpty()) {
+        if (bucketName == null || bucketName.isEmpty()) {
             logger.warn("Firebase Storage bucket not configured. Falling back to base64 storage.");
             return base64Image; // Return base64 as fallback
         }
 
         try {
             // Check if StorageClient is initialized
-            Bucket bucket = StorageClient.getInstance().bucket(BUCKET_NAME);
+            Bucket bucket = StorageClient.getInstance().bucket(bucketName);
             if (bucket == null) {
                 logger.warn("Firebase Storage bucket not available. Falling back to base64 storage.");
                 return base64Image;
@@ -68,7 +71,7 @@ public class FirebaseStorageService {
             Blob blob = bucket.create(filename, imageBytes, contentType);
 
             // Generate public URL (tokens not required for public buckets)
-            String publicUrl = String.format("https://storage.googleapis.com/%s/%s", BUCKET_NAME, filename);
+            String publicUrl = String.format("https://storage.googleapis.com/%s/%s", bucketName, filename);
             
             logger.info("Successfully uploaded image to Firebase Storage: {}", publicUrl);
             return publicUrl;
@@ -100,13 +103,13 @@ public class FirebaseStorageService {
         }
 
         // Check if Firebase Storage is configured
-        if (BUCKET_NAME == null || BUCKET_NAME.isEmpty()) {
+        if (bucketName == null || bucketName.isEmpty()) {
             logger.warn("Firebase Storage bucket not configured");
             return false;
         }
 
         try {
-            Bucket bucket = StorageClient.getInstance().bucket(BUCKET_NAME);
+            Bucket bucket = StorageClient.getInstance().bucket(bucketName);
             if (bucket == null) {
                 logger.warn("Firebase Storage bucket not available");
                 return false;
@@ -177,7 +180,7 @@ public class FirebaseStorageService {
             
             if (url.contains("storage.googleapis.com")) {
                 // Extract path after bucket name
-                String[] parts = url.split(BUCKET_NAME + "/", 2);
+                String[] parts = url.split(bucketName + "/", 2);
                 if (parts.length == 2) {
                     return parts[1].split("\\?")[0]; // Remove query params if any
                 }

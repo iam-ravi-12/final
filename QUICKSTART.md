@@ -36,10 +36,20 @@ service firebase.storage {
 
 Click **"Publish"**
 
-### 3. Add Environment Variable
+### 3. Configure Storage Bucket
+
+You can configure the Firebase Storage bucket in two ways:
+
+**Option 1: application.properties (Easiest for local dev)**
+
+Edit `src/main/resources/application.properties` and add:
+```properties
+FIREBASE_STORAGE_BUCKET=your-project-id.appspot.com
+```
+
+**Option 2: Environment Variable (Recommended for production)**
 
 Add this environment variable to your server:
-
 ```bash
 FIREBASE_STORAGE_BUCKET=your-project-id.appspot.com
 ```
@@ -49,7 +59,7 @@ FIREBASE_STORAGE_BUCKET=your-project-id.appspot.com
 - Look at the URL, it shows something like `gs://your-project-id.appspot.com`
 - Copy the part after `gs://` (e.g., `your-project-id.appspot.com`)
 
-**Where to add it:**
+**Where to add environment variable:**
 
 **For Render:**
 1. Go to your service dashboard
@@ -68,6 +78,8 @@ Add to your IDE or `.env` file:
 ```bash
 FIREBASE_STORAGE_BUCKET=your-project-id.appspot.com
 ```
+
+Or simply add it to `application.properties` as shown in Option 1.
 
 ### 4. Deploy and Test
 
