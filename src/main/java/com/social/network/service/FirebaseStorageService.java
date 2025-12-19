@@ -2,6 +2,7 @@ package com.social.network.service;
 
 import com.google.cloud.storage.*;
 import com.google.firebase.cloud.StorageClient;
+import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,6 +19,15 @@ public class FirebaseStorageService {
     
     @Value("${FIREBASE_STORAGE_BUCKET:#{null}}")
     private String bucketName;
+    
+    @PostConstruct
+    public void init() {
+        if (bucketName != null && !bucketName.isEmpty()) {
+            logger.info("Firebase Storage configured with bucket: {}", bucketName);
+        } else {
+            logger.warn("Firebase Storage bucket not configured. Image uploads will fall back to base64 storage.");
+        }
+    }
 
     /**
      * Upload a base64 encoded image to Firebase Storage
