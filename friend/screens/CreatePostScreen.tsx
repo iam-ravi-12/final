@@ -18,6 +18,7 @@ import { router } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import postService from '../services/postService';
+import { convertImageToBase64 } from '../utils/imageUtils';
 
 export default function CreatePostScreen() {
   const [content, setContent] = useState('');
@@ -72,11 +73,20 @@ export default function CreatePostScreen() {
         showInHome,
       };
       
-      // If there's an image, include it in mediaUrls array
-      // Note: The image URI must be a publicly accessible URL
-      // Local file paths (file://...) won't work
+      // If there's an image, convert it to base64 before sending
+      // The backend will then upload it to Firebase Storage
       if (imageUri) {
-        postData.mediaUrls = [imageUri];
+        setUploadingImage(true);
+        try {
+          const base64Image = await convertImageToBase64(imageUri);
+          postData.mediaUrls = [base64Image];
+        } catch (error) {
+          console.error('Error converting image:', error);
+          Alert.alert('Error', 'Failed to process image');
+          return;
+        } finally {
+          setUploadingImage(false);
+        }
       }
       
       await postService.createPost(postData);
