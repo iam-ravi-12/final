@@ -5,38 +5,39 @@ The mobile app has been updated to work seamlessly with the Firebase Storage int
 
 ## Changes Made
 
-### 1. New Utility: `utils/imageUtils.ts`
-Created a utility module for converting images to base64:
-- `convertImageToBase64(uri)` - Converts a local image URI to base64 string
-- `convertImagesToBase64(uris)` - Converts multiple images at once
-
-### 2. Updated Dependencies
-Added `expo-file-system` to `package.json` for reading local files as base64.
-
-### 3. Updated Screens
+### 1. Updated Screens
 
 #### CreatePostScreen.tsx
-- Now converts picked images to base64 before sending to backend
-- Shows loading indicator while processing images
-- Backend receives base64 and uploads to Firebase Storage
+- Uses `expo-image-picker` with `base64: true` option
+- Gets base64 data directly from the picker
+- Sends base64 to backend which uploads to Firebase Storage
+- No additional file reading or conversion needed
 
 #### EditPostScreen.tsx
-- Converts local image URIs to base64 before sending
+- Uses `expo-image-picker` with `base64: true` option
+- Handles both new local images (base64) and existing Firebase URLs
 - Preserves existing Firebase Storage URLs when editing
-- Handles both new local images and existing cloud images
 
 #### EditProfileScreen.tsx
-- Converts profile picture to base64 before saving
-- Shows loading indicator during image processing
-- Only converts if image is a local URI (starts with `file://`)
+- Uses `expo-image-picker` with `base64: true` option
+- Gets base64 data directly from the picker
+- Sends to backend which uploads to Firebase Storage
+
+### 2. Removed Utilities
+
+The `utils/imageUtils.ts` file is no longer needed since we get base64 directly from the image picker.
+
+### 3. Dependencies
+
+No additional dependencies needed beyond `expo-image-picker` (already installed).
 
 ## How It Works
 
 ### Image Upload Flow
-1. User picks an image using `expo-image-picker`
-2. App gets local file URI (e.g., `file:///path/to/image.jpg`)
-3. App converts local URI to base64 using `FileSystem.readAsStringAsync()`
-4. App sends base64 string to backend API
+1. User picks an image using `expo-image-picker` with `base64: true`
+2. Picker returns both URI (for display) and base64 (for upload)
+3. App stores both values
+4. App sends base64 string with data URI prefix to backend API
 5. Backend receives base64, uploads to Firebase Storage
 6. Backend returns Firebase Storage URL (e.g., `https://storage.googleapis.com/...`)
 7. App displays image using Firebase Storage URL
@@ -48,13 +49,8 @@ Added `expo-file-system` to `package.json` for reading local files as base64.
 
 ## Installation
 
-After pulling these changes, run:
-
-```bash
-npm install
-```
-
-This will install the new `expo-file-system` dependency.
+No additional installation needed. The app uses only:
+- `expo-image-picker` (already in dependencies)
 
 ## Testing
 
@@ -88,9 +84,8 @@ See backend documentation (`FIREBASE_STORAGE_SETUP.md`, `QUICKSTART.md`) for set
 ## Notes
 
 - Images are compressed before upload (quality: 0.8)
-- Maximum file size limits should be enforced at backend
-- Local file URIs are only valid during the app session
-- Always convert to base64 before sending to backend
+- Image picker includes `base64: true` option to get base64 directly
+- Backend handles all Firebase Storage operations
 - Firebase Storage URLs are permanent and can be cached
 
 ## Troubleshooting
@@ -100,10 +95,10 @@ See backend documentation (`FIREBASE_STORAGE_SETUP.md`, `QUICKSTART.md`) for set
 - Verify `FIREBASE_STORAGE_BUCKET` is set correctly
 - Ensure Firebase Admin SDK is initialized
 
-### "Failed to process image" error
-- Check file permissions on device
-- Verify `expo-file-system` is installed
-- Check image file is valid and accessible
+### "Failed to create post" with image
+- Check that `base64: true` is set in image picker options
+- Verify the image picker is returning base64 data
+- Check backend logs for upload errors
 
 ### Images not displaying
 - Verify backend returns Firebase Storage URLs

@@ -17,7 +17,6 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useAuth } from '../contexts/AuthContext';
 import { router } from 'expo-router';
 import authService from '../services/authService';
-import { convertImageToBase64 } from '../utils/imageUtils';
 
 export default function EditProfileScreen() {
   const { user, refreshUser } = useAuth();
@@ -26,8 +25,8 @@ export default function EditProfileScreen() {
   const [organization, setOrganization] = useState(user?.organization || '');
   const [location, setLocation] = useState(user?.location || '');
   const [profilePicture, setProfilePicture] = useState(user?.profilePicture || '');
+  const [profilePictureBase64, setProfilePictureBase64] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [uploadingImage, setUploadingImage] = useState(false);
 
   const pickImage = async () => {
     // Request permissions
@@ -38,18 +37,24 @@ export default function EditProfileScreen() {
       return;
     }
 
-    // Launch image picker
+    // Launch image picker with base64 option
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.8,
+      base64: true, // Request base64 encoding directly
     });
 
     if (!result.canceled && result.assets && result.assets.length > 0) {
-      // Store the local URI - it will be converted to base64 when saving
-      // The backend will then upload it to Firebase Storage
-      setProfilePicture(result.assets[0].uri);
+      const asset = result.assets[0];
+      setProfilePicture(asset.uri);
+      
+      // Store base64 with proper data URI prefix
+      if (asset.base64) {
+        const mimeType = asset.uri.toLowerCase().endsWith('.png') ? 'image/png' : 'image/jpeg';
+        setProfilePictureBase64(`data:${mimeType};base64,${asset.base64}`);
+      }
     }
   };
 
@@ -61,21 +66,14 @@ export default function EditProfileScreen() {
 
     setLoading(true);
     try {
-      let base64ProfilePicture = profilePicture;
+      let imageToSend = undefined;
       
-      // If profile picture is a local URI (starts with file://), convert to base64
-      // The backend will then upload it to Firebase Storage
-      if (profilePicture && profilePicture.startsWith('file://')) {
-        setUploadingImage(true);
-        try {
-          base64ProfilePicture = await convertImageToBase64(profilePicture);
-        } catch (error) {
-          console.error('Error converting image:', error);
-          Alert.alert('Error', 'Failed to process profile picture');
-          return;
-        } finally {
-          setUploadingImage(false);
-        }
+      // If we have a new base64 image, use it
+      // Otherwise, if there's an existing URL, keep it
+      if (profilePictureBase64) {
+        imageToSend = profilePictureBase64;
+      } else if (profilePicture && profilePicture.startsWith('http')) {
+        imageToSend = profilePicture;
       }
       
       await authService.updateProfile({ 
@@ -83,7 +81,7 @@ export default function EditProfileScreen() {
         profession, 
         organization, 
         location,
-        profilePicture: base64ProfilePicture || undefined
+        profilePicture: imageToSend
       });
       await refreshUser();
       Alert.alert('Success', 'Profile updated successfully', [
