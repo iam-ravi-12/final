@@ -10,12 +10,14 @@ import {
   KeyboardAvoidingView,
   Platform,
   Image,
+  ActivityIndicator,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useAuth } from '../contexts/AuthContext';
 import { router } from 'expo-router';
 import authService from '../services/authService';
+import { convertImageToBase64 } from '../utils/imageUtils';
 
 export default function EditProfileScreen() {
   const { user, refreshUser } = useAuth();
@@ -25,6 +27,7 @@ export default function EditProfileScreen() {
   const [location, setLocation] = useState(user?.location || '');
   const [profilePicture, setProfilePicture] = useState(user?.profilePicture || '');
   const [loading, setLoading] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   const pickImage = async () => {
     // Request permissions
@@ -44,8 +47,8 @@ export default function EditProfileScreen() {
     });
 
     if (!result.canceled && result.assets && result.assets.length > 0) {
-      // For now, we'll use the local URI
-      // In production, you would upload this to a server and get a URL
+      // Store the local URI - it will be converted to base64 when saving
+      // The backend will then upload it to Firebase Storage
       setProfilePicture(result.assets[0].uri);
     }
   };
@@ -58,12 +61,29 @@ export default function EditProfileScreen() {
 
     setLoading(true);
     try {
+      let base64ProfilePicture = profilePicture;
+      
+      // If profile picture is a local URI (starts with file://), convert to base64
+      // The backend will then upload it to Firebase Storage
+      if (profilePicture && profilePicture.startsWith('file://')) {
+        setUploadingImage(true);
+        try {
+          base64ProfilePicture = await convertImageToBase64(profilePicture);
+        } catch (error) {
+          console.error('Error converting image:', error);
+          Alert.alert('Error', 'Failed to process profile picture');
+          return;
+        } finally {
+          setUploadingImage(false);
+        }
+      }
+      
       await authService.updateProfile({ 
         name: name || undefined,
         profession, 
         organization, 
         location,
-        profilePicture: profilePicture || undefined
+        profilePicture: base64ProfilePicture || undefined
       });
       await refreshUser();
       Alert.alert('Success', 'Profile updated successfully', [

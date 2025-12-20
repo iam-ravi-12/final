@@ -18,6 +18,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import postService from '../services/postService';
+import { convertImageToBase64 } from '../utils/imageUtils';
 
 export default function EditPostScreen() {
   const { postId } = useLocalSearchParams<{ postId: string }>();
@@ -27,6 +28,7 @@ export default function EditPostScreen() {
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   useEffect(() => {
     loadPost();
@@ -107,8 +109,30 @@ export default function EditPostScreen() {
         content,
         isHelpSection,
         showInHome,
-        mediaUrls: imageUri ? [imageUri] : [],
       };
+      
+      // If there's an image, convert it to base64 if it's a local URI
+      // The backend will then upload it to Firebase Storage
+      if (imageUri) {
+        if (imageUri.startsWith('file://')) {
+          setUploadingImage(true);
+          try {
+            const base64Image = await convertImageToBase64(imageUri);
+            postData.mediaUrls = [base64Image];
+          } catch (error) {
+            console.error('Error converting image:', error);
+            Alert.alert('Error', 'Failed to process image');
+            return;
+          } finally {
+            setUploadingImage(false);
+          }
+        } else {
+          // Image is already a URL (from backend), keep it as is
+          postData.mediaUrls = [imageUri];
+        }
+      } else {
+        postData.mediaUrls = [];
+      }
       
       await postService.updatePost(Number(postId), postData);
       Alert.alert('Success', 'Post updated successfully!');
