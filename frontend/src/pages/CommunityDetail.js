@@ -9,6 +9,7 @@ const CommunityDetail = () => {
   const [community, setCommunity] = useState(null);
   const [posts, setPosts] = useState([]);
   const [pendingPosts, setPendingPosts] = useState([]);
+  const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showCreatePost, setShowCreatePost] = useState(false);
@@ -34,6 +35,10 @@ const CommunityDetail = () => {
         if (communityData.isAdmin) {
           const pendingData = await communityService.getPendingPosts(communityId);
           setPendingPosts(pendingData);
+          
+          // Load members for admin
+          const membersData = await communityService.getCommunityMembers(communityId);
+          setMembers(membersData);
         }
       } else {
         // Clear posts if not a member
@@ -77,6 +82,19 @@ const CommunityDetail = () => {
       loadCommunityData();
     } catch (err) {
       setError('Failed to reject post.');
+    }
+  };
+
+  const handleRemoveMember = async (userId, username) => {
+    if (window.confirm(`Are you sure you want to remove ${username} from this community?`)) {
+      try {
+        await communityService.removeMember(communityId, userId);
+        setError('');
+        alert('Member removed successfully!');
+        loadCommunityData();
+      } catch (err) {
+        setError(err.response?.data || 'Failed to remove member.');
+      }
     }
   };
 
@@ -203,6 +221,32 @@ const CommunityDetail = () => {
       {error && <div className="error-message">{error}</div>}
 
       {community.isAdmin && community.isMember && (
+        <div className="admin-stats-panel">
+          <div className="stat-card">
+            <div className="stat-icon">👥</div>
+            <div className="stat-info">
+              <div className="stat-value">{members.length}</div>
+              <div className="stat-label">Total Members</div>
+            </div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-icon">📝</div>
+            <div className="stat-info">
+              <div className="stat-value">{posts.length}</div>
+              <div className="stat-label">Approved Posts</div>
+            </div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-icon">⏳</div>
+            <div className="stat-info">
+              <div className="stat-value">{pendingPosts.length}</div>
+              <div className="stat-label">Pending Approval</div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {community.isAdmin && community.isMember && (
         <div className="admin-tabs">
           <button
             className={`admin-tab ${activeTab === 'approved' ? 'active' : ''}`}
@@ -215,6 +259,12 @@ const CommunityDetail = () => {
             onClick={() => setActiveTab('pending')}
           >
             Pending Approval ({pendingPosts.length})
+          </button>
+          <button
+            className={`admin-tab ${activeTab === 'members' ? 'active' : ''}`}
+            onClick={() => setActiveTab('members')}
+          >
+            Members ({members.length})
           </button>
         </div>
       )}
@@ -305,7 +355,7 @@ const CommunityDetail = () => {
                   </div>
                 )}
               </>
-            ) : (
+            ) : activeTab === 'pending' ? (
               <>
                 <h3>Pending Posts (Admin Only)</h3>
                 {pendingPosts.length === 0 ? (
@@ -349,6 +399,50 @@ const CommunityDetail = () => {
                         </div>
                         <div className="post-content">
                           <p>{post.content}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
+            ) : (
+              <>
+                <h3>Community Members (Admin Only)</h3>
+                {members.length === 0 ? (
+                  <div className="empty-state">
+                    <p>No members found</p>
+                  </div>
+                ) : (
+                  <div className="members-list">
+                    {members.map((member) => (
+                      <div key={member.id} className="member-card">
+                        <div className="member-info">
+                          <div className="member-avatar">
+                            {member.profilePicture ? (
+                              <img src={member.profilePicture} alt={member.username} />
+                            ) : (
+                              <span>{member.username.charAt(0).toUpperCase()}</span>
+                            )}
+                          </div>
+                          <div className="member-details">
+                            <strong>{member.username}</strong>
+                            <span className="member-profession">{member.profession || 'No profession set'}</span>
+                            <span className="member-join-date">
+                              Joined {new Date(member.joinedAt).toLocaleDateString()}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="member-actions">
+                          {member.isAdmin ? (
+                            <span className="admin-badge">👑 Admin</span>
+                          ) : (
+                            <button
+                              className="btn-remove-member"
+                              onClick={() => handleRemoveMember(member.userId, member.username)}
+                            >
+                              Remove
+                            </button>
+                          )}
                         </div>
                       </div>
                     ))}

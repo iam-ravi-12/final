@@ -59,4 +59,14 @@ export const communityService = {
     const response = await api.post(`/communities/posts/${postId}/reject`);
     return response.data;
   },
+
+  getCommunityMembers: async (communityId) => {
+    const response = await api.get(`/communities/${communityId}/members`);
+    return response.data;
+  },
+
+  removeMember: async (communityId, userId) => {
+    const response = await api.delete(`/communities/${communityId}/members/${userId}`);
+    return response.data;
+  },
 };
