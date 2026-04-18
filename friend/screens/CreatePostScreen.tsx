@@ -24,6 +24,7 @@ export default function CreatePostScreen() {
   const [isHelpSection, setIsHelpSection] = useState(false);
   const [showInHome, setShowInHome] = useState(true);
   const [imageUri, setImageUri] = useState<string | null>(null);
+  const [imageBase64, setImageBase64] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
 
@@ -37,16 +38,24 @@ export default function CreatePostScreen() {
         return;
       }
 
-      // Launch image picker
+      // Launch image picker with base64 option
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [4, 3],
         quality: 0.8,
+        base64: true, // Request base64 encoding directly
       });
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
-        setImageUri(result.assets[0].uri);
+        const asset = result.assets[0];
+        setImageUri(asset.uri);
+        
+        // Store base64 with proper data URI prefix
+        if (asset.base64) {
+          const mimeType = asset.uri.toLowerCase().endsWith('.png') ? 'image/png' : 'image/jpeg';
+          setImageBase64(`data:${mimeType};base64,${asset.base64}`);
+        }
       }
     } catch (error) {
       console.error('Error picking image:', error);
@@ -56,6 +65,7 @@ export default function CreatePostScreen() {
 
   const removeImage = () => {
     setImageUri(null);
+    setImageBase64(null);
   };
 
   const handleSubmit = async () => {
@@ -72,17 +82,17 @@ export default function CreatePostScreen() {
         showInHome,
       };
       
-      // If there's an image, include it in mediaUrls array
-      // Note: The image URI must be a publicly accessible URL
-      // Local file paths (file://...) won't work
-      if (imageUri) {
-        postData.mediaUrls = [imageUri];
+      // If there's an image, use the base64 data from the picker
+      // The backend will then upload it to Firebase Storage
+      if (imageBase64) {
+        postData.mediaUrls = [imageBase64];
       }
       
       await postService.createPost(postData);
       Alert.alert('Success', 'Post created successfully!');
       setContent('');
       setImageUri(null);
+      setImageBase64(null);
       setIsHelpSection(false);
       setShowInHome(true);
       router.back();

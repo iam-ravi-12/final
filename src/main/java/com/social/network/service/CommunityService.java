@@ -26,15 +26,18 @@ public class CommunityService {
     private final CommunityMemberRepository communityMemberRepository;
     private final CommunityPostRepository communityPostRepository;
     private final UserRepository userRepository;
+    private final FirebaseStorageService firebaseStorageService;
 
     public CommunityService(CommunityRepository communityRepository,
                           CommunityMemberRepository communityMemberRepository,
                           CommunityPostRepository communityPostRepository,
-                          UserRepository userRepository) {
+                          UserRepository userRepository,
+                          FirebaseStorageService firebaseStorageService) {
         this.communityRepository = communityRepository;
         this.communityMemberRepository = communityMemberRepository;
         this.communityPostRepository = communityPostRepository;
         this.userRepository = userRepository;
+        this.firebaseStorageService = firebaseStorageService;
     }
 
     @Transactional
@@ -46,7 +49,16 @@ public class CommunityService {
         community.setName(request.getName());
         community.setDescription(request.getDescription());
         community.setIsPrivate(request.getIsPrivate() != null ? request.getIsPrivate() : false);
-        community.setProfilePicture(request.getProfilePicture());
+        
+        // Upload profile picture to Firebase Storage if provided
+        if (request.getProfilePicture() != null && !request.getProfilePicture().isEmpty()) {
+            String imageUrl = firebaseStorageService.uploadImage(
+                request.getProfilePicture(),
+                "communities"
+            );
+            community.setProfilePicture(imageUrl);
+        }
+        
         community.setAdmin(admin);
 
         community = communityRepository.save(community);
@@ -135,7 +147,17 @@ public class CommunityService {
         post.setCommunity(community);
         post.setUser(user);
         post.setContent(request.getContent());
-        post.setMediaUrls(request.getMediaUrls());
+        
+        // Upload media to Firebase Storage if provided
+        if (request.getMediaUrls() != null && !request.getMediaUrls().isEmpty()) {
+            List<String> uploadedUrls = new java.util.ArrayList<>();
+            for (String mediaUrl : request.getMediaUrls()) {
+                String uploadedUrl = firebaseStorageService.uploadImage(mediaUrl, "community-posts");
+                uploadedUrls.add(uploadedUrl);
+            }
+            post.setMediaUrls(uploadedUrls);
+        }
+        
         post.setIsApproved(false); // Requires admin approval
 
         post = communityPostRepository.save(post);

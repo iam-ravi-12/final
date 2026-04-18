@@ -26,8 +26,8 @@ The email OTP verification feature adds an additional security layer to the user
    - OTPs expire after 10 minutes
 
 2. **EmailService** (`src/main/java/com/social/network/service/EmailService.java`)
-   - Handles sending OTP emails using Spring Mail
-   - Configurable sender email address
+   - Handles sending OTP emails using SendGrid API
+   - Configurable sender email address and name
 
 3. **OTPService** (`src/main/java/com/social/network/service/OTPService.java`)
    - Generates secure 6-digit OTP codes
@@ -62,24 +62,21 @@ CREATE TABLE IF NOT EXISTS email_otp (
 
 #### Configuration
 
-Add mail configuration to `application.properties` (optional):
+Add SendGrid configuration to `application.properties`:
 
 ```properties
-# Email Configuration (Optional - for OTP verification)
-# Uncomment and configure these properties to enable email OTP sending
-spring.mail.host=smtp.gmail.com
-spring.mail.port=587
-spring.mail.username=your-email@gmail.com
-spring.mail.password=your-app-password
-spring.mail.properties.mail.smtp.auth=true
-spring.mail.properties.mail.smtp.starttls.enable=true
+# SendGrid Email Configuration (Optional - for OTP verification)
+sendgrid.api.key=YOUR_SENDGRID_API_KEY
+sendgrid.from.email=noreply@yourdomain.com
+sendgrid.from.name=Friends Social Network
 ```
 
 **Important**: 
 - Email configuration is **optional** for development/testing
 - If email is not configured, OTPs will be printed to the console for testing
-- For production, configure SMTP settings to enable actual email delivery
-- For Gmail, use [App Passwords](https://support.google.com/accounts/answer/185833) instead of regular password
+- For production, configure SendGrid API key to enable actual email delivery
+- Get your SendGrid API key from: https://app.sendgrid.com/settings/api_keys
+- See `SENDGRID_SETUP.md` for detailed setup instructions
 
 ### Frontend Web (React)
 
@@ -181,9 +178,9 @@ Updated `_layout.tsx` to enforce OTP verification flow:
 ### Backend
 - **Email configuration is OPTIONAL** - application will start without it
 - If not configured, OTPs are printed to console for testing
-- For production, configure SMTP settings in `application.properties`
-- For Gmail, use App Passwords (not regular password)
-- For other providers, adjust host, port, and TLS settings
+- For production, configure SendGrid API key in `application.properties`
+- Get your free SendGrid API key from: https://app.sendgrid.com/settings/api_keys
+- See `SENDGRID_SETUP.md` for detailed configuration instructions
 
 ### Frontend Web
 - Ensure API base URL is correctly configured
@@ -197,53 +194,39 @@ Updated `_layout.tsx` to enforce OTP verification flow:
 
 ### Application Won't Start
 
-**Error**: `Parameter 0 of constructor in com.social.network.service.EmailService required a bean of type 'org.springframework.mail.javamail.JavaMailSender'`
+**Previous Issue (Now Fixed)**: Application startup issues when Spring Boot Mail was not configured
 
-**Solution**: This error occurs when Spring Boot Mail dependency is present but not configured. The latest version handles this gracefully:
-- EmailService is conditional and only loads when `spring.mail.host` is configured
-- If email is not configured, OTPs are printed to console
-- Application will start successfully without email configuration
+**Current Behavior**: 
+- EmailService is conditional and only loads when `sendgrid.api.key` is configured
+- If SendGrid is not configured, OTPs are printed to console
+- Application will start successfully without SendGrid configuration
 
 ### Emails Not Sending
 
-**Error**: `Failed to send OTP email: Authentication failed`
+**Error**: `Failed to send OTP email: Unauthorized`
 
-This typically occurs with Gmail when using a regular password. Follow these steps:
+This typically occurs when the SendGrid API key is invalid or missing. Follow these steps:
 
-#### For Gmail with 2-Step Verification (Recommended):
-1. Go to your Google Account: https://myaccount.google.com/
-2. Navigate to **Security** → **2-Step Verification** (enable if not already)
-3. Scroll down to **App passwords** (at the bottom of 2-Step Verification page)
-4. Click **App passwords**
-5. Select **Mail** for app and **Other** for device
-6. Enter a name (e.g., "Social Network OTP")
-7. Click **Generate**
-8. Copy the 16-character password (format: `xxxx xxxx xxxx xxxx`)
-9. Use this App Password in `spring.mail.password` (remove spaces)
+#### SendGrid API Key Setup:
+1. Go to your SendGrid account: https://app.sendgrid.com/settings/api_keys
+2. Click **Create API Key**
+3. Choose **Restricted Access** and enable **Mail Send** permissions
+4. Copy the API key (starts with `SG.`)
+5. Add it to `application.properties`:
+   ```properties
+   sendgrid.api.key=SG.your-api-key-here
+   sendgrid.from.email=your-verified-email@domain.com
+   sendgrid.from.name=Friends Social Network
+   ```
+6. Verify your sender email at: https://app.sendgrid.com/settings/sender_auth/senders
 
-**Example configuration:**
-```properties
-spring.mail.host=smtp.gmail.com
-spring.mail.port=587
-spring.mail.username=your-email@gmail.com
-spring.mail.password=abcdabcdabcdabcd  # 16-char App Password, no spaces
-spring.mail.properties.mail.smtp.auth=true
-spring.mail.properties.mail.smtp.starttls.enable=true
-```
+**Common Issues:**
+1. API key not set or incorrect
+2. Sender email not verified in SendGrid
+3. API key doesn't have Mail Send permissions
+4. Extra spaces or line breaks in API key configuration
 
-#### For Gmail WITHOUT 2-Step Verification (Not Recommended):
-1. Go to: https://myaccount.google.com/lesssecureapps
-2. Turn ON "Less secure app access"
-3. Use your regular Gmail password in `spring.mail.password`
-
-**Note**: Google may block this method and requires 2-Step Verification + App Passwords for better security.
-
-#### Other Common Issues:
-1. Check SMTP configuration in `application.properties`
-2. Verify email credentials are correct
-3. Check firewall/network settings for SMTP port access (port 587)
-4. Ensure no typos in email/password (spaces, special characters)
-5. Check backend console logs for detailed error messages
+**Detailed Setup**: See `SENDGRID_SETUP.md` for complete SendGrid configuration instructions
 
 ### OTP Not Working
 
@@ -263,12 +246,12 @@ spring.mail.properties.mail.smtp.starttls.enable=true
 Potential improvements for this feature:
 
 1. **SMS OTP**: Add SMS as an alternative verification method
-2. **Rate Limiting**: Backend rate limiting to prevent spam
-3. **Email Templates**: HTML email templates with branding
-4. **Multi-language Support**: Localized email content
-5. **Admin Dashboard**: View and manage OTP requests
-6. **Analytics**: Track verification success rates
-7. **Backup Codes**: Provide backup verification codes
+2. **Email Templates**: HTML email templates with branding (SendGrid Dynamic Templates)
+3. **Multi-language Support**: Localized email content
+4. **Admin Dashboard**: View and manage OTP requests
+5. **Analytics**: Track verification success rates
+6. **Backup Codes**: Provide backup verification codes
+7. **Rate Limiting**: Backend rate limiting to prevent spam
 
 ## Support
 
@@ -276,4 +259,5 @@ For issues or questions about this feature:
 1. Check the troubleshooting section above
 2. Review backend logs for detailed error messages
 3. Verify all configuration steps have been completed
-4. Contact the development team with specific error messages
+4. See `SENDGRID_SETUP.md` for detailed SendGrid setup instructions
+5. Contact the development team with specific error messages
