@@ -50,10 +50,6 @@ public class MediaUploadController {
             String contentType = file.getContentType();
             String url = cloudinaryService.uploadMedia(bytes, contentType, folder);
 
-            if (url == null) {
-                return ResponseEntity.status(500).body("Upload to Cloudinary failed. Check server configuration.");
-            }
-
             return ResponseEntity.ok(Map.of("url", url));
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Upload failed: " + e.getMessage());

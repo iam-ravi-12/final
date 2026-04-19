@@ -2,8 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://final-production-3b39.up.railway.app';
 
-// How long to wait for the Render server to wake up from a cold start.
-// Render free-tier instances can take 60–120 s to boot; 3 minutes is safe.
+// How long to wait for the backend server to wake up / be reachable.
 const WARMUP_TIMEOUT_MS = 180_000;
 // How long to wait for the actual file upload once the server is awake.
 const UPLOAD_TIMEOUT_MS = 120_000;
@@ -31,8 +30,9 @@ function getExtension(mimeType: string): string {
 }
 
 /**
- * Send a lightweight GET request to wake up the Render server before the
- * actual upload. Any HTTP response (even 401/403) means the server is awake;
+ * Send a lightweight GET request to check the backend server is reachable
+ * before the actual upload.
+ * Any HTTP response (even 401/403) means the server is awake;
  * only a timeout or network error is treated as a failure.
  */
 async function warmUpServer(token: string | null): Promise<void> {
@@ -77,11 +77,11 @@ export async function uploadMedia(
 ): Promise<string> {
   const token = await AsyncStorage.getItem('token');
 
-  // Phase 1: wake up the Render server (absorbs the cold-start delay).
+  // Phase 1: verify the backend server is reachable.
   onStatusChange?.('Connecting to server…');
   await warmUpServer(token);
 
-  // Phase 2: now that the server is warm, send the actual file.
+  // Phase 2: send the actual file.
   onStatusChange?.('Uploading…');
 
   // Include the file extension in the name so React Native's native multipart

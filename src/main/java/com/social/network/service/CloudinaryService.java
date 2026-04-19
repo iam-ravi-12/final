@@ -69,11 +69,12 @@ public class CloudinaryService {
     public String uploadMedia(byte[] bytes, String contentType, String folder) {
         if (bytes == null || bytes.length == 0) {
             logger.warn("Attempted to upload null or empty bytes");
-            return null;
+            throw new RuntimeException("No file bytes provided");
         }
         if (cloudinary == null) {
             logger.warn("Cloudinary not configured – cannot upload media");
-            return null;
+            throw new RuntimeException(
+                    "Cloudinary is not configured. Set CLOUDINARY_URL or CLOUDINARY_CLOUD_NAME / CLOUDINARY_API_KEY / CLOUDINARY_API_SECRET on the server.");
         }
 
         try {
@@ -91,11 +92,17 @@ public class CloudinaryService {
             );
 
             String url = (String) result.get("secure_url");
+            if (url == null) {
+                logger.error("Cloudinary upload returned no secure_url. Full result: {}", result);
+                throw new RuntimeException("Cloudinary did not return a URL");
+            }
             logger.info("Uploaded media to Cloudinary: {}", url);
             return url;
+        } catch (RuntimeException e) {
+            throw e;
         } catch (Exception e) {
             logger.error("Error uploading media to Cloudinary", e);
-            return null;
+            throw new RuntimeException("Cloudinary upload error: " + e.getMessage(), e);
         }
     }
 
