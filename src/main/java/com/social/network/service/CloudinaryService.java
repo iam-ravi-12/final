@@ -83,6 +83,7 @@ public class CloudinaryService {
         try {
             String resourceType = resolveResourceType(contentType);
             String publicId = folder + "/" + UUID.randomUUID();
+            long uploadTimeoutMs = Math.max(uploadTimeoutSeconds, 1) * 1000L;
 
             Map<?, ?> result = cloudinary.uploader().upload(
                     bytes,
@@ -90,7 +91,7 @@ public class CloudinaryService {
                             "resource_type", resourceType,
                             "public_id", publicId,
                             "overwrite", true,
-                            "timeout", uploadTimeoutSeconds   // socket timeout for the upload HTTP call (seconds)
+                            "timeout", uploadTimeoutMs   // socket timeout for the upload HTTP call (milliseconds)
                     )
             );
 
