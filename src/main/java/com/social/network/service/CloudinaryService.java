@@ -83,9 +83,18 @@ public class CloudinaryService {
         try {
             String resourceType = resolveResourceType(contentType);
             String publicId = folder + "/" + UUID.randomUUID();
-            long uploadTimeoutMs = uploadTimeoutSeconds <= 0
-                    ? 0
-                    : uploadTimeoutSeconds * 1000L;
+            int uploadTimeoutMs;
+            if (uploadTimeoutSeconds <= 0) {
+                uploadTimeoutMs = 0;
+            } else {
+                long timeoutMs = uploadTimeoutSeconds * 1000L;
+                if (timeoutMs > Integer.MAX_VALUE) {
+                    logger.warn("Configured upload timeout is too large ({} ms). Capping to {} ms.", timeoutMs, Integer.MAX_VALUE);
+                    uploadTimeoutMs = Integer.MAX_VALUE;
+                } else {
+                    uploadTimeoutMs = (int) timeoutMs;
+                }
+            }
 
             Map<?, ?> result = cloudinary.uploader().upload(
                     bytes,
