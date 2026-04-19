@@ -1,4 +1,3 @@
-import * as FileSystem from 'expo-file-system';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://sos-check.onrender.com';
@@ -7,8 +6,8 @@ const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://sos-check.onrender.c
  * Upload a local media file (image / video / audio) directly to Firebase Storage
  * through the backend multipart endpoint.
  *
- * The file is streamed as binary – no base64 conversion – so this works for
- * arbitrarily large video and audio files without running out of memory.
+ * Uses React Native's built-in fetch + FormData so no extra packages are needed.
+ * The file is NOT base64-encoded, so this works for large video/audio files.
  *
  * @param uri      Local file URI returned by ImagePicker / DocumentPicker
  * @param mimeType MIME type of the file (e.g. "video/mp4", "audio/mpeg")
@@ -22,25 +21,33 @@ export async function uploadMedia(
 ): Promise<string> {
   const token = await AsyncStorage.getItem('token');
 
-  const result = await FileSystem.uploadAsync(
-    `${API_URL}/api/media/upload?folder=${encodeURIComponent(folder)}`,
+  const formData = new FormData();
+  // React Native FormData accepts a file-like object with uri/type/name
+  formData.append('file', {
     uri,
+    type: mimeType,
+    name: 'upload',
+  } as unknown as Blob);
+
+  const response = await fetch(
+    `${API_URL}/api/media/upload?folder=${encodeURIComponent(folder)}`,
     {
-      httpMethod: 'POST',
-      uploadType: FileSystem.FileSystemUploadType.MULTIPART,
-      fieldName: 'file',
-      mimeType,
+      method: 'POST',
       headers: {
-        Authorization: token ? `Bearer ${token}` : '',
+        // Do NOT set Content-Type here – fetch sets it automatically with the
+        // correct multipart boundary when the body is FormData.
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
+      body: formData,
     }
   );
 
-  if (result.status < 200 || result.status >= 300) {
-    throw new Error(`Media upload failed (HTTP ${result.status}): ${result.body}`);
+  if (!response.ok) {
+    const text = await response.text().catch(() => '');
+    throw new Error(`Media upload failed (HTTP ${response.status}): ${text}`);
   }
 
-  const data = JSON.parse(result.body) as { url: string };
+  const data = (await response.json()) as { url: string };
   if (!data.url) {
     throw new Error('Server did not return a media URL');
   }
