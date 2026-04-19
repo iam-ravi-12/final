@@ -93,7 +93,7 @@ export default function EditPostScreen() {
         setUploadingMedia(true);
         setUploadStatus('Uploading photo…');
         try {
-          const url = await uploadMedia(asset.uri, mimeType, 'posts');
+          const url = await uploadMedia(asset.uri, mimeType, 'posts', setUploadStatus);
           setSelectedMedia({ uri: asset.uri, payload: url });
         } catch (uploadErr) {
           console.error('Error uploading image:', uploadErr);
@@ -136,7 +136,7 @@ export default function EditPostScreen() {
         setUploadingMedia(true);
         setUploadStatus('Uploading video… this may take a moment');
         try {
-          const url = await uploadMedia(asset.uri, mimeType, 'posts');
+          const url = await uploadMedia(asset.uri, mimeType, 'posts', setUploadStatus);
           setSelectedMedia({ uri: asset.uri, payload: url });
         } catch (uploadErr) {
           console.error('Error uploading video:', uploadErr);
@@ -169,7 +169,7 @@ export default function EditPostScreen() {
         setUploadingMedia(true);
         setUploadStatus('Uploading audio…');
         try {
-          const url = await uploadMedia(asset.uri, mimeType, 'posts');
+          const url = await uploadMedia(asset.uri, mimeType, 'posts', setUploadStatus);
           setSelectedMedia({ uri: asset.uri, payload: url });
         } catch (uploadErr) {
           console.error('Error uploading audio:', uploadErr);

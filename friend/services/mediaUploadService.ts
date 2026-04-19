@@ -2,10 +2,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://sos-check.onrender.com';
 
-// Abort the upload after this many milliseconds to prevent an infinite spinner.
-// Render free-tier servers can take up to 60 s to cold-start; 90 s gives ample
-// margin while still surfacing a clear error to the user.
-const UPLOAD_TIMEOUT_MS = 90_000;
+// How long to wait for the Render server to wake up from a cold start.
+// Render free-tier instances can take 60–120 s to boot; 3 minutes is safe.
+const WARMUP_TIMEOUT_MS = 180_000;
+// How long to wait for the actual file upload once the server is awake.
+const UPLOAD_TIMEOUT_MS = 120_000;
 
 /** Return a file extension for a given MIME type, e.g. "image/jpeg" → "jpg". */
 function getExtension(mimeType: string): string {
@@ -30,23 +31,58 @@ function getExtension(mimeType: string): string {
 }
 
 /**
+ * Send a lightweight GET request to wake up the Render server before the
+ * actual upload. Any HTTP response (even 401/403) means the server is awake;
+ * only a timeout or network error is treated as a failure.
+ */
+async function warmUpServer(token: string | null): Promise<void> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), WARMUP_TIMEOUT_MS);
+  try {
+    await fetch(`${API_URL}/api/auth/profile`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      signal: controller.signal,
+    });
+    // Any response means the server is up – ignore the status code.
+  } catch (err: unknown) {
+    if (err instanceof Error && err.name === 'AbortError') {
+      throw new Error(
+        'Could not reach the server after 3 minutes. Please check your internet connection and try again.'
+      );
+    }
+    throw err;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+/**
  * Upload a local media file (image / video / audio) to Cloudinary
  * through the backend multipart endpoint.
  *
  * Uses React Native's built-in fetch + FormData so no extra packages are needed.
  * The file is NOT base64-encoded, so this works for large video/audio files.
  *
- * @param uri      Local file URI returned by ImagePicker / DocumentPicker
- * @param mimeType MIME type of the file (e.g. "video/mp4", "audio/mpeg")
- * @param folder   Destination folder in Cloudinary (default: "posts")
- * @returns        Public Cloudinary URL for the uploaded file
+ * @param uri            Local file URI returned by ImagePicker / DocumentPicker
+ * @param mimeType       MIME type of the file (e.g. "video/mp4", "audio/mpeg")
+ * @param folder         Destination folder in Cloudinary (default: "posts")
+ * @param onStatusChange Optional callback invoked with status text for UI display
+ * @returns              Public Cloudinary URL for the uploaded file
  */
 export async function uploadMedia(
   uri: string,
   mimeType: string,
-  folder: string = 'posts'
+  folder: string = 'posts',
+  onStatusChange?: (status: string) => void
 ): Promise<string> {
   const token = await AsyncStorage.getItem('token');
+
+  // Phase 1: wake up the Render server (absorbs the cold-start delay).
+  onStatusChange?.('Connecting to server…');
+  await warmUpServer(token);
+
+  // Phase 2: now that the server is warm, send the actual file.
+  onStatusChange?.('Uploading…');
 
   // Include the file extension in the name so React Native's native multipart
   // encoder can correctly identify the content type on all platforms.
@@ -58,8 +94,6 @@ export async function uploadMedia(
     name: `upload.${ext}`,
   } as unknown as Blob);
 
-  // AbortController lets us cancel the fetch after UPLOAD_TIMEOUT_MS,
-  // preventing the spinner from hanging forever when the server is slow.
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), UPLOAD_TIMEOUT_MS);
 
@@ -90,7 +124,7 @@ export async function uploadMedia(
     return data.url;
   } catch (err: unknown) {
     if (err instanceof Error && err.name === 'AbortError') {
-      throw new Error('Upload timed out. The server may be starting up – please try again in a moment.');
+      throw new Error('Upload timed out. Please try again.');
     }
     throw err;
   } finally {
