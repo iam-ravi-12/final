@@ -6,7 +6,7 @@
 // App URL for sharing - can be overridden with environment variable
 // Default is set to production URL for convenience in development
 // For different environments, set EXPO_PUBLIC_APP_URL in your .env file
-export const APP_URL = process.env.EXPO_PUBLIC_APP_URL || 'https://final-okus.onrender.com';
+export const APP_URL = process.env.EXPO_PUBLIC_APP_URL || 'https://final-production-3b39.up.railway.app';
 
 // Other app-wide constants can be added here
 export const APP_NAME = 'Friends';
