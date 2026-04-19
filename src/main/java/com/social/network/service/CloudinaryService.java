@@ -85,7 +85,8 @@ public class CloudinaryService {
                     ObjectUtils.asMap(
                             "resource_type", resourceType,
                             "public_id", publicId,
-                            "overwrite", true
+                            "overwrite", true,
+                            "timeout", 60   // 60 s socket timeout for the upload HTTP call
                     )
             );
 
