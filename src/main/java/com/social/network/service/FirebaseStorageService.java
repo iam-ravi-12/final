@@ -56,8 +56,9 @@ public class FirebaseStorageService {
                 return null;
             }
 
-            String filename = folder + "/" + UUID.randomUUID() + getFileExtension(contentType != null ? contentType : "application/octet-stream");
-            bucket.create(filename, bytes, contentType != null ? contentType : "application/octet-stream");
+            String effectiveContentType = contentType != null ? contentType : "application/octet-stream";
+            String filename = folder + "/" + UUID.randomUUID() + getFileExtension(effectiveContentType);
+            bucket.create(filename, bytes, effectiveContentType);
 
             String publicUrl = String.format("https://storage.googleapis.com/%s/%s", bucketName, filename);
             logger.info("Successfully uploaded media to Firebase Storage: {}", publicUrl);

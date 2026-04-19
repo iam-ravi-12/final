@@ -112,7 +112,9 @@ export default function EditPostScreen() {
   };
 
   const pickVideo = async () => {
-    // Wait for the Alert sheet to fully dismiss before presenting the next native sheet.
+    // iOS/Android cannot show two native modal sheets simultaneously.
+    // The Alert sheet needs ~200 ms to fully animate out before the next
+    // native picker (ImagePicker) can be presented without throwing an error.
     await new Promise<void>(resolve => setTimeout(resolve, 200));
     try {
       const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -151,7 +153,9 @@ export default function EditPostScreen() {
   };
 
   const pickAudio = async () => {
-    // Wait for the Alert sheet to fully dismiss before presenting the next native sheet.
+    // iOS/Android cannot show two native modal sheets simultaneously.
+    // The Alert sheet needs ~200 ms to fully animate out before the next
+    // native picker (DocumentPicker) can be presented without throwing an error.
     await new Promise<void>(resolve => setTimeout(resolve, 200));
     try {
       const result = await DocumentPicker.getDocumentAsync({
