@@ -73,6 +73,9 @@ export default function CreatePostScreen() {
   };
 
   const pickVideo = async () => {
+    // Wait for the Alert sheet to fully dismiss before presenting the next native sheet.
+    // Without this delay iOS cannot open two native modals simultaneously and throws.
+    await new Promise<void>(resolve => setTimeout(resolve, 200));
     try {
       setUploadingMedia(true);
       const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -89,34 +92,46 @@ export default function CreatePostScreen() {
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const asset = result.assets[0];
-        const payload = await convertFileToDataUri(asset.uri, asset.mimeType);
-        setSelectedMedia({ uri: asset.uri, payload });
+        try {
+          const payload = await convertFileToDataUri(asset.uri, asset.mimeType);
+          setSelectedMedia({ uri: asset.uri, payload });
+        } catch (convErr) {
+          console.error('Error converting video file:', convErr);
+          Alert.alert('Error', 'The selected video file is too large to attach. Please choose a shorter clip.');
+        }
       }
     } catch (error) {
       console.error('Error picking video:', error);
-      Alert.alert('Error', 'Failed to pick video');
+      Alert.alert('Error', 'Failed to open video picker. Please try again.');
     } finally {
       setUploadingMedia(false);
     }
   };
 
   const pickAudio = async () => {
+    // Wait for the Alert sheet to fully dismiss before presenting the next native sheet.
+    // Without this delay iOS cannot open two native modals simultaneously and throws.
+    await new Promise<void>(resolve => setTimeout(resolve, 200));
     try {
       setUploadingMedia(true);
       const result = await DocumentPicker.getDocumentAsync({
         type: 'audio/*',
-        multiple: false,
         copyToCacheDirectory: true,
       });
 
-      if (!result.canceled && result.assets.length > 0) {
+      if (!result.canceled && result.assets && result.assets.length > 0) {
         const asset = result.assets[0];
-        const payload = await convertFileToDataUri(asset.uri, asset.mimeType);
-        setSelectedMedia({ uri: asset.uri, payload });
+        try {
+          const payload = await convertFileToDataUri(asset.uri, asset.mimeType);
+          setSelectedMedia({ uri: asset.uri, payload });
+        } catch (convErr) {
+          console.error('Error converting audio file:', convErr);
+          Alert.alert('Error', 'The selected audio file is too large to attach. Please choose a smaller file.');
+        }
       }
     } catch (error) {
       console.error('Error picking audio:', error);
-      Alert.alert('Error', 'Failed to pick audio');
+      Alert.alert('Error', 'Failed to open audio picker. Please try again.');
     } finally {
       setUploadingMedia(false);
     }
