@@ -36,8 +36,8 @@ export default function PostMediaAttachment({ uri, mediaStyle }: PostMediaAttach
     );
   }
 
-  const iconName = mediaType === 'video' ? 'videocam' : 'musical-notes';
-  const title = mediaType === 'video' ? 'Video attachment' : 'Audio attachment';
+  const iconName = 'musical-notes';
+  const title = 'Audio attachment';
 
   const handlePress = async () => {
     try {
