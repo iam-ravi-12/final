@@ -39,6 +39,9 @@ public class CloudinaryService {
     @Value("${CLOUDINARY_API_SECRET:#{null}}")
     private String apiSecret;
 
+    @Value("${CLOUDINARY_UPLOAD_TIMEOUT_SECONDS:120}")
+    private int uploadTimeoutSeconds;
+
     private Cloudinary cloudinary;
 
     @PostConstruct
@@ -87,7 +90,7 @@ public class CloudinaryService {
                             "resource_type", resourceType,
                             "public_id", publicId,
                             "overwrite", true,
-                            "timeout", 60   // 60 s socket timeout for the upload HTTP call
+                            "timeout", uploadTimeoutSeconds   // socket timeout for the upload HTTP call (seconds)
                     )
             );
 
