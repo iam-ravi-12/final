@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://sos-check.onrender.com';
+const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://final-production-3b39.up.railway.app';
 
 // How long to wait for the Render server to wake up from a cold start.
 // Render free-tier instances can take 60–120 s to boot; 3 minutes is safe.
