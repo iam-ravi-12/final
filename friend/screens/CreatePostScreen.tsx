@@ -10,20 +10,21 @@ import {
   Platform,
   ScrollView,
   Switch,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
-import * as FileSystem from 'expo-file-system';
 import { Ionicons } from '@expo/vector-icons';
 import postService from '../services/postService';
 import PostMediaAttachment from '../components/PostMediaAttachment';
-import { buildDataUri, getMimeTypeFromUri } from '../utils/media';
+import { getMimeTypeFromUri } from '../utils/media';
+import { uploadMedia } from '../services/mediaUploadService';
 
 type SelectedMedia = {
   uri: string;
-  payload: string;
+  payload: string; // Firebase Storage URL returned after upload
 };
 
 export default function CreatePostScreen() {
@@ -33,14 +34,7 @@ export default function CreatePostScreen() {
   const [selectedMedia, setSelectedMedia] = useState<SelectedMedia | null>(null);
   const [loading, setLoading] = useState(false);
   const [uploadingMedia, setUploadingMedia] = useState(false);
-
-  const convertFileToDataUri = async (uri: string, explicitMimeType?: string | null) => {
-    const base64 = await FileSystem.readAsStringAsync(uri, {
-      encoding: FileSystem.EncodingType.Base64,
-    });
-    const mimeType = explicitMimeType || getMimeTypeFromUri(uri) || 'application/octet-stream';
-    return buildDataUri(base64, mimeType);
-  };
+  const [uploadStatus, setUploadStatus] = useState('');
 
   const pickImage = async () => {
     try {
@@ -54,30 +48,38 @@ export default function CreatePostScreen() {
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [4, 3],
-        quality: 0.8,
-        base64: true, // Request base64 encoding directly
+        // Compress images to ~60 % quality to reduce upload size
+        quality: 0.6,
       });
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const asset = result.assets[0];
         const mimeType = asset.mimeType || getMimeTypeFromUri(asset.uri) || 'image/jpeg';
-        const payload = asset.base64
-          ? buildDataUri(asset.base64, mimeType)
-          : await convertFileToDataUri(asset.uri, mimeType);
-        setSelectedMedia({ uri: asset.uri, payload });
+        setUploadingMedia(true);
+        setUploadStatus('Uploading photo…');
+        try {
+          const url = await uploadMedia(asset.uri, mimeType, 'posts');
+          setSelectedMedia({ uri: asset.uri, payload: url });
+        } catch (uploadErr) {
+          console.error('Error uploading image:', uploadErr);
+          Alert.alert('Upload Failed', 'Could not upload the photo. Please try again.');
+        } finally {
+          setUploadingMedia(false);
+          setUploadStatus('');
+        }
       }
     } catch (error) {
       console.error('Error picking image:', error);
-      Alert.alert('Error', 'Failed to pick image');
+      Alert.alert('Error', 'Failed to open photo picker. Please try again.');
+      setUploadingMedia(false);
+      setUploadStatus('');
     }
   };
 
   const pickVideo = async () => {
     // Wait for the Alert sheet to fully dismiss before presenting the next native sheet.
-    // Without this delay iOS cannot open two native modals simultaneously and throws.
     await new Promise<void>(resolve => setTimeout(resolve, 200));
     try {
-      setUploadingMedia(true);
       const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!permissionResult.granted) {
         Alert.alert('Permission Required', 'Please grant media library permission to upload files.');
@@ -87,33 +89,36 @@ export default function CreatePostScreen() {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Videos,
         allowsEditing: false,
-        quality: 0.8,
+        // Compress video to ~50 % quality to reduce upload size
+        quality: 0.5,
       });
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const asset = result.assets[0];
+        const mimeType = asset.mimeType || getMimeTypeFromUri(asset.uri) || 'video/mp4';
+        setUploadingMedia(true);
+        setUploadStatus('Uploading video… this may take a moment');
         try {
-          const payload = await convertFileToDataUri(asset.uri, asset.mimeType);
-          setSelectedMedia({ uri: asset.uri, payload });
-        } catch (convErr) {
-          console.error('Error converting video file:', convErr);
-          Alert.alert('Error', 'The selected video file is too large to attach. Please choose a shorter clip.');
+          const url = await uploadMedia(asset.uri, mimeType, 'posts');
+          setSelectedMedia({ uri: asset.uri, payload: url });
+        } catch (uploadErr) {
+          console.error('Error uploading video:', uploadErr);
+          Alert.alert('Upload Failed', 'Could not upload the video. Please try again or choose a shorter clip.');
+        } finally {
+          setUploadingMedia(false);
+          setUploadStatus('');
         }
       }
     } catch (error) {
       console.error('Error picking video:', error);
       Alert.alert('Error', 'Failed to open video picker. Please try again.');
-    } finally {
-      setUploadingMedia(false);
     }
   };
 
   const pickAudio = async () => {
     // Wait for the Alert sheet to fully dismiss before presenting the next native sheet.
-    // Without this delay iOS cannot open two native modals simultaneously and throws.
     await new Promise<void>(resolve => setTimeout(resolve, 200));
     try {
-      setUploadingMedia(true);
       const result = await DocumentPicker.getDocumentAsync({
         type: 'audio/*',
         copyToCacheDirectory: true,
@@ -121,19 +126,23 @@ export default function CreatePostScreen() {
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const asset = result.assets[0];
+        const mimeType = asset.mimeType || getMimeTypeFromUri(asset.uri) || 'audio/mpeg';
+        setUploadingMedia(true);
+        setUploadStatus('Uploading audio…');
         try {
-          const payload = await convertFileToDataUri(asset.uri, asset.mimeType);
-          setSelectedMedia({ uri: asset.uri, payload });
-        } catch (convErr) {
-          console.error('Error converting audio file:', convErr);
-          Alert.alert('Error', 'The selected audio file is too large to attach. Please choose a smaller file.');
+          const url = await uploadMedia(asset.uri, mimeType, 'posts');
+          setSelectedMedia({ uri: asset.uri, payload: url });
+        } catch (uploadErr) {
+          console.error('Error uploading audio:', uploadErr);
+          Alert.alert('Upload Failed', 'Could not upload the audio file. Please try again.');
+        } finally {
+          setUploadingMedia(false);
+          setUploadStatus('');
         }
       }
     } catch (error) {
       console.error('Error picking audio:', error);
       Alert.alert('Error', 'Failed to open audio picker. Please try again.');
-    } finally {
-      setUploadingMedia(false);
     }
   };
 
@@ -194,11 +203,11 @@ export default function CreatePostScreen() {
             <Text style={styles.cancelButton}>Cancel</Text>
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Create Post</Text>
-          <TouchableOpacity onPress={handleSubmit} disabled={loading}>
+          <TouchableOpacity onPress={handleSubmit} disabled={loading || uploadingMedia}>
             <Text
               style={[
                 styles.postButton,
-                loading && styles.postButtonDisabled,
+                (loading || uploadingMedia) && styles.postButtonDisabled,
               ]}
             >
               {loading ? 'Posting...' : 'Post'}
@@ -236,10 +245,19 @@ export default function CreatePostScreen() {
           onPress={showMediaPickerOptions}
           disabled={loading || uploadingMedia}
         >
-          <Ionicons name="attach-outline" size={24} color="#007AFF" />
-          <Text style={styles.addPhotoText}>
-            {selectedMedia ? 'Change Media' : 'Add Photo / Video / Audio'}
-          </Text>
+          {uploadingMedia ? (
+            <>
+              <ActivityIndicator size="small" color="#007AFF" />
+              <Text style={styles.addPhotoText}>{uploadStatus || 'Uploading…'}</Text>
+            </>
+          ) : (
+            <>
+              <Ionicons name="attach-outline" size={24} color="#007AFF" />
+              <Text style={styles.addPhotoText}>
+                {selectedMedia ? 'Change Media' : 'Add Photo / Video / Audio'}
+              </Text>
+            </>
+          )}
         </TouchableOpacity>
 
         <View style={styles.option}>

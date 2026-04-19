@@ -30,6 +30,49 @@ public class FirebaseStorageService {
     }
 
     /**
+     * Upload raw bytes (e.g. from a multipart file) to Firebase Storage.
+     * This avoids base64 encoding and works for any file size.
+     *
+     * @param bytes       The file bytes
+     * @param contentType MIME type of the file
+     * @param folder      Destination folder in Firebase Storage (e.g., "posts")
+     * @return The public URL of the uploaded file, or null if upload fails
+     */
+    public String uploadMedia(byte[] bytes, String contentType, String folder) {
+        if (bytes == null || bytes.length == 0) {
+            logger.warn("Attempted to upload null or empty bytes");
+            return null;
+        }
+
+        if (bucketName == null || bucketName.isEmpty()) {
+            logger.warn("Firebase Storage bucket not configured.");
+            return null;
+        }
+
+        try {
+            Bucket bucket = StorageClient.getInstance().bucket(bucketName);
+            if (bucket == null) {
+                logger.warn("Firebase Storage bucket not available.");
+                return null;
+            }
+
+            String filename = folder + "/" + UUID.randomUUID() + getFileExtension(contentType != null ? contentType : "application/octet-stream");
+            bucket.create(filename, bytes, contentType != null ? contentType : "application/octet-stream");
+
+            String publicUrl = String.format("https://storage.googleapis.com/%s/%s", bucketName, filename);
+            logger.info("Successfully uploaded media to Firebase Storage: {}", publicUrl);
+            return publicUrl;
+
+        } catch (IllegalStateException e) {
+            logger.error("Firebase not initialized.", e);
+            return null;
+        } catch (Exception e) {
+            logger.error("Error uploading media to Firebase Storage.", e);
+            return null;
+        }
+    }
+
+    /**
      * Upload a base64 encoded image to Firebase Storage
      * 
      * @param base64Image The base64 encoded image string (with or without data URI prefix)
