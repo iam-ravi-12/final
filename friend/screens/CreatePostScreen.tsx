@@ -10,35 +10,46 @@ import {
   Platform,
   ScrollView,
   Switch,
-  Image,
-  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
+import * as DocumentPicker from 'expo-document-picker';
+import * as FileSystem from 'expo-file-system';
 import { Ionicons } from '@expo/vector-icons';
 import postService from '../services/postService';
+import PostMediaAttachment from '../components/PostMediaAttachment';
+import { buildDataUri, getMimeTypeFromUri } from '../utils/media';
+
+type SelectedMedia = {
+  uri: string;
+  payload: string;
+};
 
 export default function CreatePostScreen() {
   const [content, setContent] = useState('');
   const [isHelpSection, setIsHelpSection] = useState(false);
   const [showInHome, setShowInHome] = useState(true);
-  const [imageUri, setImageUri] = useState<string | null>(null);
-  const [imageBase64, setImageBase64] = useState<string | null>(null);
+  const [selectedMedia, setSelectedMedia] = useState<SelectedMedia | null>(null);
   const [loading, setLoading] = useState(false);
-  const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadingMedia, setUploadingMedia] = useState(false);
+
+  const convertFileToDataUri = async (uri: string, explicitMimeType?: string | null) => {
+    const base64 = await FileSystem.readAsStringAsync(uri, {
+      encoding: FileSystem.EncodingType.Base64,
+    });
+    const mimeType = explicitMimeType || getMimeTypeFromUri(uri) || 'application/octet-stream';
+    return buildDataUri(base64, mimeType);
+  };
 
   const pickImage = async () => {
     try {
-      // Request permission
       const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      
       if (!permissionResult.granted) {
-        Alert.alert('Permission Required', 'Please grant camera roll permission to upload images.');
+        Alert.alert('Permission Required', 'Please grant media library permission to upload files.');
         return;
       }
 
-      // Launch image picker with base64 option
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
@@ -49,13 +60,11 @@ export default function CreatePostScreen() {
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const asset = result.assets[0];
-        setImageUri(asset.uri);
-        
-        // Store base64 with proper data URI prefix
-        if (asset.base64) {
-          const mimeType = asset.uri.toLowerCase().endsWith('.png') ? 'image/png' : 'image/jpeg';
-          setImageBase64(`data:${mimeType};base64,${asset.base64}`);
-        }
+        const mimeType = asset.mimeType || getMimeTypeFromUri(asset.uri) || 'image/jpeg';
+        const payload = asset.base64
+          ? buildDataUri(asset.base64, mimeType)
+          : await convertFileToDataUri(asset.uri, mimeType);
+        setSelectedMedia({ uri: asset.uri, payload });
       }
     } catch (error) {
       console.error('Error picking image:', error);
@@ -63,9 +72,67 @@ export default function CreatePostScreen() {
     }
   };
 
-  const removeImage = () => {
-    setImageUri(null);
-    setImageBase64(null);
+  const pickVideo = async () => {
+    try {
+      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!permissionResult.granted) {
+        Alert.alert('Permission Required', 'Please grant media library permission to upload files.');
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Videos,
+        allowsEditing: false,
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        setUploadingMedia(true);
+        const asset = result.assets[0];
+        const payload = await convertFileToDataUri(asset.uri, asset.mimeType);
+        setSelectedMedia({ uri: asset.uri, payload });
+      }
+    } catch (error) {
+      console.error('Error picking video:', error);
+      Alert.alert('Error', 'Failed to pick video');
+    } finally {
+      setUploadingMedia(false);
+    }
+  };
+
+  const pickAudio = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: 'audio/*',
+        multiple: false,
+        copyToCacheDirectory: true,
+      });
+
+      if (!result.canceled && result.assets.length > 0) {
+        setUploadingMedia(true);
+        const asset = result.assets[0];
+        const payload = await convertFileToDataUri(asset.uri, asset.mimeType);
+        setSelectedMedia({ uri: asset.uri, payload });
+      }
+    } catch (error) {
+      console.error('Error picking audio:', error);
+      Alert.alert('Error', 'Failed to pick audio');
+    } finally {
+      setUploadingMedia(false);
+    }
+  };
+
+  const showMediaPickerOptions = () => {
+    Alert.alert('Add Media', 'Choose what you want to add', [
+      { text: 'Photo', onPress: pickImage },
+      { text: 'Video', onPress: pickVideo },
+      { text: 'Audio', onPress: pickAudio },
+      { text: 'Cancel', style: 'cancel' },
+    ]);
+  };
+
+  const removeMedia = () => {
+    setSelectedMedia(null);
   };
 
   const handleSubmit = async () => {
@@ -82,17 +149,14 @@ export default function CreatePostScreen() {
         showInHome,
       };
       
-      // If there's an image, use the base64 data from the picker
-      // The backend will then upload it to Firebase Storage
-      if (imageBase64) {
-        postData.mediaUrls = [imageBase64];
+      if (selectedMedia?.payload) {
+        postData.mediaUrls = [selectedMedia.payload];
       }
       
       await postService.createPost(postData);
       Alert.alert('Success', 'Post created successfully!');
       setContent('');
-      setImageUri(null);
-      setImageBase64(null);
+      setSelectedMedia(null);
       setIsHelpSection(false);
       setShowInHome(true);
       router.back();
@@ -139,12 +203,12 @@ export default function CreatePostScreen() {
           editable={!loading}
         />
 
-        {imageUri && (
+        {selectedMedia?.uri && (
           <View style={styles.imageContainer}>
-            <Image source={{ uri: imageUri }} style={styles.image} />
+            <PostMediaAttachment uri={selectedMedia.uri} mediaStyle={styles.image} />
             <TouchableOpacity
               style={styles.removeImageButton}
-              onPress={removeImage}
+              onPress={removeMedia}
               disabled={loading}
             >
               <Ionicons name="close-circle" size={28} color="#fff" />
@@ -154,12 +218,12 @@ export default function CreatePostScreen() {
 
         <TouchableOpacity
           style={styles.addPhotoButton}
-          onPress={pickImage}
-          disabled={loading || uploadingImage}
+          onPress={showMediaPickerOptions}
+          disabled={loading || uploadingMedia}
         >
-          <Ionicons name="image-outline" size={24} color="#007AFF" />
+          <Ionicons name="attach-outline" size={24} color="#007AFF" />
           <Text style={styles.addPhotoText}>
-            {imageUri ? 'Change Photo' : 'Add Photo'}
+            {selectedMedia ? 'Change Media' : 'Add Photo / Video / Audio'}
           </Text>
         </TouchableOpacity>
 

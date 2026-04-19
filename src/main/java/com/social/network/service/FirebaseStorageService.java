@@ -174,8 +174,22 @@ public class FirebaseStorageService {
                 return ".mp4";
             case "video/webm":
                 return ".webm";
+            case "audio/mpeg":
+                return ".mp3";
+            case "audio/mp4":
+            case "audio/x-m4a":
+                return ".m4a";
+            case "audio/wav":
+            case "audio/x-wav":
+                return ".wav";
+            case "audio/aac":
+                return ".aac";
+            case "audio/ogg":
+                return ".ogg";
+            case "audio/webm":
+                return ".webm";
             default:
-                return ".jpg";
+                return ".bin";
         }
     }
 

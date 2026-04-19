@@ -152,7 +152,9 @@ public class CommunityService {
         if (request.getMediaUrls() != null && !request.getMediaUrls().isEmpty()) {
             List<String> uploadedUrls = new java.util.ArrayList<>();
             for (String mediaUrl : request.getMediaUrls()) {
-                String uploadedUrl = firebaseStorageService.uploadImage(mediaUrl, "community-posts");
+                String uploadedUrl = mediaUrl != null && mediaUrl.startsWith("data:")
+                        ? firebaseStorageService.uploadImage(mediaUrl, "community-posts")
+                        : mediaUrl;
                 uploadedUrls.add(uploadedUrl);
             }
             post.setMediaUrls(uploadedUrls);

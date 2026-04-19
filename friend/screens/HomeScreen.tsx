@@ -23,6 +23,7 @@ import postService, { PostResponse } from '../services/postService';
 import SosButton from '../components/SosButton';
 import { useAuth } from '../contexts/AuthContext';
 import { router } from 'expo-router';
+import PostMediaAttachment from '../components/PostMediaAttachment';
 
 type PostSection = 'all' | 'professional' | 'help';
 
@@ -300,11 +301,7 @@ export default function HomeScreen() {
         </Text>
         
         {item.mediaUrls && item.mediaUrls.length > 0 && (
-          <Image
-            source={{ uri: item.mediaUrls[0] }}
-            style={styles.postImage}
-            resizeMode="cover"
-          />
+          <PostMediaAttachment uri={item.mediaUrls[0]} mediaStyle={styles.postImage} />
         )}
       </TouchableOpacity>
 

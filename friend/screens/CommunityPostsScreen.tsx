@@ -21,6 +21,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import communityService, { CommunityPostResponse, CommunityResponse, CommunityMemberResponse } from '../services/communityService';
 import { APP_URL, MAX_POST_LENGTH } from '../constants/config';
 import { copyToClipboard, formatRelativeDate, formatMemberCount } from '../utils/helpers';
+import PostMediaAttachment from '../components/PostMediaAttachment';
 
 type TabType = 'approved' | 'pending' | 'members';
 
@@ -289,12 +290,7 @@ export default function CommunityPostsScreen() {
         {item.mediaUrls && item.mediaUrls.length > 0 && (
           <View style={styles.mediaContainer}>
             {item.mediaUrls.map((url, index) => (
-              <Image
-                key={index}
-                source={{ uri: url }}
-                style={styles.mediaImage}
-                resizeMode="cover"
-              />
+              <PostMediaAttachment key={index} uri={url} mediaStyle={styles.mediaImage} />
             ))}
           </View>
         )}

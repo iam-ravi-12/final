@@ -20,6 +20,7 @@ import { Ionicons } from '@expo/vector-icons';
 import postService, { PostResponse, CommentResponse } from '../services/postService';
 import { useAuth } from '../contexts/AuthContext';
 import { parseUTCDate } from '../utils/helpers';
+import PostMediaAttachment from '../components/PostMediaAttachment';
 
 export default function PostDetailScreen() {
   const { postId } = useLocalSearchParams<{ postId: string }>();
@@ -258,11 +259,7 @@ export default function PostDetailScreen() {
           <Text style={styles.postContent}>{post.content}</Text>
           
           {post.mediaUrls && post.mediaUrls.length > 0 && (
-            <Image
-              source={{ uri: post.mediaUrls[0] }}
-              style={styles.postImage}
-              resizeMode="cover"
-            />
+            <PostMediaAttachment uri={post.mediaUrls[0]} mediaStyle={styles.postImage} />
           )}
 
           <View style={styles.postActions}>

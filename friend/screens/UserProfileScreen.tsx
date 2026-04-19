@@ -19,6 +19,7 @@ import authService, { ProfileResponse } from '../services/authService';
 import followService, { FollowStatsResponse } from '../services/followService';
 import postService, { PostResponse } from '../services/postService';
 import { parseUTCDate } from '../utils/helpers';
+import PostMediaAttachment from '../components/PostMediaAttachment';
 
 const formatTimeAgo = (dateString: string): string => {
   const now = new Date();
@@ -132,11 +133,7 @@ export default function UserProfileScreen() {
           {item.content}
         </Text>
         {item.mediaUrls && item.mediaUrls.length > 0 && (
-          <Image
-            source={{ uri: item.mediaUrls[0] }}
-            style={styles.postImage}
-            resizeMode="cover"
-          />
+          <PostMediaAttachment uri={item.mediaUrls[0]} mediaStyle={styles.postImage} />
         )}
         <View style={styles.postActions}>
           <View style={styles.actionItem}>

@@ -52,8 +52,9 @@ public class PostService {
             java.util.List<String> uploadedUrls = new java.util.ArrayList<>();
             
             for (String mediaUrl : postRequest.getMediaUrls()) {
-                // Upload each media file to Firebase Storage
-                String uploadedUrl = firebaseStorageService.uploadImage(mediaUrl, "posts");
+                String uploadedUrl = isDataUri(mediaUrl)
+                        ? firebaseStorageService.uploadImage(mediaUrl, "posts")
+                        : mediaUrl;
                 uploadedUrls.add(uploadedUrl);
             }
             
@@ -196,7 +197,9 @@ public class PostService {
             // Upload new media to Firebase Storage
             java.util.List<String> uploadedUrls = new java.util.ArrayList<>();
             for (String mediaUrl : postRequest.getMediaUrls()) {
-                String uploadedUrl = firebaseStorageService.uploadImage(mediaUrl, "posts");
+                String uploadedUrl = isDataUri(mediaUrl)
+                        ? firebaseStorageService.uploadImage(mediaUrl, "posts")
+                        : mediaUrl;
                 uploadedUrls.add(uploadedUrl);
             }
             
@@ -261,5 +264,8 @@ public class PostService {
         response.setLiked(currentUser != null && likeRepository.existsByPostAndUser(post, currentUser));
         return response;
     }
-}
 
+    private boolean isDataUri(String value) {
+        return value != null && value.startsWith("data:");
+    }
+}
