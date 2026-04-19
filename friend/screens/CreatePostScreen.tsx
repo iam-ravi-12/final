@@ -74,6 +74,7 @@ export default function CreatePostScreen() {
 
   const pickVideo = async () => {
     try {
+      setUploadingMedia(true);
       const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!permissionResult.granted) {
         Alert.alert('Permission Required', 'Please grant media library permission to upload files.');
@@ -87,7 +88,6 @@ export default function CreatePostScreen() {
       });
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
-        setUploadingMedia(true);
         const asset = result.assets[0];
         const payload = await convertFileToDataUri(asset.uri, asset.mimeType);
         setSelectedMedia({ uri: asset.uri, payload });
@@ -102,6 +102,7 @@ export default function CreatePostScreen() {
 
   const pickAudio = async () => {
     try {
+      setUploadingMedia(true);
       const result = await DocumentPicker.getDocumentAsync({
         type: 'audio/*',
         multiple: false,
@@ -109,7 +110,6 @@ export default function CreatePostScreen() {
       });
 
       if (!result.canceled && result.assets.length > 0) {
-        setUploadingMedia(true);
         const asset = result.assets[0];
         const payload = await convertFileToDataUri(asset.uri, asset.mimeType);
         setSelectedMedia({ uri: asset.uri, payload });

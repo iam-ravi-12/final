@@ -189,6 +189,7 @@ public class FirebaseStorageService {
             case "audio/webm":
                 return ".webm";
             default:
+                logger.warn("Unsupported content type '{}', using .bin extension", contentType);
                 return ".bin";
         }
     }

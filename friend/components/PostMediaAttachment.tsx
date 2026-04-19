@@ -30,8 +30,8 @@ export default function PostMediaAttachment({ uri, mediaStyle }: PostMediaAttach
   const handlePress = async () => {
     try {
       await Linking.openURL(uri);
-    } catch {
-      // no-op
+    } catch (error) {
+      console.error('Failed to open media URL:', error);
     }
   };
 
