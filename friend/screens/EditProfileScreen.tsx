@@ -10,6 +10,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Image,
+  ActivityIndicator,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { IconSymbol } from '@/components/ui/icon-symbol';
@@ -24,6 +25,7 @@ export default function EditProfileScreen() {
   const [organization, setOrganization] = useState(user?.organization || '');
   const [location, setLocation] = useState(user?.location || '');
   const [profilePicture, setProfilePicture] = useState(user?.profilePicture || '');
+  const [profilePictureBase64, setProfilePictureBase64] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const pickImage = async () => {
@@ -35,18 +37,24 @@ export default function EditProfileScreen() {
       return;
     }
 
-    // Launch image picker
+    // Launch image picker with base64 option
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.8,
+      base64: true, // Request base64 encoding directly
     });
 
     if (!result.canceled && result.assets && result.assets.length > 0) {
-      // For now, we'll use the local URI
-      // In production, you would upload this to a server and get a URL
-      setProfilePicture(result.assets[0].uri);
+      const asset = result.assets[0];
+      setProfilePicture(asset.uri);
+      
+      // Store base64 with proper data URI prefix
+      if (asset.base64) {
+        const mimeType = asset.uri.toLowerCase().endsWith('.png') ? 'image/png' : 'image/jpeg';
+        setProfilePictureBase64(`data:${mimeType};base64,${asset.base64}`);
+      }
     }
   };
 
@@ -58,12 +66,22 @@ export default function EditProfileScreen() {
 
     setLoading(true);
     try {
+      let imageToSend = undefined;
+      
+      // If we have a new base64 image, use it
+      // Otherwise, if there's an existing URL, keep it
+      if (profilePictureBase64) {
+        imageToSend = profilePictureBase64;
+      } else if (profilePicture && profilePicture.startsWith('http')) {
+        imageToSend = profilePicture;
+      }
+      
       await authService.updateProfile({ 
         name: name || undefined,
         profession, 
         organization, 
         location,
-        profilePicture: profilePicture || undefined
+        profilePicture: imageToSend
       });
       await refreshUser();
       Alert.alert('Success', 'Profile updated successfully', [
