@@ -10,11 +10,12 @@ import {
   ImageStyle,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { ResizeMode, Video } from 'expo-av';
 import { inferMediaType } from '../utils/media';
 
 interface PostMediaAttachmentProps {
   uri: string;
-  mediaStyle: StyleProp<ImageStyle>;
+  mediaStyle: StyleProp<ImageStyle | ViewStyle>;
 }
 
 export default function PostMediaAttachment({ uri, mediaStyle }: PostMediaAttachmentProps) {
@@ -22,6 +23,17 @@ export default function PostMediaAttachment({ uri, mediaStyle }: PostMediaAttach
 
   if (mediaType === 'image' || mediaType === 'unknown') {
     return <Image source={{ uri }} style={mediaStyle} resizeMode="cover" />;
+  }
+
+  if (mediaType === 'video') {
+    return (
+      <Video
+        source={{ uri }}
+        style={mediaStyle as StyleProp<ViewStyle>}
+        useNativeControls
+        resizeMode={ResizeMode.CONTAIN}
+      />
+    );
   }
 
   const iconName = mediaType === 'video' ? 'videocam' : 'musical-notes';
