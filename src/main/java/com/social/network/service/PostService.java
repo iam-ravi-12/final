@@ -20,16 +20,16 @@ public class PostService {
     private final UserRepository userRepository;
     private final LikeRepository likeRepository;
     private final CommentRepository commentRepository;
-    private final FirebaseStorageService firebaseStorageService;
+    private final CloudinaryService cloudinaryService;
 
     public PostService(PostRepository postRepository, UserRepository userRepository,
                        LikeRepository likeRepository, CommentRepository commentRepository,
-                       FirebaseStorageService firebaseStorageService) {
+                       CloudinaryService cloudinaryService) {
         this.postRepository = postRepository;
         this.userRepository = userRepository;
         this.likeRepository = likeRepository;
         this.commentRepository = commentRepository;
-        this.firebaseStorageService = firebaseStorageService;
+        this.cloudinaryService = cloudinaryService;
     }
 
     public PostResponse createPost(String username, PostRequest postRequest) {
@@ -47,13 +47,13 @@ public class PostService {
         post.setUser(user);
         post.setUserProfession(user.getProfession());
         
-        // Handle media URLs - upload to Firebase Storage
+        // Handle media URLs - upload to Cloudinary
         if (postRequest.getMediaUrls() != null && !postRequest.getMediaUrls().isEmpty()) {
             java.util.List<String> uploadedUrls = new java.util.ArrayList<>();
             
             for (String mediaUrl : postRequest.getMediaUrls()) {
                 String uploadedUrl = isDataUri(mediaUrl)
-                        ? firebaseStorageService.uploadImage(mediaUrl, "posts")
+                        ? cloudinaryService.uploadImage(mediaUrl, "posts")
                         : mediaUrl;
                 uploadedUrls.add(uploadedUrl);
             }
@@ -186,19 +186,19 @@ public class PostService {
         
         // Handle media URLs
         if (postRequest.getMediaUrls() != null && !postRequest.getMediaUrls().isEmpty()) {
-            // Delete old media from Firebase Storage if it exists
+            // Delete old media from Cloudinary if it exists
             if (post.getMediaUrls() != null && !post.getMediaUrls().isEmpty()) {
                 String[] oldUrls = post.getMediaUrls().split("\\|\\|\\|MEDIA_SEPARATOR\\|\\|\\|");
                 for (String oldUrl : oldUrls) {
-                    firebaseStorageService.deleteImage(oldUrl);
+                    cloudinaryService.deleteMedia(oldUrl);
                 }
             }
             
-            // Upload new media to Firebase Storage
+            // Upload new media to Cloudinary
             java.util.List<String> uploadedUrls = new java.util.ArrayList<>();
             for (String mediaUrl : postRequest.getMediaUrls()) {
                 String uploadedUrl = isDataUri(mediaUrl)
-                        ? firebaseStorageService.uploadImage(mediaUrl, "posts")
+                        ? cloudinaryService.uploadImage(mediaUrl, "posts")
                         : mediaUrl;
                 uploadedUrls.add(uploadedUrl);
             }
@@ -209,7 +209,7 @@ public class PostService {
             if (post.getMediaUrls() != null && !post.getMediaUrls().isEmpty()) {
                 String[] oldUrls = post.getMediaUrls().split("\\|\\|\\|MEDIA_SEPARATOR\\|\\|\\|");
                 for (String oldUrl : oldUrls) {
-                    firebaseStorageService.deleteImage(oldUrl);
+                    cloudinaryService.deleteMedia(oldUrl);
                 }
             }
             post.setMediaUrls(null);
@@ -230,11 +230,11 @@ public class PostService {
             throw new RuntimeException("You can only delete your own posts");
         }
 
-        // Delete media from Firebase Storage if it exists
+        // Delete media from Cloudinary if it exists
         if (post.getMediaUrls() != null && !post.getMediaUrls().isEmpty()) {
             String[] mediaUrls = post.getMediaUrls().split("\\|\\|\\|MEDIA_SEPARATOR\\|\\|\\|");
             for (String mediaUrl : mediaUrls) {
-                firebaseStorageService.deleteImage(mediaUrl);
+                cloudinaryService.deleteMedia(mediaUrl);
             }
         }
 

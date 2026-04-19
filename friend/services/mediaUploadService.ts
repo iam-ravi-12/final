@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://sos-check.onrender.com';
 
 /**
- * Upload a local media file (image / video / audio) directly to Firebase Storage
+ * Upload a local media file (image / video / audio) to Cloudinary
  * through the backend multipart endpoint.
  *
  * Uses React Native's built-in fetch + FormData so no extra packages are needed.
@@ -11,8 +11,8 @@ const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://sos-check.onrender.c
  *
  * @param uri      Local file URI returned by ImagePicker / DocumentPicker
  * @param mimeType MIME type of the file (e.g. "video/mp4", "audio/mpeg")
- * @param folder   Destination folder in Firebase Storage (default: "posts")
- * @returns        Public Firebase Storage URL for the uploaded file
+ * @param folder   Destination folder in Cloudinary (default: "posts")
+ * @returns        Public Cloudinary URL for the uploaded file
  */
 export async function uploadMedia(
   uri: string,

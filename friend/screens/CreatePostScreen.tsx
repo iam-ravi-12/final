@@ -24,7 +24,7 @@ import { uploadMedia } from '../services/mediaUploadService';
 
 type SelectedMedia = {
   uri: string;
-  payload: string; // Firebase Storage URL returned after upload
+  payload: string; // Cloudinary URL returned after upload
 };
 
 export default function CreatePostScreen() {

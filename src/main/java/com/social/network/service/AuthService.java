@@ -25,20 +25,20 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
     private final OTPService otpService;
-    private final FirebaseStorageService firebaseStorageService;
+    private final CloudinaryService cloudinaryService;
 
     public AuthService(UserRepository userRepository, 
                       PasswordEncoder passwordEncoder,
                       AuthenticationManager authenticationManager,
                       JwtTokenProvider jwtTokenProvider,
                       OTPService otpService,
-                      FirebaseStorageService firebaseStorageService) {
+                      CloudinaryService cloudinaryService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.jwtTokenProvider = jwtTokenProvider;
         this.otpService = otpService;
-        this.firebaseStorageService = firebaseStorageService;
+        this.cloudinaryService = cloudinaryService;
     }
 
     public SignupResponse signup(SignupRequest signupRequest) {
@@ -152,13 +152,13 @@ public class AuthService {
         user.setLocation(profileRequest.getLocation());
         
         if (profileRequest.getProfilePicture() != null && !profileRequest.getProfilePicture().isEmpty()) {
-            // Delete old profile picture from Firebase Storage if it exists
+            // Delete old profile picture from Cloudinary if it exists
             if (user.getProfilePicture() != null && !user.getProfilePicture().isEmpty()) {
-                firebaseStorageService.deleteImage(user.getProfilePicture());
+                cloudinaryService.deleteMedia(user.getProfilePicture());
             }
             
-            // Upload new profile picture to Firebase Storage
-            String imageUrl = firebaseStorageService.uploadImage(
+            // Upload new profile picture to Cloudinary
+            String imageUrl = cloudinaryService.uploadImage(
                 profileRequest.getProfilePicture(), 
                 "profiles"
             );

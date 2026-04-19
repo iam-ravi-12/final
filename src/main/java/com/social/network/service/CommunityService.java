@@ -26,18 +26,18 @@ public class CommunityService {
     private final CommunityMemberRepository communityMemberRepository;
     private final CommunityPostRepository communityPostRepository;
     private final UserRepository userRepository;
-    private final FirebaseStorageService firebaseStorageService;
+    private final CloudinaryService cloudinaryService;
 
     public CommunityService(CommunityRepository communityRepository,
                           CommunityMemberRepository communityMemberRepository,
                           CommunityPostRepository communityPostRepository,
                           UserRepository userRepository,
-                          FirebaseStorageService firebaseStorageService) {
+                          CloudinaryService cloudinaryService) {
         this.communityRepository = communityRepository;
         this.communityMemberRepository = communityMemberRepository;
         this.communityPostRepository = communityPostRepository;
         this.userRepository = userRepository;
-        this.firebaseStorageService = firebaseStorageService;
+        this.cloudinaryService = cloudinaryService;
     }
 
     @Transactional
@@ -50,9 +50,9 @@ public class CommunityService {
         community.setDescription(request.getDescription());
         community.setIsPrivate(request.getIsPrivate() != null ? request.getIsPrivate() : false);
         
-        // Upload profile picture to Firebase Storage if provided
+        // Upload profile picture to Cloudinary if provided
         if (request.getProfilePicture() != null && !request.getProfilePicture().isEmpty()) {
-            String imageUrl = firebaseStorageService.uploadImage(
+            String imageUrl = cloudinaryService.uploadImage(
                 request.getProfilePicture(),
                 "communities"
             );
@@ -148,12 +148,12 @@ public class CommunityService {
         post.setUser(user);
         post.setContent(request.getContent());
         
-        // Upload media to Firebase Storage if provided
+        // Upload media to Cloudinary if provided
         if (request.getMediaUrls() != null && !request.getMediaUrls().isEmpty()) {
             List<String> uploadedUrls = new java.util.ArrayList<>();
             for (String mediaUrl : request.getMediaUrls()) {
                 String uploadedUrl = mediaUrl != null && mediaUrl.startsWith("data:")
-                        ? firebaseStorageService.uploadImage(mediaUrl, "community-posts")
+                        ? cloudinaryService.uploadImage(mediaUrl, "community-posts")
                         : mediaUrl;
                 uploadedUrls.add(uploadedUrl);
             }
