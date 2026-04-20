@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import {
   Image,
   Linking,
@@ -6,11 +6,12 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
+  View,
   ViewStyle,
   ImageStyle,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { ResizeMode, Video } from 'expo-av';
+import { AVPlaybackStatus, ResizeMode, Video } from 'expo-av';
 import { inferMediaType } from '../utils/media';
 
 interface PostMediaAttachmentProps {
@@ -20,6 +21,25 @@ interface PostMediaAttachmentProps {
 
 export default function PostMediaAttachment({ uri, mediaStyle }: PostMediaAttachmentProps) {
   const mediaType = inferMediaType(uri);
+  const videoRef = useRef<Video>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  const handlePlaybackStatusUpdate = (status: AVPlaybackStatus) => {
+    if (!status.isLoaded) return;
+    setIsPlaying(status.isPlaying);
+  };
+
+  const togglePlayback = async () => {
+    const player = videoRef.current;
+    if (!player) return;
+    const status = await player.getStatusAsync();
+    if (!status.isLoaded) return;
+    if (status.isPlaying) {
+      await player.pauseAsync();
+    } else {
+      await player.playAsync();
+    }
+  };
 
   if (mediaType === 'image' || mediaType === 'unknown') {
     return <Image source={{ uri }} style={mediaStyle} resizeMode="cover" />;
@@ -27,12 +47,24 @@ export default function PostMediaAttachment({ uri, mediaStyle }: PostMediaAttach
 
   if (mediaType === 'video') {
     return (
-      <Video
-        source={{ uri }}
-        style={mediaStyle as StyleProp<ViewStyle>}
-        useNativeControls
-        resizeMode={ResizeMode.CONTAIN}
-      />
+      <View style={[styles.videoContainer, mediaStyle as StyleProp<ViewStyle>]}>
+        <Video
+          ref={videoRef}
+          source={{ uri }}
+          style={StyleSheet.absoluteFill}
+          resizeMode={ResizeMode.CONTAIN}
+          useNativeControls={false}
+          isLooping
+          onPlaybackStatusUpdate={handlePlaybackStatusUpdate}
+        />
+        <TouchableOpacity
+          style={styles.videoOverlay}
+          onPress={togglePlayback}
+          activeOpacity={0.8}
+        >
+          <Ionicons name={isPlaying ? 'pause' : 'play'} size={48} color="#ffffff" />
+        </TouchableOpacity>
+      </View>
     );
   }
 
@@ -61,6 +93,17 @@ export default function PostMediaAttachment({ uri, mediaStyle }: PostMediaAttach
 }
 
 const styles = StyleSheet.create({
+  videoContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
+  },
+  videoOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.25)',
+  },
   nonImageMediaContainer: {
     alignItems: 'center',
     justifyContent: 'center',
