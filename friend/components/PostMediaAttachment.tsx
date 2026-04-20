@@ -76,6 +76,9 @@ export default function PostMediaAttachment({ uri, mediaStyle }: PostMediaAttach
         probeSound.setOnPlaybackStatusUpdate(status => {
           if (!status.isLoaded || !isMounted) return;
           setIsAudioPlaying(status.isPlaying);
+          if (status.didJustFinish) {
+            audioRef.current?.setPositionAsync(0).catch(() => undefined);
+          }
         });
         setMediaType('audio');
       } catch (error) {
@@ -127,6 +130,9 @@ export default function PostMediaAttachment({ uri, mediaStyle }: PostMediaAttach
         sound.setOnPlaybackStatusUpdate(status => {
           if (!status.isLoaded || !isMounted) return;
           setIsAudioPlaying(status.isPlaying);
+          if (status.didJustFinish) {
+            audioRef.current?.setPositionAsync(0).catch(() => undefined);
+          }
         });
       } catch (error) {
         console.error('Failed to load audio:', error);
@@ -162,6 +168,9 @@ export default function PostMediaAttachment({ uri, mediaStyle }: PostMediaAttach
     if (status.isPlaying) {
       await sound.pauseAsync();
     } else {
+      if (status.durationMillis && status.positionMillis >= status.durationMillis) {
+        await sound.setPositionAsync(0);
+      }
       await sound.playAsync();
     }
   };
