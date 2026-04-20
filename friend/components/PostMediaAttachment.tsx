@@ -119,7 +119,6 @@ export default function PostMediaAttachment({ uri, mediaStyle }: PostMediaAttach
         sound = new Audio.Sound();
         audioRef.current = sound;
       }
-      audioRef.current = sound;
       try {
         const status = await sound.getStatusAsync();
         if (!status.isLoaded) {
