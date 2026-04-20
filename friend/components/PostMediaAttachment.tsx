@@ -58,11 +58,11 @@ export default function PostMediaAttachment({ uri, mediaStyle }: PostMediaAttach
           onPlaybackStatusUpdate={handlePlaybackStatusUpdate}
         />
         <TouchableOpacity
-          style={styles.videoOverlay}
+          style={[styles.videoOverlay, isPlaying && styles.videoOverlayPlaying]}
           onPress={togglePlayback}
           activeOpacity={0.8}
         >
-          <Ionicons name={isPlaying ? 'pause' : 'play'} size={48} color="#ffffff" />
+          {!isPlaying && <Ionicons name="play" size={48} color="#ffffff" />}
         </TouchableOpacity>
       </View>
     );
@@ -103,6 +103,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.25)',
+  },
+  videoOverlayPlaying: {
+    backgroundColor: 'transparent',
   },
   nonImageMediaContainer: {
     alignItems: 'center',
