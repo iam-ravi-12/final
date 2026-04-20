@@ -168,7 +168,11 @@ export default function PostMediaAttachment({ uri, mediaStyle }: PostMediaAttach
     if (status.isPlaying) {
       await sound.pauseAsync();
     } else {
-      if (status.durationMillis && status.positionMillis >= status.durationMillis) {
+      if (
+        status.durationMillis &&
+        status.positionMillis != null &&
+        status.positionMillis >= status.durationMillis
+      ) {
         await sound.setPositionAsync(0);
       }
       await sound.playAsync();
