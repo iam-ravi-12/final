@@ -21,6 +21,7 @@ import postService, { PostResponse, CommentResponse } from '../services/postServ
 import { useAuth } from '../contexts/AuthContext';
 import { parseUTCDate } from '../utils/helpers';
 import PostMediaAttachment from '../components/PostMediaAttachment';
+import { inferMediaType } from '../utils/media';
 
 export default function PostDetailScreen() {
   const { postId } = useLocalSearchParams<{ postId: string }>();
@@ -257,9 +258,16 @@ export default function PostDetailScreen() {
           )}
 
           <Text style={styles.postContent}>{post.content}</Text>
-          
+           
           {post.mediaUrls && post.mediaUrls.length > 0 && (
-            <PostMediaAttachment uri={post.mediaUrls[0]} mediaStyle={styles.postImage} />
+            <PostMediaAttachment
+              uri={post.mediaUrls[0]}
+              mediaStyle={
+                inferMediaType(post.mediaUrls[0]) === 'audio'
+                  ? styles.postAudio
+                  : styles.postImage
+              }
+            />
           )}
 
           <View style={styles.postActions}>
@@ -457,6 +465,11 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 250,
     borderRadius: 8,
+    marginBottom: 16,
+  },
+  postAudio: {
+    width: '100%',
+    borderRadius: 12,
     marginBottom: 16,
   },
   postActions: {

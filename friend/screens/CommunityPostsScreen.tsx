@@ -22,6 +22,7 @@ import communityService, { CommunityPostResponse, CommunityResponse, CommunityMe
 import { APP_URL, MAX_POST_LENGTH } from '../constants/config';
 import { copyToClipboard, formatRelativeDate, formatMemberCount } from '../utils/helpers';
 import PostMediaAttachment from '../components/PostMediaAttachment';
+import { inferMediaType } from '../utils/media';
 
 type TabType = 'approved' | 'pending' | 'members';
 
@@ -290,7 +291,11 @@ export default function CommunityPostsScreen() {
         {item.mediaUrls && item.mediaUrls.length > 0 && (
           <View style={styles.mediaContainer}>
             {item.mediaUrls.map((url, index) => (
-              <PostMediaAttachment key={index} uri={url} mediaStyle={styles.mediaImage} />
+              <PostMediaAttachment
+                key={index}
+                uri={url}
+                mediaStyle={inferMediaType(url) === 'audio' ? styles.mediaAudio : styles.mediaImage}
+              />
             ))}
           </View>
         )}
@@ -876,6 +881,11 @@ const styles = StyleSheet.create({
     height: 200,
     marginBottom: 8,
     borderRadius: 8,
+  },
+  mediaAudio: {
+    width: '100%',
+    marginBottom: 8,
+    borderRadius: 12,
   },
   adminActions: {
     flexDirection: 'row',
