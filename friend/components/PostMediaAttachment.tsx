@@ -122,7 +122,9 @@ export default function PostMediaAttachment({ uri, mediaStyle }: PostMediaAttach
       setAudioProgress(0);
     }
     if (status.didJustFinish) {
-      audioRef.current?.setPositionAsync(0).catch(() => undefined);
+      audioRef.current
+        ?.setPositionAsync(0)
+        .catch(error => console.warn('Failed to reset audio position:', error));
     }
   };
 
