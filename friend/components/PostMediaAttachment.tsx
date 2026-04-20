@@ -31,11 +31,13 @@ export default function PostMediaAttachment({ uri, mediaStyle }: PostMediaAttach
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
   const [audioRateIndex, setAudioRateIndex] = useState(0);
+  const [audioProgress, setAudioProgress] = useState(0);
   const [audioProbeFailed, setAudioProbeFailed] = useState(false);
 
   useEffect(() => {
     setMediaType(initialMediaType);
     setAudioProbeFailed(false);
+    setAudioProgress(0);
   }, [initialMediaType, uri]);
 
   useEffect(() => {
@@ -75,10 +77,7 @@ export default function PostMediaAttachment({ uri, mediaStyle }: PostMediaAttach
         audioRef.current = probeSound;
         probeSound.setOnPlaybackStatusUpdate(status => {
           if (!status.isLoaded || !isMounted) return;
-          setIsAudioPlaying(status.isPlaying);
-          if (status.didJustFinish) {
-            audioRef.current?.setPositionAsync(0).catch(() => undefined);
-          }
+          handleAudioStatusUpdate(status);
         });
         setMediaType('audio');
       } catch (error) {
@@ -112,6 +111,21 @@ export default function PostMediaAttachment({ uri, mediaStyle }: PostMediaAttach
     }
   };
 
+  const handleAudioStatusUpdate = (status: AVPlaybackStatus) => {
+    if (!status.isLoaded) return;
+    setIsAudioPlaying(status.isPlaying);
+    if (typeof status.durationMillis === 'number' && status.durationMillis > 0) {
+      const nextProgress =
+        (status.positionMillis ?? 0) / Math.max(status.durationMillis, 1);
+      setAudioProgress(Math.min(Math.max(nextProgress, 0), 1));
+    } else {
+      setAudioProgress(0);
+    }
+    if (status.didJustFinish) {
+      audioRef.current?.setPositionAsync(0).catch(() => undefined);
+    }
+  };
+
   useEffect(() => {
     if (mediaType !== 'audio') return undefined;
     let isMounted = true;
@@ -129,10 +143,7 @@ export default function PostMediaAttachment({ uri, mediaStyle }: PostMediaAttach
         }
         sound.setOnPlaybackStatusUpdate(status => {
           if (!status.isLoaded || !isMounted) return;
-          setIsAudioPlaying(status.isPlaying);
-          if (status.didJustFinish) {
-            audioRef.current?.setPositionAsync(0).catch(() => undefined);
-          }
+          handleAudioStatusUpdate(status);
         });
       } catch (error) {
         console.error('Failed to load audio:', error);
@@ -149,6 +160,7 @@ export default function PostMediaAttachment({ uri, mediaStyle }: PostMediaAttach
         audioRef.current = null;
       }
       setIsAudioPlaying(false);
+      setAudioProgress(0);
     };
   }, [mediaType, uri]);
 
@@ -215,7 +227,11 @@ export default function PostMediaAttachment({ uri, mediaStyle }: PostMediaAttach
       <View style={[styles.audioContainer, mediaStyle as StyleProp<ViewStyle>]}>
         <View style={styles.audioInfo}>
           <Ionicons name="musical-notes" size={28} color="#007AFF" />
-          <Text style={styles.audioTitle}>Audio attachment</Text>
+          <View style={styles.audioProgressTrack}>
+            <View
+              style={[styles.audioProgressFill, { width: `${audioProgress * 100}%` }]}
+            />
+          </View>
         </View>
         <View style={styles.audioControls}>
           <TouchableOpacity style={styles.audioControlButton} onPress={toggleAudioPlayback}>
@@ -297,10 +313,16 @@ const styles = StyleSheet.create({
     gap: 10,
     flex: 1,
   },
-  audioTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#1f2937',
+  audioProgressTrack: {
+    flex: 1,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#e2e8f0',
+    overflow: 'hidden',
+  },
+  audioProgressFill: {
+    height: '100%',
+    backgroundColor: '#007AFF',
   },
   audioControls: {
     flexDirection: 'row',
