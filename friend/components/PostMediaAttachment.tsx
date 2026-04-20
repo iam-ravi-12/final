@@ -182,7 +182,8 @@ export default function PostMediaAttachment({ uri, mediaStyle }: PostMediaAttach
     } else {
       if (
         status.durationMillis &&
-        status.positionMillis != null &&
+        status.positionMillis !== null &&
+        status.positionMillis !== undefined &&
         status.positionMillis >= status.durationMillis
       ) {
         await sound.setPositionAsync(0);
