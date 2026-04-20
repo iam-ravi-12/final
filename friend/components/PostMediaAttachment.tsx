@@ -20,6 +20,8 @@ interface PostMediaAttachmentProps {
 }
 
 const AUDIO_RATES = [1, 1.5, 2];
+const UNKNOWN_MEDIA_ICON = 'attach-outline';
+const UNKNOWN_MEDIA_TITLE = 'Attachment';
 
 export default function PostMediaAttachment({ uri, mediaStyle }: PostMediaAttachmentProps) {
   const initialMediaType = inferMediaType(uri);
@@ -113,7 +115,9 @@ export default function PostMediaAttachment({ uri, mediaStyle }: PostMediaAttach
   useEffect(() => {
     const sound = audioRef.current;
     if (!sound) return;
-    sound.setRateAsync(AUDIO_RATES[audioRateIndex], true).catch(() => undefined);
+    sound
+      .setRateAsync(AUDIO_RATES[audioRateIndex], true)
+      .catch(error => console.warn('Failed to update audio speed:', error));
   }, [audioRateIndex]);
 
   const toggleAudioPlayback = async () => {
@@ -182,8 +186,8 @@ export default function PostMediaAttachment({ uri, mediaStyle }: PostMediaAttach
     );
   }
 
-  const iconName = 'attach-outline';
-  const title = 'Attachment';
+  const iconName = UNKNOWN_MEDIA_ICON;
+  const title = UNKNOWN_MEDIA_TITLE;
 
   const handlePress = async () => {
     try {
