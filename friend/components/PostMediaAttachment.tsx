@@ -46,9 +46,13 @@ export default function PostMediaAttachment({ uri, mediaStyle }: PostMediaAttach
         const contentType = response.headers.get('content-type')?.toLowerCase();
         if (!contentType) return;
         let resolved: PostMediaType | null = null;
-        if (contentType.startsWith('image/')) resolved = 'image';
-        if (contentType.startsWith('video/')) resolved = 'video';
-        if (contentType.startsWith('audio/')) resolved = 'audio';
+        if (contentType.startsWith('image/')) {
+          resolved = 'image';
+        } else if (contentType.startsWith('video/')) {
+          resolved = 'video';
+        } else if (contentType.startsWith('audio/')) {
+          resolved = 'audio';
+        }
         if (resolved && isMounted) {
           setMediaType(resolved);
         }
