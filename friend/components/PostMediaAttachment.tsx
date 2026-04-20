@@ -31,33 +31,57 @@ export default function PostMediaAttachment({ uri, mediaStyle }: PostMediaAttach
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
   const [audioRateIndex, setAudioRateIndex] = useState(0);
+  const [audioProbeFailed, setAudioProbeFailed] = useState(false);
 
   useEffect(() => {
     setMediaType(initialMediaType);
+    setAudioProbeFailed(false);
   }, [initialMediaType, uri]);
 
   useEffect(() => {
-    if (mediaType !== 'unknown' || !uri) return;
+    if (mediaType !== 'unknown' || !uri || audioProbeFailed) return;
     let isMounted = true;
 
     const resolveMediaType = async () => {
+      let resolved: PostMediaType | null = null;
       try {
         const response = await fetch(uri, { method: 'HEAD' });
         const contentType = response.headers.get('content-type')?.toLowerCase();
-        if (!contentType) return;
-        let resolved: PostMediaType | null = null;
-        if (contentType.startsWith('image/')) {
-          resolved = 'image';
-        } else if (contentType.startsWith('video/')) {
-          resolved = 'video';
-        } else if (contentType.startsWith('audio/')) {
-          resolved = 'audio';
-        }
-        if (resolved && isMounted) {
-          setMediaType(resolved);
+        if (contentType) {
+          if (contentType.startsWith('image/')) {
+            resolved = 'image';
+          } else if (contentType.startsWith('video/')) {
+            resolved = 'video';
+          } else if (contentType.startsWith('audio/')) {
+            resolved = 'audio';
+          }
         }
       } catch (error) {
         console.warn('Unable to resolve media type:', error);
+      }
+
+      if (resolved && isMounted) {
+        setMediaType(resolved);
+        return;
+      }
+
+      const probeSound = new Audio.Sound();
+      try {
+        await probeSound.loadAsync({ uri }, { shouldPlay: false });
+        if (!isMounted) {
+          await probeSound.unloadAsync();
+          return;
+        }
+        audioRef.current = probeSound;
+        probeSound.setOnPlaybackStatusUpdate(status => {
+          if (!status.isLoaded || !isMounted) return;
+          setIsAudioPlaying(status.isPlaying);
+        });
+        setMediaType('audio');
+      } catch (error) {
+        console.warn('Unable to probe audio media:', error);
+        setAudioProbeFailed(true);
+        await probeSound.unloadAsync().catch(() => undefined);
       }
     };
 
@@ -66,7 +90,7 @@ export default function PostMediaAttachment({ uri, mediaStyle }: PostMediaAttach
     return () => {
       isMounted = false;
     };
-  }, [mediaType, uri]);
+  }, [mediaType, uri, audioProbeFailed]);
 
   const handlePlaybackStatusUpdate = (status: AVPlaybackStatus) => {
     if (!status.isLoaded) return;
@@ -90,10 +114,17 @@ export default function PostMediaAttachment({ uri, mediaStyle }: PostMediaAttach
     let isMounted = true;
 
     const loadAudio = async () => {
-      const sound = new Audio.Sound();
+      let sound = audioRef.current;
+      if (!sound) {
+        sound = new Audio.Sound();
+        audioRef.current = sound;
+      }
       audioRef.current = sound;
       try {
-        await sound.loadAsync({ uri }, { shouldPlay: false });
+        const status = await sound.getStatusAsync();
+        if (!status.isLoaded) {
+          await sound.loadAsync({ uri }, { shouldPlay: false });
+        }
         sound.setOnPlaybackStatusUpdate(status => {
           if (!status.isLoaded || !isMounted) return;
           setIsAudioPlaying(status.isPlaying);
