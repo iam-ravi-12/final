@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { authService } from '../services/authService';
 import { messageService } from '../services/messageService';
+import { websocketService } from '../services/websocketService';
 import './Chat.css';
 
 const Chat = () => {
@@ -56,8 +57,25 @@ const Chat = () => {
   useEffect(() => {
     if (selectedUser && selectedUser.userId) {
       loadMessages(selectedUser.userId);
-      const interval = setInterval(() => loadMessages(selectedUser.userId), 3000); // Poll every 3 seconds
-      return () => clearInterval(interval);
+
+      const unsubscribe = websocketService.subscribeToMessages(
+        async (incomingMessage) => {
+          const isForCurrentConversation =
+            incomingMessage.senderId === selectedUser.userId ||
+            incomingMessage.receiverId === selectedUser.userId;
+
+          if (!isForCurrentConversation) {
+            return;
+          }
+
+          await loadMessages(selectedUser.userId);
+        },
+        (wsError) => {
+          console.error('WebSocket error in chat page:', wsError);
+        }
+      );
+
+      return () => unsubscribe();
     }
   }, [selectedUser, loadMessages]);
 

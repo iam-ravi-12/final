@@ -8,6 +8,7 @@ import com.social.network.entity.User;
 import com.social.network.repository.MessageRepository;
 import com.social.network.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +25,7 @@ public class MessageService {
 
     private final MessageRepository messageRepository;
     private final UserRepository userRepository;
+    private final SimpMessagingTemplate messagingTemplate;
 
     @Transactional
     public MessageResponse sendMessage(String senderUsername, MessageRequest request) {
@@ -40,7 +42,14 @@ public class MessageService {
         message.setIsRead(false);
 
         Message savedMessage = messageRepository.save(message);
-        return mapToMessageResponse(savedMessage);
+        MessageResponse response = mapToMessageResponse(savedMessage);
+
+        messagingTemplate.convertAndSendToUser(receiver.getUsername(), "/queue/messages", response);
+        if (!sender.getUsername().equals(receiver.getUsername())) {
+            messagingTemplate.convertAndSendToUser(sender.getUsername(), "/queue/messages", response);
+        }
+
+        return response;
     }
 
     @Transactional(readOnly = true)
