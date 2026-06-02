@@ -5,6 +5,7 @@ import com.social.network.dto.MessageRequest;
 import com.social.network.dto.MessageResponse;
 import com.social.network.entity.Message;
 import com.social.network.entity.User;
+import com.social.network.exception.ResourceNotFoundException;
 import com.social.network.repository.MessageRepository;
 import com.social.network.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -70,6 +71,31 @@ public class MessageService {
             List<Message> savedMessages = messageRepository.saveAll(undeliveredMessages);
             notifyParticipants(savedMessages);
         }
+    }
+
+    @Transactional
+    public MessageResponse markMessageAsDelivered(String currentUsername, Long messageId) {
+        User currentUser = userRepository.findByUsername(currentUsername)
+                .orElseThrow(() -> new UsernameNotFoundException("Current user not found"));
+
+        Message message = messageRepository.findById(messageId)
+                .orElseThrow(() -> new ResourceNotFoundException("Message not found with id: " + messageId));
+
+        if (message.getReceiver() == null || message.getReceiver().getId() == null) {
+            throw new IllegalStateException("Message receiver is missing");
+        }
+
+        if (!message.getReceiver().getId().equals(currentUser.getId())) {
+            throw new ResourceNotFoundException("Message not found with id: " + messageId);
+        }
+
+        if (!Boolean.TRUE.equals(message.getIsDelivered())) {
+            message.setIsDelivered(true);
+            message = messageRepository.save(message);
+            notifyParticipants(List.of(message));
+        }
+
+        return mapToMessageResponse(message);
     }
 
     @Transactional(readOnly = true)

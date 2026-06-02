@@ -53,12 +53,12 @@ public class MessageController {
         return ResponseEntity.ok().build();
     }
 
-    @PutMapping("/delivered/{userId}")
-    public ResponseEntity<Void> markMessagesAsDelivered(
-            @PathVariable Long userId,
+    @PutMapping("/delivered/{id}")
+    public ResponseEntity<MessageResponse> markMessagesAsDelivered(
+            @PathVariable("id") Long messageId,
             Authentication authentication) {
         String username = authentication.getName();
-        messageService.markMessagesAsDelivered(username, userId);
-        return ResponseEntity.ok().build();
+        MessageResponse response = messageService.markMessageAsDelivered(username, messageId);
+        return ResponseEntity.ok(response);
     }
 }
