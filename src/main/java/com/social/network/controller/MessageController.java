@@ -10,7 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -52,16 +51,5 @@ public class MessageController {
         String username = authentication.getName();
         messageService.markMessagesAsRead(username, userId);
         return ResponseEntity.ok().build();
-    }
-
-    @PutMapping("/delivered/{id}")
-    public ResponseEntity<?> markDelivered(
-            @PathVariable Long id,
-            Principal principal
-    ) {
-        String username = principal.getName();
-
-        MessageResponse response = messageService.markMessageAsDelivered(username, id);
-        return ResponseEntity.ok(response);
     }
 }

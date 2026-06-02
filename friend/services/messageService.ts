@@ -10,7 +10,6 @@ export interface MessageResponse {
   senderId: number;
   receiverId: number;
   content: string;
-  isDelivered: boolean;
   isRead: boolean;
   createdAt: string;
   senderUsername: string;
@@ -43,10 +42,6 @@ const messageService = {
 
   markAsRead: async (otherUserId: number): Promise<void> => {
     await api.put(`/api/messages/read/${otherUserId}`);
-  },
-
-  markAsDelivered: async (otherUserId: number): Promise<void> => {
-    await api.put(`/api/messages/delivered/${otherUserId}`);
   },
 };
 

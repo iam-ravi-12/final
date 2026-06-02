@@ -90,7 +90,6 @@ public class SecurityConfig {
                         .requestMatchers("/signup", "/login", "/","/home").permitAll()
                         .requestMatchers("/error", "/error/**").permitAll()
                         .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
-                        .requestMatchers("/ws/**").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
                         .anyRequest().authenticated()
                 )

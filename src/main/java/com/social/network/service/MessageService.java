@@ -5,11 +5,9 @@ import com.social.network.dto.MessageRequest;
 import com.social.network.dto.MessageResponse;
 import com.social.network.entity.Message;
 import com.social.network.entity.User;
-import com.social.network.exception.ResourceNotFoundException;
 import com.social.network.repository.MessageRepository;
 import com.social.network.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,7 +24,6 @@ public class MessageService {
 
     private final MessageRepository messageRepository;
     private final UserRepository userRepository;
-    private final SimpMessagingTemplate messagingTemplate;
 
     @Transactional
     public MessageResponse sendMessage(String senderUsername, MessageRequest request) {
@@ -40,62 +37,10 @@ public class MessageService {
         message.setSender(sender);
         message.setReceiver(receiver);
         message.setContent(request.getContent());
-        message.setIsDelivered(false);
         message.setIsRead(false);
 
         Message savedMessage = messageRepository.save(message);
-        MessageResponse response = mapToMessageResponse(savedMessage);
-
-        messagingTemplate.convertAndSendToUser(receiver.getUsername(), "/queue/messages", response);
-        if (!sender.getUsername().equals(receiver.getUsername())) {
-            messagingTemplate.convertAndSendToUser(sender.getUsername(), "/queue/messages", response);
-        }
-
-        return response;
-    }
-
-    @Transactional
-    public void markMessagesAsDelivered(String currentUsername, Long senderId) {
-        User currentUser = userRepository.findByUsername(currentUsername)
-                .orElseThrow(() -> new UsernameNotFoundException("Current user not found"));
-
-        User sender = userRepository.findById(senderId)
-                .orElseThrow(() -> new UsernameNotFoundException("Sender not found"));
-
-        List<Message> undeliveredMessages = messageRepository.findMessagesBetweenUsers(currentUser, sender).stream()
-                .filter(m -> m.getReceiver().getId().equals(currentUser.getId()) && !m.getIsDelivered())
-                .peek(m -> m.setIsDelivered(true))
-                .collect(Collectors.toList());
-
-        if (!undeliveredMessages.isEmpty()) {
-            List<Message> savedMessages = messageRepository.saveAll(undeliveredMessages);
-            notifyParticipants(savedMessages);
-        }
-    }
-
-    @Transactional
-    public MessageResponse markMessageAsDelivered(String currentUsername, Long messageId) {
-        User currentUser = userRepository.findByUsername(currentUsername)
-                .orElseThrow(() -> new UsernameNotFoundException("Current user not found"));
-
-        Message message = messageRepository.findById(messageId)
-                .orElseThrow(() -> new ResourceNotFoundException("Message not found with id: " + messageId));
-
-        if (message.getReceiver() == null || message.getReceiver().getId() == null) {
-            throw new IllegalStateException("Message receiver is missing");
-        }
-
-        if (!message.getReceiver().getId().equals(currentUser.getId())) {
-            throw new ResourceNotFoundException("Message not found with id: " + messageId);
-        }
-
-        if (!Boolean.TRUE.equals(message.getIsDelivered())) {
-            message.setIsDelivered(true);
-            message = messageRepository.save(message);
-            notifyParticipants(List.of(message));
-        }
-
-        return mapToMessageResponse(message);
+        return mapToMessageResponse(savedMessage);
     }
 
     @Transactional(readOnly = true)
@@ -122,15 +67,11 @@ public class MessageService {
 
         List<Message> unreadMessages = messageRepository.findMessagesBetweenUsers(currentUser, sender).stream()
                 .filter(m -> m.getReceiver().getId().equals(currentUser.getId()) && !m.getIsRead())
-                .peek(m -> {
-                    m.setIsDelivered(true);
-                    m.setIsRead(true);
-                })
+                .peek(m -> m.setIsRead(true))
                 .collect(Collectors.toList());
         
         if (!unreadMessages.isEmpty()) {
-            List<Message> savedMessages = messageRepository.saveAll(unreadMessages);
-            notifyParticipants(savedMessages);
+            messageRepository.saveAll(unreadMessages);
         }
     }
 
@@ -217,20 +158,8 @@ public class MessageService {
         response.setReceiverId(message.getReceiver().getId());
         response.setReceiverUsername(message.getReceiver().getUsername());
         response.setContent(message.getContent());
-        response.setIsDelivered(message.getIsDelivered());
         response.setIsRead(message.getIsRead());
         response.setCreatedAt(message.getCreatedAt());
         return response;
-    }
-
-    private void notifyParticipants(List<Message> messages) {
-        messages.stream()
-                .map(this::mapToMessageResponse)
-                .forEach(response -> {
-                    messagingTemplate.convertAndSendToUser(response.getReceiverUsername(), "/queue/messages", response);
-                    if (!response.getReceiverUsername().equals(response.getSenderUsername())) {
-                        messagingTemplate.convertAndSendToUser(response.getSenderUsername(), "/queue/messages", response);
-                    }
-                });
     }
 }

@@ -10,13 +10,14 @@ import {
   Platform,
   ActivityIndicator,
   Alert,
+  AppState,
 } from 'react-native';
 import { useLocalSearchParams, Stack, useFocusEffect } from 'expo-router';
+import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Ionicons } from '@expo/vector-icons';
 import messageService, { MessageResponse } from '../../services/messageService';
 import { useAuth } from '../../contexts/AuthContext';
 import { parseUTCDate } from '../../utils/helpers';
-import websocketService from '../../services/websocketService';
 
 export default function ChatScreen() {
   const { userId } = useLocalSearchParams();
@@ -26,65 +27,40 @@ export default function ChatScreen() {
   const [sending, setSending] = useState(false);
   const { user } = useAuth();
   const flatListRef = useRef<FlatList>(null);
-  const loadMessages = React.useCallback(async (showError = true) => {
+  const pollingInterval = useRef<NodeJS.Timeout | null>(null);
+
+  // Load messages when screen is focused
+  useFocusEffect(
+    React.useCallback(() => {
+      loadMessages();
+      
+      // Start polling when screen is focused
+      pollingInterval.current = setInterval(loadMessages, 5000);
+      
+      // Cleanup: stop polling when screen loses focus
+      return () => {
+        if (pollingInterval.current) {
+          clearInterval(pollingInterval.current);
+        }
+      };
+    }, [userId])
+  );
+
+  const loadMessages = async () => {
     try {
       const data = await messageService.getMessagesWithUser(Number(userId));
       setMessages(data);
-
-      await messageService.markAsDelivered(Number(userId));
+      
+      // Mark messages as read
       await messageService.markAsRead(Number(userId));
     } catch (error) {
-      if (showError) {
+      if (loading) {
         Alert.alert('Error', 'Failed to load messages');
       }
     } finally {
       setLoading(false);
     }
-  }, [userId]);
-
-  useFocusEffect(
-    React.useCallback(() => {
-      void loadMessages();
-    }, [loadMessages])
-  );
-
-  useEffect(() => {
-    let unsubscribe: (() => void) | null = null;
-    let mounted = true;
-
-    const connect = async () => {
-      unsubscribe = await websocketService.subscribeToMessages(
-        async (incomingMessage) => {
-          const otherUserId = Number(userId);
-          const isForCurrentConversation =
-            incomingMessage.senderId === otherUserId || incomingMessage.receiverId === otherUserId;
-
-          if (!mounted || !isForCurrentConversation) {
-            return;
-          }
-
-          if (
-            incomingMessage.receiverId === user?.id &&
-            incomingMessage.senderId === otherUserId &&
-            !incomingMessage.isRead
-          ) {
-            await messageService.markAsDelivered(otherUserId);
-            await messageService.markAsRead(otherUserId);
-          }
-
-          await loadMessages(false);
-        },
-        () => {}
-      );
-    };
-
-    void connect();
-
-    return () => {
-      mounted = false;
-      unsubscribe?.();
-    };
-  }, [loadMessages, user?.id, userId]);
+  };
 
   const handleSend = async () => {
     if (!newMessage.trim()) return;
@@ -119,7 +95,6 @@ export default function ChatScreen() {
 
   const renderMessage = ({ item }: { item: MessageResponse }) => {
     const isOwnMessage = item.senderId === user?.id;
-    const statusIcon = item.isRead ? '✓✓' : item.isDelivered ? '✓✓' : '✓';
 
     return (
       <View
@@ -149,16 +124,6 @@ export default function ChatScreen() {
             ]}
           >
             {formatTime(item.createdAt)}
-            {isOwnMessage && (
-              <Text
-                style={[
-                  styles.messageStatus,
-                  item.isRead ? styles.readStatus : styles.sentStatus,
-                ]}
-              >
-                {` ${statusIcon}`}
-              </Text>
-            )}
           </Text>
         </View>
       </View>
@@ -281,16 +246,6 @@ const styles = StyleSheet.create({
   ownMessageTime: {
     color: 'rgba(255, 255, 255, 0.7)',
     textAlign: 'right',
-  },
-  messageStatus: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  sentStatus: {
-    color: '#d1d5db',
-  },
-  readStatus: {
-    color: '#60a5fa',
   },
   otherMessageTime: {
     color: '#999',
