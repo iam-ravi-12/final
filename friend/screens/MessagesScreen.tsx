@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -10,19 +10,16 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import messageService, { ConversationResponse } from '../services/messageService';
 import { parseUTCDate } from '../utils/helpers';
+import websocketService from '../services/websocketService';
 
 export default function MessagesScreen() {
   const [conversations, setConversations] = useState<ConversationResponse[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadConversations();
-  }, []);
-
-  const loadConversations = async () => {
+  const loadConversations = useCallback(async () => {
     try {
       const data = await messageService.getConversations();
       setConversations(data);
@@ -31,7 +28,36 @@ export default function MessagesScreen() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      void loadConversations();
+    }, [loadConversations])
+  );
+
+  useEffect(() => {
+    let unsubscribe: (() => void) | null = null;
+    let mounted = true;
+
+    const connect = async () => {
+      unsubscribe = await websocketService.subscribeToMessages(
+        async () => {
+          if (mounted) {
+            await loadConversations();
+          }
+        },
+        () => {}
+      );
+    };
+
+    void connect();
+
+    return () => {
+      mounted = false;
+      unsubscribe?.();
+    };
+  }, [loadConversations]);
 
   const formatTime = (timestamp: string) => {
     const date = parseUTCDate(timestamp);

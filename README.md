@@ -22,8 +22,8 @@ A full-stack professional networking application with a Spring Boot backend, MyS
   1. **Conversation List Page**: View all conversations with unread message counts at `/messages`
   2. **Individual Chat Page**: Dedicated page for each conversation at `/chat/:userId`
   3. **Click to Message**: Click on any user's profile picture to directly open a chat with them
-  4. **Real-time Updates**: Messages update automatically using polling
-  5. **Read Receipts**: Messages are marked as read when viewed
+  4. **Real-time Updates**: Messages update automatically using WebSocket
+  5. **Delivery & Read Receipts**: Single tick (sent), double tick (delivered), blue double tick (read)
 - **Community System**: Create and join communities based on interests
 - **Follow System**: Follow other users and build your network
 - **React Web Frontend**: Modern, responsive user interface
@@ -370,6 +370,7 @@ professional-network/
 - `sender_id`: Foreign key to users (sender)
 - `receiver_id`: Foreign key to users (receiver)
 - `content`: Message content
+- `is_delivered`: Boolean flag indicating if message was delivered
 - `is_read`: Boolean flag indicating if message was read
 - `created_at`: Timestamp
 
