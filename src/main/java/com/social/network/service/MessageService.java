@@ -39,6 +39,7 @@ public class MessageService {
         message.setSender(sender);
         message.setReceiver(receiver);
         message.setContent(request.getContent());
+        message.setIsDelivered(false);
         message.setIsRead(false);
 
         Message savedMessage = messageRepository.save(message);
@@ -50,6 +51,25 @@ public class MessageService {
         }
 
         return response;
+    }
+
+    @Transactional
+    public void markMessagesAsDelivered(String currentUsername, Long senderId) {
+        User currentUser = userRepository.findByUsername(currentUsername)
+                .orElseThrow(() -> new UsernameNotFoundException("Current user not found"));
+
+        User sender = userRepository.findById(senderId)
+                .orElseThrow(() -> new UsernameNotFoundException("Sender not found"));
+
+        List<Message> undeliveredMessages = messageRepository.findMessagesBetweenUsers(currentUser, sender).stream()
+                .filter(m -> m.getReceiver().getId().equals(currentUser.getId()) && !m.getIsDelivered())
+                .peek(m -> m.setIsDelivered(true))
+                .collect(Collectors.toList());
+
+        if (!undeliveredMessages.isEmpty()) {
+            List<Message> savedMessages = messageRepository.saveAll(undeliveredMessages);
+            notifyParticipants(savedMessages);
+        }
     }
 
     @Transactional(readOnly = true)
@@ -76,11 +96,15 @@ public class MessageService {
 
         List<Message> unreadMessages = messageRepository.findMessagesBetweenUsers(currentUser, sender).stream()
                 .filter(m -> m.getReceiver().getId().equals(currentUser.getId()) && !m.getIsRead())
-                .peek(m -> m.setIsRead(true))
+                .peek(m -> {
+                    m.setIsDelivered(true);
+                    m.setIsRead(true);
+                })
                 .collect(Collectors.toList());
         
         if (!unreadMessages.isEmpty()) {
-            messageRepository.saveAll(unreadMessages);
+            List<Message> savedMessages = messageRepository.saveAll(unreadMessages);
+            notifyParticipants(savedMessages);
         }
     }
 
@@ -167,8 +191,20 @@ public class MessageService {
         response.setReceiverId(message.getReceiver().getId());
         response.setReceiverUsername(message.getReceiver().getUsername());
         response.setContent(message.getContent());
+        response.setIsDelivered(message.getIsDelivered());
         response.setIsRead(message.getIsRead());
         response.setCreatedAt(message.getCreatedAt());
         return response;
+    }
+
+    private void notifyParticipants(List<Message> messages) {
+        messages.stream()
+                .map(this::mapToMessageResponse)
+                .forEach(response -> {
+                    messagingTemplate.convertAndSendToUser(response.getReceiverUsername(), "/queue/messages", response);
+                    if (!response.getReceiverUsername().equals(response.getSenderUsername())) {
+                        messagingTemplate.convertAndSendToUser(response.getSenderUsername(), "/queue/messages", response);
+                    }
+                });
     }
 }
