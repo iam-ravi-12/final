@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authService } from '../services/authService';
 import { messageService } from '../services/messageService';
-import { websocketService } from '../services/websocketService';
 import './ChatList.css';
 
 const ChatList = () => {
@@ -13,11 +12,9 @@ const ChatList = () => {
   const [error, setError] = useState('');
   const currentUser = authService.getCurrentUser();
 
-  const loadConversations = useCallback(async (showLoader = true) => {
+  const loadConversations = useCallback(async () => {
     try {
-      if (showLoader) {
-        setLoading(true);
-      }
+      setLoading(true);
       setError('');
       const data = await messageService.getConversations();
       console.log('Loaded conversations:', data);
@@ -32,24 +29,14 @@ const ChatList = () => {
       });
       setError(`Failed to load conversations: ${errorMessage}`);
     } finally {
-      if (showLoader) {
-        setLoading(false);
-      }
+      setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    loadConversations(true);
-    const unsubscribe = websocketService.subscribeToMessages(
-      () => {
-        loadConversations(false);
-      },
-      (wsError) => {
-        console.error('WebSocket error in chat list:', wsError);
-      }
-    );
-
-    return () => unsubscribe();
+    loadConversations();
+    const interval = setInterval(loadConversations, 5000); // Poll every 5 seconds
+    return () => clearInterval(interval);
   }, [loadConversations]);
 
   useEffect(() => {

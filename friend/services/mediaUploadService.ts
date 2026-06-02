@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://final-2-m46t.onrender.com';
+const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://final-production-3b39.up.railway.app';
 
 // How long to wait for the backend server to wake up / be reachable.
 const WARMUP_TIMEOUT_MS = 180_000;
