@@ -211,12 +211,26 @@ public class CloudinaryService {
 
     /**
      * Map a MIME type to a Cloudinary resource_type string.
-     * Cloudinary accepts "image", "video" (also covers audio), or "raw".
+     *
+     * <p>Cloudinary accepts three resource types:
+     * <ul>
+     *   <li>{@code image} – still images (JPEG, PNG, WEBP, HEIC, GIF, …)</li>
+     *   <li>{@code video} – video <em>and</em> audio files (MP4, MOV, MP3, …)</li>
+     *   <li>{@code raw}   – everything else (PDFs, documents, …)</li>
+     * </ul>
+     *
+     * <p>iOS camera captures can arrive as:
+     * <ul>
+     *   <li>{@code image/heic} or {@code image/heif} (Live Photo / still) → {@code image}</li>
+     *   <li>{@code video/quicktime} (.mov) → {@code video}</li>
+     * </ul>
      */
     private String resolveResourceType(String contentType) {
         if (contentType == null) return "raw";
-        if (contentType.startsWith("image/")) return "image";
-        if (contentType.startsWith("video/") || contentType.startsWith("audio/")) return "video";
+        String ct = contentType.toLowerCase();
+        if (ct.startsWith("image/")) return "image";
+        // Cloudinary's "video" resource_type also handles audio streams
+        if (ct.startsWith("video/") || ct.startsWith("audio/")) return "video";
         return "raw";
     }
 
@@ -226,7 +240,7 @@ public class CloudinaryService {
      */
     private String resolveResourceTypeFromUrl(String url) {
         if (url.contains("/video/upload/")) return "video";
-        if (url.contains("/raw/upload/")) return "raw";
+        if (url.contains("/raw/upload/"))   return "raw";
         return "image";
     }
 

@@ -21,6 +21,7 @@ import postService from '../services/postService';
 import PostMediaAttachment from '../components/PostMediaAttachment';
 import { getMimeTypeFromUri } from '../utils/media';
 import { uploadMedia } from '../services/mediaUploadService';
+import CameraModal from '../components/CameraModal';
 
 type SelectedMedia = {
   uri: string;
@@ -35,6 +36,7 @@ export default function CreatePostScreen() {
   const [loading, setLoading] = useState(false);
   const [uploadingMedia, setUploadingMedia] = useState(false);
   const [uploadStatus, setUploadStatus] = useState('');
+  const [cameraVisible, setCameraVisible] = useState(false);
 
   const pickImage = async () => {
     try {
@@ -159,6 +161,23 @@ export default function CreatePostScreen() {
     ]);
   };
 
+  /** Called when the user captures a photo/video via the in-app camera */
+  const handleCameraCapture = async (uri: string, mimeType: string) => {
+    setUploadingMedia(true);
+    const label = mimeType.startsWith('video') ? 'video' : 'photo';
+    setUploadStatus(`Uploading ${label}…`);
+    try {
+      const url = await uploadMedia(uri, mimeType, 'posts', setUploadStatus);
+      setSelectedMedia({ uri, payload: url });
+    } catch (uploadErr) {
+      console.error('Error uploading captured media:', uploadErr);
+      Alert.alert('Upload Failed', `Could not upload the ${label}. Please try again.`);
+    } finally {
+      setUploadingMedia(false);
+      setUploadStatus('');
+    }
+  };
+
   const removeMedia = () => {
     setSelectedMedia(null);
   };
@@ -244,25 +263,45 @@ export default function CreatePostScreen() {
           </View>
         )}
 
-        <TouchableOpacity
-          style={styles.addPhotoButton}
-          onPress={showMediaPickerOptions}
-          disabled={loading || uploadingMedia}
-        >
-          {uploadingMedia ? (
-            <>
+        {/* Media action row */}
+        <View style={styles.mediaActionsRow}>
+          {/* Gallery / file picker */}
+          <TouchableOpacity
+            style={[styles.mediaActionButton, (loading || uploadingMedia) && styles.mediaActionDisabled]}
+            onPress={showMediaPickerOptions}
+            disabled={loading || uploadingMedia}
+          >
+            {uploadingMedia ? (
               <ActivityIndicator size="small" color="#007AFF" />
-              <Text style={styles.addPhotoText}>{uploadStatus || 'Uploading…'}</Text>
-            </>
-          ) : (
-            <>
-              <Ionicons name="attach-outline" size={24} color="#007AFF" />
-              <Text style={styles.addPhotoText}>
-                {selectedMedia ? 'Change Media' : 'Add Photo / Video / Audio'}
-              </Text>
-            </>
-          )}
-        </TouchableOpacity>
+            ) : (
+              <Ionicons name="attach-outline" size={22} color="#007AFF" />
+            )}
+            <Text style={styles.mediaActionText} numberOfLines={1}>
+              {uploadingMedia
+                ? (uploadStatus || 'Uploading…')
+                : selectedMedia
+                ? 'Change Media'
+                : 'Gallery'}
+            </Text>
+          </TouchableOpacity>
+
+          {/* Camera capture button */}
+          <TouchableOpacity
+            style={[styles.cameraActionButton, (loading || uploadingMedia) && styles.mediaActionDisabled]}
+            onPress={() => setCameraVisible(true)}
+            disabled={loading || uploadingMedia}
+          >
+            <Ionicons name="camera-outline" size={22} color="#fff" />
+            <Text style={styles.cameraActionText}>Camera</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* In-app camera modal */}
+        <CameraModal
+          visible={cameraVisible}
+          onClose={() => setCameraVisible(false)}
+          onCapture={handleCameraCapture}
+        />
 
         <View style={styles.option}>
           <View>
@@ -363,21 +402,58 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     borderRadius: 14,
   },
-  addPhotoButton: {
+  // ── Media action row ────────────────────────────────────────────
+  mediaActionsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 12,
+    marginHorizontal: 12,
+    gap: 10,
+  },
+  mediaActionButton: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#fff',
-    padding: 16,
-    marginTop: 12,
-    borderRadius: 8,
-    marginHorizontal: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    gap: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 3,
+    elevation: 2,
   },
-  addPhotoText: {
-    fontSize: 16,
+  mediaActionText: {
+    fontSize: 14,
     color: '#007AFF',
-    marginLeft: 8,
     fontWeight: '500',
+    flexShrink: 1,
+  },
+  cameraActionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#007AFF',
+    paddingVertical: 14,
+    paddingHorizontal: 18,
+    borderRadius: 10,
+    gap: 6,
+    shadowColor: '#007AFF',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.35,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  cameraActionText: {
+    fontSize: 14,
+    color: '#fff',
+    fontWeight: '600',
+  },
+  mediaActionDisabled: {
+    opacity: 0.5,
   },
   option: {
     flexDirection: 'row',
