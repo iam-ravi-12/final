@@ -17,14 +17,21 @@ import { inferMediaType, PostMediaType } from '../utils/media';
 interface PostMediaAttachmentProps {
   uri: string;
   mediaStyle: StyleProp<ImageStyle | ViewStyle>;
+  /**
+   * Optional hint for the media type. Useful when the caller knows the type
+   * (e.g. from the original MIME type used during upload) but the URI alone
+   * is not enough to determine it (e.g. Cloudinary URLs without a file extension).
+   */
+  hintMediaType?: PostMediaType;
 }
 
 const AUDIO_RATES = [1, 1.5, 2];
 const UNKNOWN_MEDIA_ICON = 'attach-outline';
 const UNKNOWN_MEDIA_TITLE = 'Attachment';
 
-export default function PostMediaAttachment({ uri, mediaStyle }: PostMediaAttachmentProps) {
-  const initialMediaType = inferMediaType(uri);
+export default function PostMediaAttachment({ uri, mediaStyle, hintMediaType }: PostMediaAttachmentProps) {
+  // Use hint or URI-based inference as the starting point
+  const initialMediaType: PostMediaType = hintMediaType ?? inferMediaType(uri);
   const videoRef = useRef<Video>(null);
   const audioRef = useRef<Audio.Sound | null>(null);
   const [mediaType, setMediaType] = useState<PostMediaType>(initialMediaType);
@@ -35,55 +42,77 @@ export default function PostMediaAttachment({ uri, mediaStyle }: PostMediaAttach
   const [audioProbeFailed, setAudioProbeFailed] = useState(false);
 
   useEffect(() => {
-    setMediaType(initialMediaType);
+    // Re-derive when URI or hint changes
+    setMediaType(hintMediaType ?? inferMediaType(uri));
     setAudioProbeFailed(false);
     setAudioProgress(0);
-  }, [initialMediaType, uri]);
+  }, [hintMediaType, uri]);
 
   useEffect(() => {
     if (mediaType !== 'unknown' || !uri || audioProbeFailed) return;
     let isMounted = true;
 
     const resolveMediaType = async () => {
-      let resolved: PostMediaType | null = null;
+      let headContentType: string | null = null;
+
+      // ── Step 1: HEAD request ─────────────────────────────────────────
       try {
         const response = await fetch(uri, { method: 'HEAD' });
-        const contentType = response.headers.get('content-type')?.toLowerCase();
-        if (contentType) {
-          if (contentType.startsWith('image/')) {
-            resolved = 'image';
-          } else if (contentType.startsWith('video/')) {
-            resolved = 'video';
-          } else if (contentType.startsWith('audio/')) {
-            resolved = 'audio';
+        headContentType = response.headers.get('content-type')?.toLowerCase() ?? null;
+        if (headContentType) {
+          if (headContentType.startsWith('image/')) {
+            if (isMounted) setMediaType('image');
+            return;
           }
+          if (headContentType.startsWith('audio/')) {
+            if (isMounted) setMediaType('audio');
+            return;
+          }
+          // headContentType.startsWith('video/') ─ could be real video OR
+          // Cloudinary audio stored under the video resource_type.
+          // Fall through to Step 2 to disambiguate.
         }
       } catch (error) {
-        console.warn('Unable to resolve media type:', error);
+        console.warn('HEAD request failed, falling back to audio probe:', error);
       }
 
-      if (resolved && isMounted) {
-        setMediaType(resolved);
-        return;
-      }
+      // ── Step 2: Disambiguate Cloudinary video/* that might be audio ──
+      // Cloudinary returns Content-Type: video/mp4 for audio files uploaded
+      // with resource_type "video".  Try to load the URL as an Audio.Sound;
+      // if it succeeds it is almost certainly audio.
+      const looksLikeCloudinary = uri.toLowerCase().includes('cloudinary.com');
+      const headSaysVideo = headContentType?.startsWith('video/') ?? false;
+      const shouldProbeAudio = looksLikeCloudinary || headSaysVideo || headContentType === null;
 
-      const probeSound = new Audio.Sound();
-      try {
-        await probeSound.loadAsync({ uri }, { shouldPlay: false });
-        if (!isMounted) {
-          await probeSound.unloadAsync();
+      if (shouldProbeAudio && !audioProbeFailed) {
+        const probeSound = new Audio.Sound();
+        try {
+          await probeSound.loadAsync({ uri }, { shouldPlay: false });
+          if (!isMounted) {
+            await probeSound.unloadAsync();
+            return;
+          }
+          // If we get here, the URL is playable as audio
+          audioRef.current = probeSound;
+          probeSound.setOnPlaybackStatusUpdate(status => {
+            if (!status.isLoaded || !isMounted) return;
+            handleAudioStatusUpdate(status);
+          });
+          setMediaType('audio');
           return;
+        } catch {
+          // Not audio — unload and treat as video
+          await probeSound.unloadAsync().catch(() => undefined);
         }
-        audioRef.current = probeSound;
-        probeSound.setOnPlaybackStatusUpdate(status => {
-          if (!status.isLoaded || !isMounted) return;
-          handleAudioStatusUpdate(status);
-        });
-        setMediaType('audio');
-      } catch (error) {
-        console.warn('Unable to probe audio media:', error);
-        setAudioProbeFailed(true);
-        await probeSound.unloadAsync().catch(() => undefined);
+      }
+
+      // ── Step 3: Default to video if HEAD said so, else unknown ───────
+      if (isMounted) {
+        if (headSaysVideo) {
+          setMediaType('video');
+        } else {
+          setAudioProbeFailed(true);
+        }
       }
     };
 

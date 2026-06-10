@@ -19,7 +19,7 @@
         "NSLocationWhenInUseUsageDescription": "This app needs your location to show nearby SOS alerts.",
         "NSLocationAlwaysAndWhenInUseUsageDescription": "This app needs background location access to send you notifications about nearby SOS alerts even when the app is closed.",
         "NSCameraUsageDescription": "This app uses the camera to capture photos and videos for your posts.",
-        "NSMicrophoneUsageDescription": "This app uses the microphone to record audio for video posts."
+        "NSMicrophoneUsageDescription": "This app uses the microphone to record audio and video for your posts."
       }
     },
     "android": {
@@ -65,12 +65,12 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
+          "image": "./assets/images/friends-logo.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff",
+          "backgroundColor": "#0a2d8f",
           "dark": {
-            "backgroundColor": "#000000"
+            "backgroundColor": "#0a2d8f"
           }
         }
       ],

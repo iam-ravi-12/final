@@ -22,6 +22,7 @@ import PostMediaAttachment from '../components/PostMediaAttachment';
 import { getMimeTypeFromUri } from '../utils/media';
 import { uploadMedia } from '../services/mediaUploadService';
 import CameraModal from '../components/CameraModal';
+import AudioRecorderModal from '../components/AudioRecorderModal';
 
 type SelectedMedia = {
   uri: string;
@@ -37,6 +38,7 @@ export default function CreatePostScreen() {
   const [uploadingMedia, setUploadingMedia] = useState(false);
   const [uploadStatus, setUploadStatus] = useState('');
   const [cameraVisible, setCameraVisible] = useState(false);
+  const [audioRecorderVisible, setAudioRecorderVisible] = useState(false);
 
   const pickImage = async () => {
     try {
@@ -178,6 +180,22 @@ export default function CreatePostScreen() {
     }
   };
 
+  /** Called when the user records audio via the in-app recorder */
+  const handleAudioCapture = async (uri: string, mimeType: string) => {
+    setUploadingMedia(true);
+    setUploadStatus('Uploading audio recording…');
+    try {
+      const url = await uploadMedia(uri, mimeType, 'posts', setUploadStatus);
+      setSelectedMedia({ uri, payload: url });
+    } catch (uploadErr) {
+      console.error('Error uploading audio recording:', uploadErr);
+      Alert.alert('Upload Failed', 'Could not upload the audio recording. Please try again.');
+    } finally {
+      setUploadingMedia(false);
+      setUploadStatus('');
+    }
+  };
+
   const removeMedia = () => {
     setSelectedMedia(null);
   };
@@ -294,6 +312,16 @@ export default function CreatePostScreen() {
             <Ionicons name="camera-outline" size={22} color="#fff" />
             <Text style={styles.cameraActionText}>Camera</Text>
           </TouchableOpacity>
+
+          {/* Audio record button */}
+          <TouchableOpacity
+            style={[styles.audioActionButton, (loading || uploadingMedia) && styles.mediaActionDisabled]}
+            onPress={() => setAudioRecorderVisible(true)}
+            disabled={loading || uploadingMedia}
+          >
+            <Ionicons name="mic-outline" size={22} color="#fff" />
+            <Text style={styles.audioActionText}>Record</Text>
+          </TouchableOpacity>
         </View>
 
         {/* In-app camera modal */}
@@ -301,6 +329,13 @@ export default function CreatePostScreen() {
           visible={cameraVisible}
           onClose={() => setCameraVisible(false)}
           onCapture={handleCameraCapture}
+        />
+
+        {/* In-app audio recorder modal */}
+        <AudioRecorderModal
+          visible={audioRecorderVisible}
+          onClose={() => setAudioRecorderVisible(false)}
+          onCapture={handleAudioCapture}
         />
 
         <View style={styles.option}>
@@ -448,6 +483,26 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   cameraActionText: {
+    fontSize: 14,
+    color: '#fff',
+    fontWeight: '600',
+  },
+  audioActionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#8B5CF6',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    gap: 6,
+    shadowColor: '#8B5CF6',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.35,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  audioActionText: {
     fontSize: 14,
     color: '#fff',
     fontWeight: '600',
