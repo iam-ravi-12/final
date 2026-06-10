@@ -14,13 +14,18 @@
         "UIBackgroundModes": [
           "fetch",
           "remote-notification",
+          "location",
+          "fetch",
+          "remote-notification",
           "location"
         ],
         "NSLocationWhenInUseUsageDescription": "This app needs your location to show nearby SOS alerts.",
         "NSLocationAlwaysAndWhenInUseUsageDescription": "This app needs background location access to send you notifications about nearby SOS alerts even when the app is closed.",
         "NSCameraUsageDescription": "This app uses the camera to capture photos and videos for your posts.",
-        "NSMicrophoneUsageDescription": "This app uses the microphone to record audio and video for your posts."
-      }
+        "NSMicrophoneUsageDescription": "This app uses the microphone to record audio and video for your posts.",
+        "ITSAppUsesNonExemptEncryption": false
+      },
+      "bundleIdentifier": "com.anonymous.friend"
     },
     "android": {
       "adaptiveIcon": {
@@ -41,7 +46,9 @@
         "ACCESS_COARSE_LOCATION",
         "ACCESS_BACKGROUND_LOCATION",
         "CAMERA",
-        "RECORD_AUDIO"
+        "RECORD_AUDIO",
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
       ],
       "package": "com.anonymous.friend"
     },
@@ -81,7 +88,9 @@
           "microphonePermission": "This app uses the microphone to record audio for video posts.",
           "recordAudioAndroid": true
         }
-      ]
+      ],
+      "expo-font",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,

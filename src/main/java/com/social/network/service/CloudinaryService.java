@@ -82,7 +82,13 @@ public class CloudinaryService {
 
         try {
             String resourceType = resolveResourceType(contentType);
-            String publicId = folder + "/" + UUID.randomUUID();
+            // Include the file extension in the public_id so the resulting URL
+            // contains a detectable extension (e.g. posts/uuid.m4a, posts/uuid.mp4).
+            // This lets the mobile client classify audio vs video immediately
+            // without a HEAD-probe, which Cloudinary answers as "video/mp4" for
+            // audio files stored under the video resource_type.
+            String ext = getExtensionForMimeType(contentType);
+            String publicId = folder + "/" + UUID.randomUUID() + (ext != null ? "." + ext : "");
             int uploadTimeoutMs;
             if (uploadTimeoutSeconds <= 0) {
                 uploadTimeoutMs = 0;
@@ -232,6 +238,46 @@ public class CloudinaryService {
         // Cloudinary's "video" resource_type also handles audio streams
         if (ct.startsWith("video/") || ct.startsWith("audio/")) return "video";
         return "raw";
+    }
+
+    /**
+     * Return a file extension for a given MIME type so it can be embedded in
+     * the Cloudinary public_id.  This allows the frontend to determine media
+     * type from the URL without a HEAD request.
+     *
+     * <p>Returns {@code null} for unknown or generic types.
+     */
+    private String getExtensionForMimeType(String contentType) {
+        if (contentType == null) return null;
+        return switch (contentType.toLowerCase()) {
+            // ── Images ─────────────────────────────────────────────────────
+            case "image/jpeg"       -> "jpg";
+            case "image/png"        -> "png";
+            case "image/gif"        -> "gif";
+            case "image/webp"       -> "webp";
+            case "image/heic"       -> "heic";
+            case "image/heif"       -> "heif";
+            // ── Videos ─────────────────────────────────────────────────────
+            case "video/mp4"        -> "mp4";
+            case "video/quicktime"  -> "mov";
+            case "video/webm"       -> "webm";
+            case "video/x-msvideo" -> "avi";
+            case "video/3gpp"       -> "3gpp";
+            // ── Audio ───────────────────────────────────────────────────────
+            // These extensions are detectable by the frontend as audio-only,
+            // so the frontend correctly renders an audio player instead of video.
+            case "audio/mpeg"       -> "mp3";
+            case "audio/mp4"        -> "m4a";
+            case "audio/x-m4a"      -> "m4a";
+            case "audio/aac"        -> "aac";
+            case "audio/wav"        -> "wav";
+            case "audio/x-wav"      -> "wav";
+            case "audio/ogg"        -> "ogg";
+            case "audio/flac"       -> "flac";
+            case "audio/3gpp"       -> "3gp";
+            case "audio/amr"        -> "amr";
+            default                 -> null;
+        };
     }
 
     /**

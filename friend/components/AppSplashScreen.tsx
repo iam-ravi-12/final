@@ -1,53 +1,71 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
-  Image,
   StyleSheet,
   Animated,
   Easing,
   Dimensions,
   Platform,
 } from 'react-native';
+import RemoteLogo from './RemoteLogo';
 
 const { width, height } = Dimensions.get('window');
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Types
+// ─────────────────────────────────────────────────────────────────────────────
+
 interface AppSplashScreenProps {
-  /** Called once the 2-second minimum has elapsed */
+  /** Called once the 2-second minimum has elapsed AND auth is resolved */
   onFinish: () => void;
   /** Pass true once your async work (auth check, etc.) is done */
   ready: boolean;
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Component
+// ─────────────────────────────────────────────────────────────────────────────
+
 /**
- * In-app splash / loading screen that shows the Friends logo.
+ * In-app splash / loading screen that shows the Friends logo loaded from
+ * a remote Cloudinary URL via the `RemoteLogo` component.
  *
- * Rules:
- *  - Always visible for at least 2 000 ms (branding beat)
- *  - Stays visible until `ready` is also true
- *  - Fades out smoothly, then calls `onFinish`
+ * Rules
+ * ─────
+ * • Always visible for at least 2 000 ms (branding beat).
+ * • Waits for both `ready` (auth done) AND logo resolved (success or error).
+ * • Fades out smoothly, then calls `onFinish`.
  */
 export default function AppSplashScreen({ onFinish, ready }: AppSplashScreenProps) {
-  // Animation values
-  const logoScale   = useRef(new Animated.Value(0.6)).current;
-  const logoOpacity = useRef(new Animated.Value(0)).current;
-  const textOpacity = useRef(new Animated.Value(0)).current;
-  const dotOpacity  = useRef([
+  // ── Animation refs ────────────────────────────────────────────────────────
+  const logoScale     = useRef(new Animated.Value(0.6)).current;
+  const logoOpacity   = useRef(new Animated.Value(0)).current;
+  const textOpacity   = useRef(new Animated.Value(0)).current;
+  const screenOpacity = useRef(new Animated.Value(1)).current;
+  const dotOpacity    = useRef([
     new Animated.Value(0.3),
     new Animated.Value(0.3),
     new Animated.Value(0.3),
   ]).current;
-  const screenOpacity = useRef(new Animated.Value(1)).current;
 
-  // Track whether the 2-second minimum has passed
+  // ── Exit gate refs ────────────────────────────────────────────────────────
   const timerDoneRef = useRef(false);
   const readyRef     = useRef(false);
+  const logoReadyRef = useRef(false); // true once RemoteLogo resolves (ok or error)
   const exitStarted  = useRef(false);
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // Exit logic – all three gates must open before we fade out
+  // ─────────────────────────────────────────────────────────────────────────
   const tryExit = () => {
-    if (timerDoneRef.current && readyRef.current && !exitStarted.current) {
+    if (
+      timerDoneRef.current &&
+      readyRef.current &&
+      logoReadyRef.current &&
+      !exitStarted.current
+    ) {
       exitStarted.current = true;
-      // Fade the entire screen out
       Animated.timing(screenOpacity, {
         toValue: 0,
         duration: 400,
@@ -57,14 +75,18 @@ export default function AppSplashScreen({ onFinish, ready }: AppSplashScreenProp
     }
   };
 
-  // Keep `readyRef` in sync with prop
+  // Sync auth prop → ref
   useEffect(() => {
     readyRef.current = ready;
     tryExit();
   }, [ready]);
 
-  useEffect(() => {
-    // ── Entrance animations ──────────────────────────────────────
+  // Called by RemoteLogo on either success OR error (fallback)
+  const handleLogoResolved = () => {
+    if (logoReadyRef.current) return;
+    logoReadyRef.current = true;
+
+    // Start logo entrance animation
     Animated.parallel([
       Animated.spring(logoScale, {
         toValue: 1,
@@ -87,7 +109,13 @@ export default function AppSplashScreen({ onFinish, ready }: AppSplashScreenProp
       }).start();
     });
 
-    // ── Pulsing dots ─────────────────────────────────────────────
+    tryExit();
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // On mount: start pulsing dots + 2-second minimum timer
+  // ─────────────────────────────────────────────────────────────────────────
+  useEffect(() => {
     const pulseDot = (dot: Animated.Value, delay: number) =>
       Animated.loop(
         Animated.sequence([
@@ -104,7 +132,7 @@ export default function AppSplashScreen({ onFinish, ready }: AppSplashScreenProp
             useNativeDriver: true,
             easing: Easing.inOut(Easing.ease),
           }),
-        ])
+        ]),
       );
 
     const d0 = pulseDot(dotOpacity[0], 0);
@@ -114,7 +142,6 @@ export default function AppSplashScreen({ onFinish, ready }: AppSplashScreenProp
     d1.start();
     d2.start();
 
-    // ── 2-second minimum timer ───────────────────────────────────
     const timer = setTimeout(() => {
       timerDoneRef.current = true;
       tryExit();
@@ -128,37 +155,44 @@ export default function AppSplashScreen({ onFinish, ready }: AppSplashScreenProp
     };
   }, []);
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // Render
+  // ─────────────────────────────────────────────────────────────────────────
   return (
     <Animated.View style={[styles.container, { opacity: screenOpacity }]}>
-      {/* Background gradient layers */}
+      {/* ── Background decoration ─────────────────────────────────── */}
       <View style={styles.gradientTop} />
       <View style={styles.gradientBottom} />
-
-      {/* Decorative circles */}
       <View style={[styles.circle, styles.circleLarge]} />
       <View style={[styles.circle, styles.circleMedium]} />
       <View style={[styles.circle, styles.circleSmall]} />
 
-      {/* Logo */}
+      {/* ── Logo: fetched from Cloudinary, falls back to local asset ─ */}
       <Animated.View
         style={[
           styles.logoContainer,
           { opacity: logoOpacity, transform: [{ scale: logoScale }] },
         ]}
       >
-        <Image
-          source={require('../assets/images/friends-logo.png')}
-          style={styles.logo}
+        <RemoteLogo
+          containerStyle={styles.logoInner}
+          imageStyle={styles.logoImage}
+          loadingColor="rgba(255,255,255,0.8)"
+          loadingSize="large"
+          timeoutMs={8000}
           resizeMode="contain"
+          showRetryOnError={false}
+          onLoad={handleLogoResolved}
+          onFallback={handleLogoResolved}
         />
       </Animated.View>
 
-      {/* Tagline */}
+      {/* ── Tagline ───────────────────────────────────────────────── */}
       <Animated.View style={{ opacity: textOpacity }}>
         <Text style={styles.tagline}>Connect · Share · Belong</Text>
       </Animated.View>
 
-      {/* Loading dots */}
+      {/* ── Pulsing loading dots ──────────────────────────────────── */}
       <Animated.View style={[styles.dotsRow, { opacity: textOpacity }]}>
         {dotOpacity.map((anim, i) => (
           <Animated.View key={i} style={[styles.dot, { opacity: anim }]} />
@@ -167,6 +201,10 @@ export default function AppSplashScreen({ onFinish, ready }: AppSplashScreenProp
     </Animated.View>
   );
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Styles
+// ─────────────────────────────────────────────────────────────────────────────
 
 const BLUE_DARK  = '#0a2d8f';
 const BLUE_MID   = '#1a55e0';
@@ -180,8 +218,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     zIndex: 999,
   },
-
-  // ── Background decorations ───────────────────────────────────────
   gradientTop: {
     position: 'absolute',
     top: 0,
@@ -213,8 +249,6 @@ const styles = StyleSheet.create({
   circleLarge:  { width: 420, height: 420, top: -100, right: -120 },
   circleMedium: { width: 260, height: 260, bottom: 60, left: -80 },
   circleSmall:  { width: 140, height: 140, top: height * 0.45, right: -40 },
-
-  // ── Logo ─────────────────────────────────────────────────────────
   logoContainer: {
     width: 180,
     height: 180,
@@ -227,12 +261,14 @@ const styles = StyleSheet.create({
     elevation: 20,
     marginBottom: 28,
   },
-  logo: {
+  logoInner: {
     width: '100%',
     height: '100%',
   },
-
-  // ── Text ─────────────────────────────────────────────────────────
+  logoImage: {
+    width: '100%',
+    height: '100%',
+  },
   tagline: {
     color: 'rgba(255,255,255,0.75)',
     fontSize: 14,
@@ -242,8 +278,6 @@ const styles = StyleSheet.create({
     marginBottom: 40,
     textAlign: 'center',
   },
-
-  // ── Loading dots ─────────────────────────────────────────────────
   dotsRow: {
     flexDirection: 'row',
     gap: 10,
