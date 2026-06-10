@@ -1,24 +1,19 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Image } from 'react-native';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
 // ─────────────────────────────────────────────────────────────────────────────
 
-export type LogoStatus = 'idle' | 'loading' | 'success' | 'error';
+export type LogoStatus = 'loading' | 'success' | 'error';
 
 export interface RemoteLogoState {
-  /** The URL to render – either the remote URL or null while loading/errored */
+  /** The resolved URL to render, or null while loading / on error */
   logoUrl: string | null;
-  /** Current fetch/validation lifecycle */
   status: LogoStatus;
-  /** True while the network prefetch is in flight */
   isLoading: boolean;
-  /** True once the remote URL has been confirmed reachable */
   isReady: boolean;
-  /** True when the remote URL failed and the fallback should be used */
   hasError: boolean;
-  /** Manually retry fetching the remote URL */
   retry: () => void;
 }
 
@@ -27,33 +22,34 @@ export interface RemoteLogoState {
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * `useRemoteLogo` – loads a logo from a remote URL with loading / error states.
+ * useRemoteLogo – downloads and caches a remote logo URL.
  *
- * Features
- * ────────
- * • Prefetches the remote image so it is in React Native's image cache before
- *   it is rendered – avoids a blank frame on first mount.
- * • Validates the URL with a lightweight HEAD request before committing.
- * • Returns `hasError = true` if the fetch fails so callers can fall back to a
- *   local asset.
- * • Exposes a `retry()` function to re-attempt after a failure.
- * • Aborts in-flight requests when the component unmounts.
+ * Uses React Native's `Image.prefetch` to warm the image cache.
+ * Falls back gracefully on network failure so the caller can render
+ * a local asset instead.
  *
- * @param remoteUrl  The primary remote logo URL.
- * @param timeoutMs  How long to wait before treating the fetch as failed (default 8 s).
+ * @param remoteUrl   The Cloudinary (or any HTTPS) image URL.
+ * @param timeoutMs   Milliseconds before giving up (default 8 000).
  */
 export function useRemoteLogo(
   remoteUrl: string,
   timeoutMs = 8_000,
 ): RemoteLogoState {
-  const [status, setStatus] = useState<LogoStatus>('idle');
+  const [status, setStatus] = useState<LogoStatus>('loading');
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
-  const [retryCount, setRetryCount] = useState(0);
+  const [retryKey, setRetryKey] = useState(0);
+
+  // Prevent setting state on unmounted component
+  const mountedRef = useRef(true);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => { mountedRef.current = false; };
+  }, []);
 
   const retry = useCallback(() => {
-    setStatus('idle');
+    setStatus('loading');
     setLogoUrl(null);
-    setRetryCount(c => c + 1);
+    setRetryKey(k => k + 1);
   }, []);
 
   useEffect(() => {
@@ -62,55 +58,41 @@ export function useRemoteLogo(
       return;
     }
 
-    let cancelled = false;
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+    let settled = false;
 
-    const load = async () => {
-      setStatus('loading');
-      setLogoUrl(null);
-
-      try {
-        // ── Step 1: HEAD-check the URL is reachable ───────────────────
-        const response = await fetch(remoteUrl, {
-          method: 'HEAD',
-          signal: controller.signal,
-        });
-
-        if (!response.ok) {
-          throw new Error(`Server returned ${response.status}`);
-        }
-
-        // ── Step 2: Prefetch into RN image cache ──────────────────────
-        await Image.prefetch(remoteUrl);
-
-        if (cancelled) return;
-
-        setLogoUrl(remoteUrl);
-        setStatus('success');
-      } catch (err: unknown) {
-        if (cancelled) return;
-        const message = err instanceof Error ? err.name : 'unknown';
-        console.warn(`[useRemoteLogo] Failed to load logo (${message}):`, remoteUrl);
-        setStatus('error');
-      } finally {
-        clearTimeout(timeoutId);
-      }
+    const succeed = () => {
+      if (settled || !mountedRef.current) return;
+      settled = true;
+      if (timeoutId) clearTimeout(timeoutId);
+      setLogoUrl(remoteUrl);
+      setStatus('success');
     };
 
-    load();
+    const fail = (reason: unknown) => {
+      if (settled || !mountedRef.current) return;
+      settled = true;
+      if (timeoutId) clearTimeout(timeoutId);
+      console.warn('[useRemoteLogo] Failed to prefetch logo:', reason);
+      setStatus('error');
+    };
+
+    // Hard timeout — if prefetch hangs, treat as error
+    timeoutId = setTimeout(() => fail('timeout'), timeoutMs);
+
+    // Image.prefetch is the safest cross-platform way to verify + cache a URL
+    Image.prefetch(remoteUrl).then(succeed).catch(fail);
 
     return () => {
-      cancelled = true;
-      controller.abort();
-      clearTimeout(timeoutId);
+      settled = true;
+      if (timeoutId) clearTimeout(timeoutId);
     };
-  }, [remoteUrl, retryCount, timeoutMs]);
+  }, [remoteUrl, retryKey, timeoutMs]);
 
   return {
     logoUrl,
     status,
-    isLoading: status === 'idle' || status === 'loading',
+    isLoading: status === 'loading',
     isReady: status === 'success',
     hasError: status === 'error',
     retry,

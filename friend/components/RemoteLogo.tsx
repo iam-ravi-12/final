@@ -21,7 +21,7 @@ export const REMOTE_LOGO_URL =
   'https://res.cloudinary.com/dz999gd6u/image/upload/v1781070615/icon_peco0w.png';
 
 /** Local asset used as a fallback when the remote URL is unreachable. */
-const FALLBACK_SOURCE = require('../assets/images/friends-logo.png');
+const FALLBACK_SOURCE = require('../assets/images/icon.png');
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Props

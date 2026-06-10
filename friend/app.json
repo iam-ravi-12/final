@@ -14,9 +14,6 @@
         "UIBackgroundModes": [
           "fetch",
           "remote-notification",
-          "location",
-          "fetch",
-          "remote-notification",
           "location"
         ],
         "NSLocationWhenInUseUsageDescription": "This app needs your location to show nearby SOS alerts.",
@@ -29,10 +26,9 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "monochromeImage": "./assets/images/android-icon-monochrome.png",
+        "backgroundColor": "#0a2d8f"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
@@ -46,9 +42,7 @@
         "ACCESS_COARSE_LOCATION",
         "ACCESS_BACKGROUND_LOCATION",
         "CAMERA",
-        "RECORD_AUDIO",
-        "android.permission.CAMERA",
-        "android.permission.RECORD_AUDIO"
+        "RECORD_AUDIO"
       ],
       "package": "com.anonymous.friend"
     },
@@ -62,7 +56,7 @@
         "expo-notifications",
         {
           "icon": "./assets/images/icon.png",
-          "color": "#ff0000",
+          "color": "#0a2d8f",
           "sounds": [
             "./assets/sounds/notification.wav"
           ],
@@ -72,7 +66,7 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/friends-logo.png",
+          "image": "./assets/images/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#0a2d8f",
@@ -85,7 +79,7 @@
         "expo-camera",
         {
           "cameraPermission": "This app uses the camera to capture photos and videos for your posts.",
-          "microphonePermission": "This app uses the microphone to record audio for video posts.",
+          "microphonePermission": "This app uses the microphone to record audio and video for your posts.",
           "recordAudioAndroid": true
         }
       ],
@@ -93,8 +87,7 @@
       "expo-web-browser"
     ],
     "experiments": {
-      "typedRoutes": true,
-      "reactCompiler": true
+      "typedRoutes": true
     },
     "extra": {
       "router": {},

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -12,33 +12,13 @@ import RemoteLogo from './RemoteLogo';
 
 const { width, height } = Dimensions.get('window');
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Types
-// ─────────────────────────────────────────────────────────────────────────────
-
 interface AppSplashScreenProps {
-  /** Called once the 2-second minimum has elapsed AND auth is resolved */
   onFinish: () => void;
-  /** Pass true once your async work (auth check, etc.) is done */
   ready: boolean;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Component
-// ─────────────────────────────────────────────────────────────────────────────
-
-/**
- * In-app splash / loading screen that shows the Friends logo loaded from
- * a remote Cloudinary URL via the `RemoteLogo` component.
- *
- * Rules
- * ─────
- * • Always visible for at least 2 000 ms (branding beat).
- * • Waits for both `ready` (auth done) AND logo resolved (success or error).
- * • Fades out smoothly, then calls `onFinish`.
- */
 export default function AppSplashScreen({ onFinish, ready }: AppSplashScreenProps) {
-  // ── Animation refs ────────────────────────────────────────────────────────
+  // ── Animations ────────────────────────────────────────────────────────────
   const logoScale     = useRef(new Animated.Value(0.6)).current;
   const logoOpacity   = useRef(new Animated.Value(0)).current;
   const textOpacity   = useRef(new Animated.Value(0)).current;
@@ -49,44 +29,43 @@ export default function AppSplashScreen({ onFinish, ready }: AppSplashScreenProp
     new Animated.Value(0.3),
   ]).current;
 
-  // ── Exit gate refs ────────────────────────────────────────────────────────
-  const timerDoneRef = useRef(false);
-  const readyRef     = useRef(false);
-  const logoReadyRef = useRef(false); // true once RemoteLogo resolves (ok or error)
-  const exitStarted  = useRef(false);
+  // ── Exit gates (all three must be true) ──────────────────────────────────
+  const timerDone   = useRef(false);
+  const authReady   = useRef(false);
+  const logoReady   = useRef(false);
+  const exitStarted = useRef(false);
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // Exit logic – all three gates must open before we fade out
-  // ─────────────────────────────────────────────────────────────────────────
-  const tryExit = () => {
+  // ── Stable exit function (no stale closure risk) ─────────────────────────
+  const tryExit = useCallback(() => {
     if (
-      timerDoneRef.current &&
-      readyRef.current &&
-      logoReadyRef.current &&
+      timerDone.current &&
+      authReady.current &&
+      logoReady.current &&
       !exitStarted.current
     ) {
       exitStarted.current = true;
       Animated.timing(screenOpacity, {
         toValue: 0,
-        duration: 400,
+        duration: 350,
         useNativeDriver: true,
         easing: Easing.out(Easing.ease),
-      }).start(() => onFinish());
+      }).start(({ finished }) => {
+        if (finished) onFinish();
+      });
     }
-  };
+  }, [onFinish, screenOpacity]);
 
-  // Sync auth prop → ref
+  // Sync auth prop
   useEffect(() => {
-    readyRef.current = ready;
+    authReady.current = ready;
     tryExit();
-  }, [ready]);
+  }, [ready, tryExit]);
 
-  // Called by RemoteLogo on either success OR error (fallback)
-  const handleLogoResolved = () => {
-    if (logoReadyRef.current) return;
-    logoReadyRef.current = true;
+  // Logo resolved (success or error)
+  const handleLogoResolved = useCallback(() => {
+    if (logoReady.current) return;
+    logoReady.current = true;
 
-    // Start logo entrance animation
     Animated.parallel([
       Animated.spring(logoScale, {
         toValue: 1,
@@ -110,64 +89,47 @@ export default function AppSplashScreen({ onFinish, ready }: AppSplashScreenProp
     });
 
     tryExit();
-  };
+  }, [logoScale, logoOpacity, textOpacity, tryExit]);
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // On mount: start pulsing dots + 2-second minimum timer
-  // ─────────────────────────────────────────────────────────────────────────
+  // Mount: pulsing dots + 2-second minimum timer
   useEffect(() => {
     const pulseDot = (dot: Animated.Value, delay: number) =>
       Animated.loop(
         Animated.sequence([
           Animated.delay(delay),
-          Animated.timing(dot, {
-            toValue: 1,
-            duration: 400,
-            useNativeDriver: true,
-            easing: Easing.inOut(Easing.ease),
-          }),
-          Animated.timing(dot, {
-            toValue: 0.3,
-            duration: 400,
-            useNativeDriver: true,
-            easing: Easing.inOut(Easing.ease),
-          }),
+          Animated.timing(dot, { toValue: 1, duration: 400, useNativeDriver: true, easing: Easing.inOut(Easing.ease) }),
+          Animated.timing(dot, { toValue: 0.3, duration: 400, useNativeDriver: true, easing: Easing.inOut(Easing.ease) }),
         ]),
       );
 
-    const d0 = pulseDot(dotOpacity[0], 0);
-    const d1 = pulseDot(dotOpacity[1], 200);
-    const d2 = pulseDot(dotOpacity[2], 400);
-    d0.start();
-    d1.start();
-    d2.start();
+    const anims = [
+      pulseDot(dotOpacity[0], 0),
+      pulseDot(dotOpacity[1], 200),
+      pulseDot(dotOpacity[2], 400),
+    ];
+    anims.forEach(a => a.start());
 
     const timer = setTimeout(() => {
-      timerDoneRef.current = true;
+      timerDone.current = true;
       tryExit();
     }, 2000);
 
     return () => {
       clearTimeout(timer);
-      d0.stop();
-      d1.stop();
-      d2.stop();
+      anims.forEach(a => a.stop());
     };
-  }, []);
+  }, [tryExit]);
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // Render
-  // ─────────────────────────────────────────────────────────────────────────
   return (
     <Animated.View style={[styles.container, { opacity: screenOpacity }]}>
-      {/* ── Background decoration ─────────────────────────────────── */}
+      {/* Background */}
       <View style={styles.gradientTop} />
       <View style={styles.gradientBottom} />
       <View style={[styles.circle, styles.circleLarge]} />
       <View style={[styles.circle, styles.circleMedium]} />
       <View style={[styles.circle, styles.circleSmall]} />
 
-      {/* ── Logo: fetched from Cloudinary, falls back to local asset ─ */}
+      {/* Logo – loaded from Cloudinary, falls back to local asset */}
       <Animated.View
         style={[
           styles.logoContainer,
@@ -179,7 +141,7 @@ export default function AppSplashScreen({ onFinish, ready }: AppSplashScreenProp
           imageStyle={styles.logoImage}
           loadingColor="rgba(255,255,255,0.8)"
           loadingSize="large"
-          timeoutMs={8000}
+          timeoutMs={6000}
           resizeMode="contain"
           showRetryOnError={false}
           onLoad={handleLogoResolved}
@@ -187,12 +149,12 @@ export default function AppSplashScreen({ onFinish, ready }: AppSplashScreenProp
         />
       </Animated.View>
 
-      {/* ── Tagline ───────────────────────────────────────────────── */}
+      {/* Tagline */}
       <Animated.View style={{ opacity: textOpacity }}>
         <Text style={styles.tagline}>Connect · Share · Belong</Text>
       </Animated.View>
 
-      {/* ── Pulsing loading dots ──────────────────────────────────── */}
+      {/* Pulsing dots */}
       <Animated.View style={[styles.dotsRow, { opacity: textOpacity }]}>
         {dotOpacity.map((anim, i) => (
           <Animated.View key={i} style={[styles.dot, { opacity: anim }]} />
@@ -201,10 +163,6 @@ export default function AppSplashScreen({ onFinish, ready }: AppSplashScreenProp
     </Animated.View>
   );
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Styles
-// ─────────────────────────────────────────────────────────────────────────────
 
 const BLUE_DARK  = '#0a2d8f';
 const BLUE_MID   = '#1a55e0';
@@ -220,9 +178,7 @@ const styles = StyleSheet.create({
   },
   gradientTop: {
     position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
+    top: 0, left: 0, right: 0,
     height: height * 0.55,
     backgroundColor: BLUE_MID,
     borderBottomLeftRadius: width,
@@ -231,9 +187,7 @@ const styles = StyleSheet.create({
   },
   gradientBottom: {
     position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
+    bottom: 0, left: 0, right: 0,
     height: height * 0.3,
     backgroundColor: '#061a5e',
     borderTopLeftRadius: width * 0.8,
@@ -261,14 +215,8 @@ const styles = StyleSheet.create({
     elevation: 20,
     marginBottom: 28,
   },
-  logoInner: {
-    width: '100%',
-    height: '100%',
-  },
-  logoImage: {
-    width: '100%',
-    height: '100%',
-  },
+  logoInner:  { width: '100%', height: '100%' },
+  logoImage:  { width: '100%', height: '100%' },
   tagline: {
     color: 'rgba(255,255,255,0.75)',
     fontSize: 14,
