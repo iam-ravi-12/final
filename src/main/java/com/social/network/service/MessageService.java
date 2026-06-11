@@ -8,6 +8,8 @@ import com.social.network.entity.User;
 import com.social.network.repository.MessageRepository;
 import com.social.network.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,12 +20,14 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MessageService {
 
     private final MessageRepository messageRepository;
     private final UserRepository userRepository;
+    private final SimpMessagingTemplate messagingTemplate;
 
     @Transactional
     public MessageResponse sendMessage(String senderUsername, MessageRequest request) {
@@ -40,7 +44,32 @@ public class MessageService {
         message.setIsRead(false);
 
         Message savedMessage = messageRepository.save(message);
-        return mapToMessageResponse(savedMessage);
+        MessageResponse response = mapToMessageResponse(savedMessage);
+
+        // Real-time: send the message to the receiver via WebSocket
+        try {
+            messagingTemplate.convertAndSendToUser(
+                    receiver.getUsername(),
+                    "/queue/messages",
+                    response
+            );
+
+            // Also send a conversation update so their chat list refreshes
+            ConversationResponse conversationUpdate = buildConversationUpdate(
+                    sender, receiver, savedMessage);
+            messagingTemplate.convertAndSendToUser(
+                    receiver.getUsername(),
+                    "/queue/conversations",
+                    conversationUpdate
+            );
+
+            log.info("WebSocket message sent to user: {}", receiver.getUsername());
+        } catch (Exception e) {
+            // Don't fail the REST response if WebSocket broadcast fails
+            log.warn("Failed to broadcast message via WebSocket: {}", e.getMessage());
+        }
+
+        return response;
     }
 
     @Transactional(readOnly = true)
@@ -161,5 +190,18 @@ public class MessageService {
         response.setIsRead(message.getIsRead());
         response.setCreatedAt(message.getCreatedAt());
         return response;
+    }
+
+    private ConversationResponse buildConversationUpdate(User sender, User receiver, Message message) {
+        Long unreadCount = messageRepository.countBySenderAndReceiverAndIsRead(
+                sender, receiver, false);
+        ConversationResponse conv = new ConversationResponse();
+        conv.setUserId(sender.getId());
+        conv.setUsername(sender.getUsername());
+        conv.setProfession(sender.getProfession());
+        conv.setLastMessage(message.getContent());
+        conv.setLastMessageTime(message.getCreatedAt());
+        conv.setUnreadCount(unreadCount);
+        return conv;
     }
 }
