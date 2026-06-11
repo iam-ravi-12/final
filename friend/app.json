@@ -31,6 +31,7 @@
         "backgroundColor": "#0a2d8f"
       },
       "edgeToEdgeEnabled": true,
+      "softwareKeyboardLayoutMode": "resize",
       "predictiveBackGestureEnabled": false,
       "permissions": [
         "RECEIVE_BOOT_COMPLETED",

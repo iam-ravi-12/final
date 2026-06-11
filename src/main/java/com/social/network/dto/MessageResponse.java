@@ -17,6 +17,8 @@ public class MessageResponse {
     private Long receiverId;
     private String receiverUsername;
     private String content;
+    private String mediaUrl;
+    private String mediaType;
     private Boolean isRead;
     private LocalDateTime createdAt;
 }

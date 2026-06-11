@@ -30,6 +30,12 @@ public class Message {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
+    @Column(name = "media_url", columnDefinition = "TEXT")
+    private String mediaUrl;
+
+    @Column(name = "media_type", length = 20)
+    private String mediaType;
+
     @Column(name = "is_read")
     private Boolean isRead = false;
 

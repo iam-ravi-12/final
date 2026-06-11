@@ -3,6 +3,8 @@ import api from './api';
 export interface MessageData {
   receiverId: number;
   content: string;
+  mediaUrl?: string;
+  mediaType?: string;
 }
 
 export interface MessageResponse {
@@ -10,6 +12,8 @@ export interface MessageResponse {
   senderId: number;
   receiverId: number;
   content: string;
+  mediaUrl?: string;
+  mediaType?: string;
   isRead: boolean;
   createdAt: string;
   senderUsername: string;

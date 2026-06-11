@@ -40,7 +40,9 @@ public class MessageService {
         Message message = new Message();
         message.setSender(sender);
         message.setReceiver(receiver);
-        message.setContent(request.getContent());
+        message.setContent(request.getContent() != null ? request.getContent() : "");
+        message.setMediaUrl(request.getMediaUrl());
+        message.setMediaType(request.getMediaType());
         message.setIsRead(false);
 
         Message savedMessage = messageRepository.save(message);
@@ -187,6 +189,8 @@ public class MessageService {
         response.setReceiverId(message.getReceiver().getId());
         response.setReceiverUsername(message.getReceiver().getUsername());
         response.setContent(message.getContent());
+        response.setMediaUrl(message.getMediaUrl());
+        response.setMediaType(message.getMediaType());
         response.setIsRead(message.getIsRead());
         response.setCreatedAt(message.getCreatedAt());
         return response;
@@ -199,7 +203,10 @@ public class MessageService {
         conv.setUserId(sender.getId());
         conv.setUsername(sender.getUsername());
         conv.setProfession(sender.getProfession());
-        conv.setLastMessage(message.getContent());
+        conv.setLastMessage(
+                message.getMediaUrl() != null
+                        ? "\uD83D\uDCCE " + (message.getMediaType() != null ? message.getMediaType() : "attachment")
+                        : message.getContent());
         conv.setLastMessageTime(message.getCreatedAt());
         conv.setUnreadCount(unreadCount);
         return conv;
