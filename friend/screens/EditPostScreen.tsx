@@ -10,24 +10,33 @@ import {
   Platform,
   ScrollView,
   Switch,
-  Image,
   ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
+import * as DocumentPicker from 'expo-document-picker';
 import { Ionicons } from '@expo/vector-icons';
 import postService from '../services/postService';
+import PostMediaAttachment from '../components/PostMediaAttachment';
+import { getMimeTypeFromUri } from '../utils/media';
+import { uploadMedia } from '../services/mediaUploadService';
+
+type SelectedMedia = {
+  uri: string;
+  payload: string; // Cloudinary URL after upload, or existing URL
+};
 
 export default function EditPostScreen() {
   const { postId } = useLocalSearchParams<{ postId: string }>();
   const [content, setContent] = useState('');
   const [isHelpSection, setIsHelpSection] = useState(false);
   const [showInHome, setShowInHome] = useState(true);
-  const [imageUri, setImageUri] = useState<string | null>(null);
-  const [imageBase64, setImageBase64] = useState<string | null>(null);
+  const [selectedMedia, setSelectedMedia] = useState<SelectedMedia | null>(null);
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
+  const [uploadingMedia, setUploadingMedia] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState('');
 
   useEffect(() => {
     loadPost();
@@ -47,9 +56,11 @@ export default function EditPostScreen() {
       setIsHelpSection(post.isHelpSection || false);
       setShowInHome(post.showInHome !== undefined ? post.showInHome : true);
       
-      // Set image if exists
       if (post.mediaUrls && post.mediaUrls.length > 0) {
-        setImageUri(post.mediaUrls[0]);
+        setSelectedMedia({
+          uri: post.mediaUrls[0],
+          payload: post.mediaUrls[0],
+        });
       }
     } catch (error: any) {
       console.error('Error loading post:', error);
@@ -62,42 +73,129 @@ export default function EditPostScreen() {
 
   const pickImage = async () => {
     try {
-      // Request permission
       const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      
       if (!permissionResult.granted) {
-        Alert.alert('Permission Required', 'Please grant camera roll permission to upload images.');
+        Alert.alert('Permission Required', 'Please grant media library permission to upload files.');
         return;
       }
 
-      // Launch image picker with base64 option
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: ['images'],
         allowsEditing: true,
         aspect: [4, 3],
-        quality: 0.8,
-        base64: true, // Request base64 encoding directly
+        // Compress images to ~60 % quality to reduce upload size
+        quality: 0.6,
       });
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const asset = result.assets[0];
-        setImageUri(asset.uri);
-        
-        // Store base64 with proper data URI prefix
-        if (asset.base64) {
-          const mimeType = asset.uri.toLowerCase().endsWith('.png') ? 'image/png' : 'image/jpeg';
-          setImageBase64(`data:${mimeType};base64,${asset.base64}`);
+        const mimeType = asset.mimeType || getMimeTypeFromUri(asset.uri) || 'image/jpeg';
+        setUploadingMedia(true);
+        setUploadStatus('Uploading photo…');
+        try {
+          const url = await uploadMedia(asset.uri, mimeType, 'posts', setUploadStatus);
+          setSelectedMedia({ uri: asset.uri, payload: url });
+        } catch (uploadErr) {
+          console.error('Error uploading image:', uploadErr);
+          Alert.alert('Upload Failed', 'Could not upload the photo. Please try again.');
+        } finally {
+          setUploadingMedia(false);
+          setUploadStatus('');
         }
       }
     } catch (error) {
       console.error('Error picking image:', error);
-      Alert.alert('Error', 'Failed to pick image');
+      Alert.alert('Error', 'Failed to open photo picker. Please try again.');
+      setUploadingMedia(false);
+      setUploadStatus('');
     }
   };
 
-  const removeImage = () => {
-    setImageUri(null);
-    setImageBase64(null);
+  const pickVideo = async () => {
+    // iOS/Android cannot show two native modal sheets simultaneously.
+    // The Alert sheet needs ~200 ms to fully animate out before the next
+    // native picker (ImagePicker) can be presented without throwing an error.
+    await new Promise<void>(resolve => setTimeout(resolve, 200));
+    try {
+      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!permissionResult.granted) {
+        Alert.alert('Permission Required', 'Please grant media library permission to upload files.');
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['videos'],
+        allowsEditing: false,
+        // Compress video to ~50 % quality to reduce upload size
+        quality: 0.5,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const asset = result.assets[0];
+        const mimeType = asset.mimeType || getMimeTypeFromUri(asset.uri) || 'video/mp4';
+        setUploadingMedia(true);
+        setUploadStatus('Uploading video… this may take a moment');
+        try {
+          const url = await uploadMedia(asset.uri, mimeType, 'posts', setUploadStatus);
+          setSelectedMedia({ uri: asset.uri, payload: url });
+        } catch (uploadErr) {
+          console.error('Error uploading video:', uploadErr);
+          Alert.alert('Upload Failed', 'Could not upload the video. Please try again or choose a shorter clip.');
+        } finally {
+          setUploadingMedia(false);
+          setUploadStatus('');
+        }
+      }
+    } catch (error) {
+      console.error('Error picking video:', error);
+      Alert.alert('Error', 'Failed to open video picker. Please try again.');
+    }
+  };
+
+  const pickAudio = async () => {
+    // iOS/Android cannot show two native modal sheets simultaneously.
+    // The Alert sheet needs ~200 ms to fully animate out before the next
+    // native picker (DocumentPicker) can be presented without throwing an error.
+    await new Promise<void>(resolve => setTimeout(resolve, 200));
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: 'audio/*',
+        copyToCacheDirectory: true,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const asset = result.assets[0];
+        const mimeType = asset.mimeType || getMimeTypeFromUri(asset.uri) || 'audio/mpeg';
+        setUploadingMedia(true);
+        setUploadStatus('Uploading audio…');
+        try {
+          const url = await uploadMedia(asset.uri, mimeType, 'posts', setUploadStatus);
+          setSelectedMedia({ uri: asset.uri, payload: url });
+        } catch (uploadErr) {
+          console.error('Error uploading audio:', uploadErr);
+          Alert.alert('Upload Failed', 'Could not upload the audio file. Please try again.');
+        } finally {
+          setUploadingMedia(false);
+          setUploadStatus('');
+        }
+      }
+    } catch (error) {
+      console.error('Error picking audio:', error);
+      Alert.alert('Error', 'Failed to open audio picker. Please try again.');
+    }
+  };
+
+  const showMediaPickerOptions = () => {
+    Alert.alert('Add Media', 'Choose what you want to add', [
+      { text: 'Photo', onPress: pickImage },
+      { text: 'Video', onPress: pickVideo },
+      { text: 'Audio', onPress: pickAudio },
+      { text: 'Cancel', style: 'cancel' },
+    ]);
+  };
+
+  const removeMedia = () => {
+    setSelectedMedia(null);
   };
 
   const handleSubmit = async () => {
@@ -119,13 +217,8 @@ export default function EditPostScreen() {
         showInHome,
       };
       
-      // If there's a new image (base64), use it
-      // Otherwise, if there's an existing image URL, keep it
-      if (imageBase64) {
-        postData.mediaUrls = [imageBase64];
-      } else if (imageUri && imageUri.startsWith('http')) {
-        // Image is already a URL (from backend), keep it as is
-        postData.mediaUrls = [imageUri];
+      if (selectedMedia?.payload) {
+        postData.mediaUrls = [selectedMedia.payload];
       } else {
         postData.mediaUrls = [];
       }
@@ -163,11 +256,11 @@ export default function EditPostScreen() {
             <Text style={styles.cancelButton}>Cancel</Text>
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Edit Post</Text>
-          <TouchableOpacity onPress={handleSubmit} disabled={loading}>
+          <TouchableOpacity onPress={handleSubmit} disabled={loading || uploadingMedia}>
             <Text
               style={[
                 styles.postButton,
-                loading && styles.postButtonDisabled,
+                (loading || uploadingMedia) && styles.postButtonDisabled,
               ]}
             >
               {loading ? 'Saving...' : 'Save'}
@@ -187,12 +280,12 @@ export default function EditPostScreen() {
           editable={!loading}
         />
 
-        {imageUri && (
+        {selectedMedia?.uri && (
           <View style={styles.imageContainer}>
-            <Image source={{ uri: imageUri }} style={styles.image} />
+            <PostMediaAttachment uri={selectedMedia.uri} mediaStyle={styles.image} />
             <TouchableOpacity
               style={styles.removeImageButton}
-              onPress={removeImage}
+              onPress={removeMedia}
               disabled={loading}
             >
               <Ionicons name="close-circle" size={28} color="#fff" />
@@ -202,13 +295,22 @@ export default function EditPostScreen() {
 
         <TouchableOpacity
           style={styles.addPhotoButton}
-          onPress={pickImage}
-          disabled={loading}
+          onPress={showMediaPickerOptions}
+          disabled={loading || uploadingMedia}
         >
-          <Ionicons name="image-outline" size={24} color="#007AFF" />
-          <Text style={styles.addPhotoText}>
-            {imageUri ? 'Change Photo' : 'Add Photo'}
-          </Text>
+          {uploadingMedia ? (
+            <>
+              <ActivityIndicator size="small" color="#007AFF" />
+              <Text style={styles.addPhotoText}>{uploadStatus || 'Uploading…'}</Text>
+            </>
+          ) : (
+            <>
+              <Ionicons name="attach-outline" size={24} color="#007AFF" />
+              <Text style={styles.addPhotoText}>
+                {selectedMedia ? 'Change Media' : 'Add Photo / Video / Audio'}
+              </Text>
+            </>
+          )}
         </TouchableOpacity>
 
         <View style={styles.option}>

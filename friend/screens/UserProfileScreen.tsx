@@ -19,6 +19,8 @@ import authService, { ProfileResponse } from '../services/authService';
 import followService, { FollowStatsResponse } from '../services/followService';
 import postService, { PostResponse } from '../services/postService';
 import { parseUTCDate } from '../utils/helpers';
+import PostMediaAttachment from '../components/PostMediaAttachment';
+import { inferMediaType } from '../utils/media';
 
 const formatTimeAgo = (dateString: string): string => {
   const now = new Date();
@@ -122,6 +124,10 @@ export default function UserProfileScreen() {
   }, [userId]);
 
   const renderPost = useCallback(({ item }: { item: PostResponse }) => {
+    const mediaStyle =
+      item.mediaUrls && item.mediaUrls.length > 0 && inferMediaType(item.mediaUrls[0]) === 'audio'
+        ? styles.postAudio
+        : styles.postImage;
     return (
       <TouchableOpacity
         style={styles.postCard}
@@ -132,11 +138,7 @@ export default function UserProfileScreen() {
           {item.content}
         </Text>
         {item.mediaUrls && item.mediaUrls.length > 0 && (
-          <Image
-            source={{ uri: item.mediaUrls[0] }}
-            style={styles.postImage}
-            resizeMode="cover"
-          />
+          <PostMediaAttachment uri={item.mediaUrls[0]} mediaStyle={mediaStyle} />
         )}
         <View style={styles.postActions}>
           <View style={styles.actionItem}>
@@ -538,6 +540,11 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 200,
     borderRadius: 8,
+    marginBottom: 12,
+  },
+  postAudio: {
+    width: '100%',
+    borderRadius: 12,
     marginBottom: 12,
   },
   postActions: {

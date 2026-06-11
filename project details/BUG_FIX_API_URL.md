@@ -11,21 +11,21 @@ The friend app's API base URL was missing the `/api` suffix that the backend req
 ### Before (Broken)
 ```typescript
 // friend/services/api.ts
-const API_URL = 'https://final-okus.onrender.com';
+const API_URL = 'https://final-production-3b39.up.railway.app';
 
 // When calling communityService.getMyCommunities()
-// Result: GET https://final-okus.onrender.com/communities/my
-// Expected: GET https://final-okus.onrender.com/api/communities/my
+// Result: GET https://final-production-3b39.up.railway.app/communities/my
+// Expected: GET https://final-production-3b39.up.railway.app/api/communities/my
 // Status: 404 Not Found ❌
 ```
 
 ### After (Fixed)
 ```typescript
 // friend/services/api.ts
-const API_URL = 'https://final-okus.onrender.com/api';
+const API_URL = 'https://final-production-3b39.up.railway.app/api';
 
 // When calling communityService.getMyCommunities()
-// Result: GET https://final-okus.onrender.com/api/communities/my
+// Result: GET https://final-production-3b39.up.railway.app/api/communities/my
 // Status: 200 OK ✅
 ```
 
@@ -35,14 +35,14 @@ The website implementation correctly includes `/api` in the base URL:
 
 ```javascript
 // frontend/src/services/api.js (Website - Working)
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://final-okus.onrender.com/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://final-production-3b39.up.railway.app/api';
 ```
 
 But the friend app initially didn't include it:
 
 ```typescript
 // friend/services/api.ts (Mobile App - Was Broken)
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://final-okus.onrender.com';
+const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://final-production-3b39.up.railway.app';
 ```
 
 ## Backend Endpoints

@@ -23,6 +23,8 @@ import postService, { PostResponse } from '../services/postService';
 import SosButton from '../components/SosButton';
 import { useAuth } from '../contexts/AuthContext';
 import { router } from 'expo-router';
+import PostMediaAttachment from '../components/PostMediaAttachment';
+import { inferMediaType } from '../utils/media';
 
 type PostSection = 'all' | 'professional' | 'help';
 
@@ -176,6 +178,10 @@ export default function HomeScreen() {
     );
   }, [posts, searchQuery]);
 
+  const getMediaStyle = (uri: string): StyleProp<ViewStyle> => {
+    return inferMediaType(uri) === 'audio' ? styles.postAudio : styles.postImage;
+  };
+
   const getPostCardStyle = (item: PostResponse): StyleProp<ViewStyle> => {
     if (item.isHelpSection) {
       return item.isSolved 
@@ -300,10 +306,9 @@ export default function HomeScreen() {
         </Text>
         
         {item.mediaUrls && item.mediaUrls.length > 0 && (
-          <Image
-            source={{ uri: item.mediaUrls[0] }}
-            style={styles.postImage}
-            resizeMode="cover"
+          <PostMediaAttachment
+            uri={item.mediaUrls[0]}
+            mediaStyle={getMediaStyle(item.mediaUrls[0])}
           />
         )}
       </TouchableOpacity>
@@ -740,6 +745,12 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 250,
     borderRadius: 8,
+    marginTop: 8,
+    marginBottom: 12,
+  },
+  postAudio: {
+    width: '100%',
+    borderRadius: 12,
     marginTop: 8,
     marginBottom: 12,
   },

@@ -30,6 +30,50 @@ public class FirebaseStorageService {
     }
 
     /**
+     * Upload raw bytes (e.g. from a multipart file) to Firebase Storage.
+     * This avoids base64 encoding and works for any file size.
+     *
+     * @param bytes       The file bytes
+     * @param contentType MIME type of the file
+     * @param folder      Destination folder in Firebase Storage (e.g., "posts")
+     * @return The public URL of the uploaded file, or null if upload fails
+     */
+    public String uploadMedia(byte[] bytes, String contentType, String folder) {
+        if (bytes == null || bytes.length == 0) {
+            logger.warn("Attempted to upload null or empty bytes");
+            return null;
+        }
+
+        if (bucketName == null || bucketName.isEmpty()) {
+            logger.warn("Firebase Storage bucket not configured.");
+            return null;
+        }
+
+        try {
+            Bucket bucket = StorageClient.getInstance().bucket(bucketName);
+            if (bucket == null) {
+                logger.warn("Firebase Storage bucket not available.");
+                return null;
+            }
+
+            String effectiveContentType = contentType != null ? contentType : "application/octet-stream";
+            String filename = folder + "/" + UUID.randomUUID() + getFileExtension(effectiveContentType);
+            bucket.create(filename, bytes, effectiveContentType);
+
+            String publicUrl = String.format("https://storage.googleapis.com/%s/%s", bucketName, filename);
+            logger.info("Successfully uploaded media to Firebase Storage: {}", publicUrl);
+            return publicUrl;
+
+        } catch (IllegalStateException e) {
+            logger.error("Firebase not initialized.", e);
+            return null;
+        } catch (Exception e) {
+            logger.error("Error uploading media to Firebase Storage.", e);
+            return null;
+        }
+    }
+
+    /**
      * Upload a base64 encoded image to Firebase Storage
      * 
      * @param base64Image The base64 encoded image string (with or without data URI prefix)
@@ -174,8 +218,23 @@ public class FirebaseStorageService {
                 return ".mp4";
             case "video/webm":
                 return ".webm";
+            case "audio/mpeg":
+                return ".mp3";
+            case "audio/mp4":
+            case "audio/x-m4a":
+                return ".m4a";
+            case "audio/wav":
+            case "audio/x-wav":
+                return ".wav";
+            case "audio/aac":
+                return ".aac";
+            case "audio/ogg":
+                return ".ogg";
+            case "audio/webm":
+                return ".webm";
             default:
-                return ".jpg";
+                logger.warn("Unsupported content type '{}', using .bin extension", contentType);
+                return ".bin";
         }
     }
 
