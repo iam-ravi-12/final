@@ -5,6 +5,7 @@ import 'react-native-reanimated';
 
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { AuthProvider, useAuth } from '../contexts/AuthContext';
+import { ChatProvider } from '../contexts/ChatContext';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'expo-router';
 import AppSplashScreen from '../components/AppSplashScreen';
@@ -72,8 +73,11 @@ function RootNavigator() {
 export default function RootLayout() {
   return (
     <AuthProvider>
-      <RootNavigator />
+      <ChatProvider>
+        <RootNavigator />
+      </ChatProvider>
     </AuthProvider>
   );
 }
+
 

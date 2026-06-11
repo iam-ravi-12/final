@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback } from 'react';
 import {
   View,
   Text,
@@ -6,32 +6,30 @@ import {
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
-  Alert,
+  RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { router } from 'expo-router';
-import messageService, { ConversationResponse } from '../services/messageService';
+import { useFocusEffect } from 'expo-router';
+import { ConversationResponse } from '../services/messageService';
 import { parseUTCDate } from '../utils/helpers';
+import { useChat } from '../contexts/ChatContext';
 
 export default function MessagesScreen() {
-  const [conversations, setConversations] = useState<ConversationResponse[]>([]);
-  const [loading, setLoading] = useState(true);
+  const {
+    conversations,
+    isLoadingConversations,
+    loadConversations,
+    isSocketConnected,
+  } = useChat();
 
-  useEffect(() => {
-    loadConversations();
-  }, []);
-
-  const loadConversations = async () => {
-    try {
-      const data = await messageService.getConversations();
-      setConversations(data);
-    } catch (error) {
-      Alert.alert('Error', 'Failed to load conversations');
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Refresh conversations when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      loadConversations();
+    }, [loadConversations]),
+  );
 
   const formatTime = (timestamp: string) => {
     const date = parseUTCDate(timestamp);
@@ -41,6 +39,7 @@ export default function MessagesScreen() {
     const hours = Math.floor(diff / 3600000);
     const days = Math.floor(diff / 86400000);
 
+    if (minutes < 1) return 'now';
     if (minutes < 60) return `${minutes}m ago`;
     if (hours < 24) return `${hours}h ago`;
     return `${days}d ago`;
@@ -86,9 +85,11 @@ export default function MessagesScreen() {
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Messages</Text>
+        {/* Connection status indicator */}
+        <View style={[styles.statusDot, isSocketConnected ? styles.statusOnline : styles.statusOffline]} />
       </View>
 
-      {loading ? (
+      {isLoadingConversations && conversations.length === 0 ? (
         <View style={styles.centerContainer}>
           <ActivityIndicator size="large" color="#007AFF" />
         </View>
@@ -98,6 +99,13 @@ export default function MessagesScreen() {
           renderItem={renderConversation}
           keyExtractor={(item) => item.userId.toString()}
           contentContainerStyle={styles.listContainer}
+          refreshControl={
+            <RefreshControl
+              refreshing={isLoadingConversations}
+              onRefresh={loadConversations}
+              tintColor="#007AFF"
+            />
+          }
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <IconSymbol name="envelope" size={60} color="#ccc" />
@@ -123,11 +131,25 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: '#e0e0e0',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#333',
+  },
+  statusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  statusOnline: {
+    backgroundColor: '#34C759',
+  },
+  statusOffline: {
+    backgroundColor: '#ccc',
   },
   listContainer: {
     flexGrow: 1,

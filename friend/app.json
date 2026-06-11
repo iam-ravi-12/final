@@ -42,7 +42,9 @@
         "ACCESS_COARSE_LOCATION",
         "ACCESS_BACKGROUND_LOCATION",
         "CAMERA",
-        "RECORD_AUDIO"
+        "RECORD_AUDIO",
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
       ],
       "package": "com.anonymous.friend"
     },
@@ -92,7 +94,7 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "1857e5a7-1a61-478b-9ed2-41e8cd53b7d3"
+        "projectId": "a9059942-2cc5-4796-829a-9671723e7659"
       }
     }
   }

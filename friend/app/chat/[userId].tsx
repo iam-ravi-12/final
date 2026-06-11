@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -10,49 +10,30 @@ import {
   Platform,
   ActivityIndicator,
   Alert,
-  AppState,
 } from 'react-native';
 import { useLocalSearchParams, Stack, useFocusEffect } from 'expo-router';
-import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Ionicons } from '@expo/vector-icons';
 import messageService, { MessageResponse } from '../../services/messageService';
 import { useAuth } from '../../contexts/AuthContext';
+import { useChat } from '../../contexts/ChatContext';
 import { parseUTCDate } from '../../utils/helpers';
 
 export default function ChatScreen() {
   const { userId } = useLocalSearchParams();
+  const otherUserId = Number(userId);
   const [messages, setMessages] = useState<MessageResponse[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const { user } = useAuth();
+  const { onNewMessage, markConversationRead } = useChat();
   const flatListRef = useRef<FlatList>(null);
-  const pollingInterval = useRef<NodeJS.Timeout | null>(null);
 
-  // Load messages when screen is focused
-  useFocusEffect(
-    React.useCallback(() => {
-      loadMessages();
-      
-      // Start polling when screen is focused
-      pollingInterval.current = setInterval(loadMessages, 5000);
-      
-      // Cleanup: stop polling when screen loses focus
-      return () => {
-        if (pollingInterval.current) {
-          clearInterval(pollingInterval.current);
-        }
-      };
-    }, [userId])
-  );
-
-  const loadMessages = async () => {
+  // ── Load messages on mount ──────────────────────────────────────────
+  const loadMessages = useCallback(async () => {
     try {
-      const data = await messageService.getMessagesWithUser(Number(userId));
+      const data = await messageService.getMessagesWithUser(otherUserId);
       setMessages(data);
-      
-      // Mark messages as read
-      await messageService.markAsRead(Number(userId));
     } catch (error) {
       if (loading) {
         Alert.alert('Error', 'Failed to load messages');
@@ -60,8 +41,50 @@ export default function ChatScreen() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [otherUserId, loading]);
 
+  // ── Focus effect: load messages + mark as read ──────────────────────
+  useFocusEffect(
+    useCallback(() => {
+      loadMessages();
+      markConversationRead(otherUserId);
+
+      return () => {
+        // Nothing to clean up — no polling!
+      };
+    }, [otherUserId, loadMessages, markConversationRead]),
+  );
+
+  // ── Subscribe to real-time messages via WebSocket ───────────────────
+  useEffect(() => {
+    const unsubscribe = onNewMessage((msg: MessageResponse) => {
+      // Only add messages relevant to this conversation
+      const isFromOtherUser = msg.senderId === otherUserId;
+      const isToOtherUser = msg.receiverId === otherUserId;
+
+      if (isFromOtherUser || isToOtherUser) {
+        setMessages((prev) => {
+          // Prevent duplicates (check by id)
+          if (prev.some((m) => m.id === msg.id)) return prev;
+          return [...prev, msg];
+        });
+
+        // Mark as read if the message is from the other user
+        if (isFromOtherUser) {
+          markConversationRead(otherUserId);
+        }
+
+        // Scroll to bottom
+        setTimeout(() => {
+          flatListRef.current?.scrollToEnd({ animated: true });
+        }, 100);
+      }
+    });
+
+    return unsubscribe;
+  }, [otherUserId, onNewMessage, markConversationRead]);
+
+  // ── Send message ────────────────────────────────────────────────────
   const handleSend = async () => {
     if (!newMessage.trim()) return;
 
@@ -70,12 +93,17 @@ export default function ChatScreen() {
     setSending(true);
 
     try {
-      await messageService.sendMessage({
-        receiverId: Number(userId),
+      const sentMessage = await messageService.sendMessage({
+        receiverId: otherUserId,
         content: messageContent,
       });
-      await loadMessages();
-      
+
+      // Optimistically add the sent message to the list
+      setMessages((prev) => {
+        if (prev.some((m) => m.id === sentMessage.id)) return prev;
+        return [...prev, sentMessage];
+      });
+
       // Scroll to bottom
       setTimeout(() => {
         flatListRef.current?.scrollToEnd({ animated: true });
@@ -88,11 +116,22 @@ export default function ChatScreen() {
     }
   };
 
+  // ── Format time ─────────────────────────────────────────────────────
   const formatTime = (timestamp: string) => {
     const date = parseUTCDate(timestamp);
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
+  // ── Get chat title ──────────────────────────────────────────────────
+  const getChatTitle = () => {
+    if (messages.length === 0) return 'Chat';
+    const first = messages[0];
+    return first.senderId === user?.id
+      ? first.receiverUsername
+      : first.senderUsername;
+  };
+
+  // ── Render message bubble ───────────────────────────────────────────
   const renderMessage = ({ item }: { item: MessageResponse }) => {
     const isOwnMessage = item.senderId === user?.id;
 
@@ -134,7 +173,7 @@ export default function ChatScreen() {
     <>
       <Stack.Screen
         options={{
-          title: messages[0]?.senderUsername || messages[0]?.receiverUsername || 'Chat',
+          title: getChatTitle(),
         }}
       />
       <KeyboardAvoidingView

@@ -10,9 +10,11 @@ import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import sosService from '@/services/sosService';
 import notificationService from '@/services/notificationService';
+import { useChat } from '@/contexts/ChatContext';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
+  const { totalUnreadCount } = useChat();
   const [sosUnreadCount, setSosUnreadCount] = useState(0);
   const appState = useRef(AppState.currentState);
   const notificationListener = useRef<Notifications.Subscription>();
@@ -112,7 +114,18 @@ export default function TabLayout() {
         name="messages"
         options={{
           title: 'Messages',
-          tabBarIcon: ({ color }) => <Ionicons name="chatbubbles" size={28} color={color} />,
+          tabBarIcon: ({ color }) => (
+            <View>
+              <Ionicons name="chatbubbles" size={28} color={color} />
+              {totalUnreadCount > 0 && (
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>
+                    {totalUnreadCount > 99 ? '99+' : totalUnreadCount}
+                  </Text>
+                </View>
+              )}
+            </View>
+          ),
         }}
       />
       <Tabs.Screen
