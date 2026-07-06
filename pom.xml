@@ -65,6 +65,13 @@
             <artifactId>sendgrid-java</artifactId>
             <version>4.9.3</version>
         </dependency>
+
+        <!-- Spring Dotenv to auto-load .env file -->
+        <dependency>
+            <groupId>me.paulschwarz</groupId>
+            <artifactId>spring-dotenv</artifactId>
+            <version>4.0.0</version>
+        </dependency>
         
         <!-- MySQL Connector -->
         <dependency>

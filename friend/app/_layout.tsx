@@ -1,3 +1,4 @@
+import { Text, TextInput, Platform } from 'react-native';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack, useSegments, useRootNavigationState } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -9,6 +10,28 @@ import { ChatProvider } from '../contexts/ChatContext';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'expo-router';
 import AppSplashScreen from '../components/AppSplashScreen';
+
+// Global typography setup for SF Pro Display cross-platform
+const defaultFontStyle = {
+  fontFamily: Platform.select({
+    ios: 'SF Pro Display',
+    android: 'SF Pro Display',
+    web: 'SF Pro Display, -apple-system, BlinkMacSystemFont, sans-serif',
+    default: 'SF Pro Display',
+  }),
+};
+
+if ((Text as any).defaultProps) {
+  (Text as any).defaultProps.style = [defaultFontStyle, (Text as any).defaultProps.style];
+} else {
+  (Text as any).defaultProps = { style: defaultFontStyle };
+}
+
+if ((TextInput as any).defaultProps) {
+  (TextInput as any).defaultProps.style = [defaultFontStyle, (TextInput as any).defaultProps.style];
+} else {
+  (TextInput as any).defaultProps = { style: defaultFontStyle };
+}
 
 function RootNavigator() {
   const colorScheme = useColorScheme();

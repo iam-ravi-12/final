@@ -147,12 +147,18 @@ const darkColors: AppThemeColors = {
   icon: palette.c6EA2B3,
 };
 
+// ── Typography ──────────────────────────────────────────────────────────────
+export const typography = {
+  fontFamily: 'SF Pro Display',
+  fontFamilyRounded: 'SF Pro Rounded',
+};
+
 // ── Hook ────────────────────────────────────────────────────────────────────
 export function useAppTheme() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const colors = isDark ? darkColors : lightColors;
-  return { colors, isDark };
+  return { colors, isDark, typography };
 }
 
 // Re-export legacy Colors for backwards-compat with existing components

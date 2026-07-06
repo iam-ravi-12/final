@@ -357,130 +357,144 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
-      <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.surfaceBorder }]}>
-        <TouchableOpacity
-          style={styles.profileInfo}
-          onPress={() => router.push('/(tabs)/profile')}
-          activeOpacity={0.7}
-        >
-          {user?.profilePicture ? (
-            <Image
-              source={{ uri: user.profilePicture }}
-              style={styles.headerAvatar}
-            />
-          ) : (
-            <View style={[styles.headerAvatar, { backgroundColor: colors.accent }]}>
-              <Text style={[styles.headerAvatarText, { color: colors.textInverse }]}>
-                {getUserInitial()}
-              </Text>
-            </View>
-          )}
-          <View style={styles.profileTextContainer}>
-            <Text style={[styles.profileName, { color: colors.textPrimary }]} numberOfLines={1}>
-              {user?.name || user?.username || 'User'}
-            </Text>
-            <Text style={[styles.profileProfession, { color: colors.textSecondary }]} numberOfLines={1}>
-              {user?.profession || 'Add your profession'}
-            </Text>
-          </View>
-        </TouchableOpacity>
-        
-        <View style={styles.headerActions}>
+      <View style={[styles.topHeaderContainer, { backgroundColor: isDark ? 'rgba(0, 29, 57, 0.95)' : 'rgba(235, 244, 249, 0.92)' }]}>
+        <View style={styles.header}>
           <TouchableOpacity
-            style={[styles.headerActionButton, { backgroundColor: colors.accentLight }]}
-            onPress={() => router.push('/(tabs)/leaderboard')}
-            activeOpacity={0.6}
-          >
-            <Ionicons name="trophy" size={24} color={colors.accent} />
-          </TouchableOpacity>
-          
-          <TouchableOpacity
-            style={[styles.headerActionButton, { backgroundColor: colors.accentLight }]}
-            onPress={handleSearchToggle}
-            activeOpacity={0.6}
-          >
-            <Ionicons name="search" size={24} color={colors.accent} />
-          </TouchableOpacity>
-          
-          <TouchableOpacity
-            style={styles.sosCircleButton}
-            onPress={() => setShowSosModal(true)}
+            style={styles.profileInfo}
+            onPress={() => router.push('/(tabs)/profile')}
             activeOpacity={0.7}
           >
-            <Text style={styles.sosButtonText}>SOS</Text>
+            {user?.profilePicture ? (
+              <Image
+                source={{ uri: user.profilePicture }}
+                style={styles.headerAvatar}
+              />
+            ) : (
+              <View style={[styles.headerAvatar, { backgroundColor: colors.accent }]}>
+                <Text style={[styles.headerAvatarText, { color: colors.textInverse }]}>
+                  {getUserInitial()}
+                </Text>
+              </View>
+            )}
+            <View style={styles.profileTextContainer}>
+              <Text style={[styles.profileName, { color: colors.textPrimary }]} numberOfLines={1}>
+                {user?.name || user?.username || 'User'}
+              </Text>
+              <Text style={[styles.profileProfession, { color: colors.textSecondary }]} numberOfLines={1}>
+                {user?.profession || 'Add your profession'}
+              </Text>
+            </View>
           </TouchableOpacity>
+          
+          <View style={styles.headerActions}>
+            <TouchableOpacity
+              style={[styles.headerActionButton, { backgroundColor: colors.accentLight }]}
+              onPress={() => router.push('/(tabs)/leaderboard')}
+              activeOpacity={0.6}
+            >
+              <Ionicons name="trophy" size={22} color={colors.accent} />
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={[styles.headerActionButton, { backgroundColor: colors.accentLight }]}
+              onPress={handleSearchToggle}
+              activeOpacity={0.6}
+            >
+              <Ionicons name="search" size={22} color={colors.accent} />
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={styles.sosCircleButton}
+              onPress={() => setShowSosModal(true)}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.sosButtonText}>SOS</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
 
-      {showSearchBar && (
-        <View style={[styles.searchBarContainer, { backgroundColor: colors.surface, borderBottomColor: colors.surfaceBorder }]}>
-          <Ionicons name="search" size={20} color={colors.textTertiary} style={styles.searchIcon} />
-          <TextInput
-            style={[styles.searchInput, { color: colors.inputText }]}
-            placeholder="Search posts, users, professions..."
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            autoFocus
-            placeholderTextColor={colors.inputPlaceholder}
-          />
+        {showSearchBar && (
+          <View style={[styles.searchBarContainer, { backgroundColor: colors.surface }]}>
+            <Ionicons name="search" size={20} color={colors.textTertiary} style={styles.searchIcon} />
+            <TextInput
+              style={[styles.searchInput, { color: colors.inputText }]}
+              placeholder="Search posts, users, professions..."
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              autoFocus
+              placeholderTextColor={colors.inputPlaceholder}
+            />
+            <TouchableOpacity
+              onPress={handleSearchToggle}
+              style={styles.closeSearchButton}
+              activeOpacity={0.6}
+            >
+              <Ionicons name="close" size={24} color={colors.textSecondary} />
+            </TouchableOpacity>
+          </View>
+        )}
+
+        <View style={styles.tabs}>
           <TouchableOpacity
-            onPress={handleSearchToggle}
-            style={styles.closeSearchButton}
-            activeOpacity={0.6}
+            style={[
+              styles.tab,
+              activeSection === 'all' && {
+                backgroundColor: isDark ? 'rgba(123, 189, 232, 0.18)' : 'rgba(10, 65, 116, 0.12)',
+              },
+            ]}
+            onPress={() => setActiveSection('all')}
           >
-            <Ionicons name="close" size={24} color={colors.textSecondary} />
+            <Text
+              style={[
+                styles.tabText,
+                { color: activeSection === 'all' ? colors.accent : colors.textSecondary },
+                activeSection === 'all' && { fontWeight: '700' },
+              ]}
+            >
+              All Posts
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.tab,
+              activeSection === 'professional' && {
+                backgroundColor: isDark ? 'rgba(123, 189, 232, 0.18)' : 'rgba(10, 65, 116, 0.12)',
+              },
+            ]}
+            onPress={() => setActiveSection('professional')}
+          >
+            <Text
+              style={[
+                styles.tabText,
+                { color: activeSection === 'professional' ? colors.accent : colors.textSecondary },
+                activeSection === 'professional' && { fontWeight: '700' },
+              ]}
+            >
+              Professional
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.tab,
+              activeSection === 'help' && {
+                backgroundColor: isDark ? 'rgba(123, 189, 232, 0.18)' : 'rgba(10, 65, 116, 0.12)',
+              },
+            ]}
+            onPress={() => setActiveSection('help')}
+          >
+            <Text
+              style={[
+                styles.tabText,
+                { color: activeSection === 'help' ? colors.accent : colors.textSecondary },
+                activeSection === 'help' && { fontWeight: '700' },
+              ]}
+            >
+              Help
+            </Text>
           </TouchableOpacity>
         </View>
-      )}
-
-      <View style={[styles.tabs, { backgroundColor: colors.surface, borderBottomColor: colors.surfaceBorder }]}>
-        <TouchableOpacity
-          style={[styles.tab, activeSection === 'all' && { borderBottomColor: colors.accent }]}
-          onPress={() => setActiveSection('all')}
-        >
-          <Text
-            style={[
-              styles.tabText,
-              { color: colors.textSecondary },
-              activeSection === 'all' && { color: colors.accent, fontWeight: '600' },
-            ]}
-          >
-            All Posts
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[
-            styles.tab,
-            activeSection === 'professional' && { borderBottomColor: colors.accent },
-          ]}
-          onPress={() => setActiveSection('professional')}
-        >
-          <Text
-            style={[
-              styles.tabText,
-              { color: colors.textSecondary },
-              activeSection === 'professional' && { color: colors.accent, fontWeight: '600' },
-            ]}
-          >
-            Professional
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.tab, activeSection === 'help' && { borderBottomColor: colors.accent }]}
-          onPress={() => setActiveSection('help')}
-        >
-          <Text
-            style={[
-              styles.tabText,
-              { color: colors.textSecondary },
-              activeSection === 'help' && { color: colors.accent, fontWeight: '600' },
-            ]}
-          >
-            Help
-          </Text>
-        </TouchableOpacity>
       </View>
 
       {loading ? (
@@ -508,11 +522,19 @@ export default function HomeScreen() {
 
       {/* Floating Action Button */}
       <TouchableOpacity
-        style={[styles.fab, { backgroundColor: colors.accent, shadowColor: colors.shadow }]}
+        style={[
+          styles.fab,
+          {
+            backgroundColor: 'rgba(0, 29, 57, 0.94)',
+            borderColor: 'rgba(123, 189, 232, 0.35)',
+            borderWidth: 1.5,
+            shadowColor: '#000000',
+          },
+        ]}
         onPress={() => router.push('/create-post')}
         activeOpacity={0.8}
       >
-        <Ionicons name="add" size={24} color={colors.textInverse} />
+        <Ionicons name="add" size={28} color="#7BBDE8" />
       </TouchableOpacity>
 
       {/* SOS Modal controlled by header button */}
@@ -528,19 +550,22 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  topHeaderContainer: {
+    paddingBottom: 4,
+  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
-    borderBottomWidth: 1,
-    paddingTop: 16,
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 8,
   },
   profileInfo: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    marginRight: 12,
+    marginRight: 10,
   },
   headerAvatar: {
     width: 44,
@@ -563,7 +588,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   profileProfession: {
-    fontSize: 13,
+    fontSize: 12,
     marginTop: 2,
   },
   headerActions: {
@@ -572,37 +597,45 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   headerActionButton: {
-    padding: 8,
-    borderRadius: 50,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   sosCircleButton: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: '#FF0000',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#E5534B',
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 2,
-    shadowColor: '#FF0000',
+    shadowColor: '#E5534B',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 3,
   },
   sosButtonText: {
     color: '#FFFFFF',
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: 'bold',
   },
   tabs: {
     flexDirection: 'row',
-    borderBottomWidth: 1,
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingTop: 4,
+    paddingBottom: 10,
+    gap: 8,
   },
   tab: {
-    flex: 1,
-    paddingVertical: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
     alignItems: 'center',
-    borderBottomWidth: 2,
-    borderBottomColor: 'transparent',
+    justifyContent: 'center',
   },
   tabText: {
     fontSize: 14,
@@ -610,6 +643,7 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     padding: 16,
+    paddingBottom: 110,
   },
   postCard: {
     borderRadius: 16,
@@ -751,17 +785,17 @@ const styles = StyleSheet.create({
   },
   fab: {
     position: 'absolute',
-    bottom: 20,
+    bottom: 90,
     right: 20,
     width: 56,
     height: 56,
     borderRadius: 28,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 10,
   },
   menuOverlay: {
     flex: 1,

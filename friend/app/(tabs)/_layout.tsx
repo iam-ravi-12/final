@@ -1,6 +1,6 @@
 import { Tabs } from 'expo-router';
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, AppState } from 'react-native';
+import { View, Text, StyleSheet, AppState, Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
 
 import { HapticTab } from '@/components/haptic-tab';
@@ -88,64 +88,123 @@ export default function TabLayout() {
     };
   }, []);
 
+  const renderTabIcon = (icon: React.ReactNode, focused: boolean) => {
+    return (
+      <View
+        style={{
+          alignItems: 'center',
+          justifyContent: 'center',
+          height: 30,
+          minWidth: 40,
+        }}
+      >
+        {icon}
+        {focused && (
+          <View
+            style={{
+              width: 4,
+              height: 4,
+              borderRadius: 2,
+              backgroundColor: '#7BBDE8',
+              marginTop: 2,
+            }}
+          />
+        )}
+      </View>
+    );
+  };
+
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: colors.tabActive,
-        tabBarInactiveTintColor: colors.tabInactive,
+        tabBarActiveTintColor: '#7BBDE8',
+        tabBarInactiveTintColor: '#BDD8E9',
         headerShown: false,
         tabBarButton: HapticTab,
+        tabBarItemStyle: {
+          paddingVertical: 4,
+          justifyContent: 'center',
+          alignItems: 'center',
+        },
+        tabBarLabelStyle: {
+          fontSize: 10,
+          fontWeight: '600',
+          marginTop: 0,
+          paddingBottom: 2,
+        },
         tabBarStyle: {
-          backgroundColor: colors.tabBar,
-          borderTopColor: colors.tabBarBorder,
+          position: 'absolute',
+          bottom: Platform.OS === 'ios' ? 24 : 16,
+          left: 20,
+          right: 20,
+          height: 62,
+          borderRadius: 31,
+          backgroundColor: 'rgba(0, 29, 57, 0.94)',
+          borderTopWidth: 0,
+          borderWidth: 1.5,
+          borderColor: 'rgba(123, 189, 232, 0.35)',
+          shadowColor: '#000000',
+          shadowOffset: { width: 0, height: 8 },
+          shadowOpacity: 0.35,
+          shadowRadius: 16,
+          elevation: 12,
+          paddingHorizontal: 8,
+          alignItems: 'center',
+          justifyContent: 'center',
         },
       }}>
       <Tabs.Screen
         name="index"
         options={{
           title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          tabBarIcon: ({ color, focused }) =>
+            renderTabIcon(<IconSymbol size={24} name="house.fill" color={color} />, focused),
         }}
       />
       <Tabs.Screen
         name="community"
         options={{
           title: 'Community',
-          tabBarIcon: ({ color }) => <Ionicons name="people" size={28} color={color} />,
+          tabBarIcon: ({ color, focused }) =>
+            renderTabIcon(<Ionicons name="people" size={24} color={color} />, focused),
         }}
       />
       <Tabs.Screen
         name="messages"
         options={{
           title: 'Messages',
-          tabBarIcon: ({ color }) => (
-            <View>
-              <Ionicons name="chatbubbles" size={28} color={color} />
-              {totalUnreadCount > 0 && (
-                <View style={[styles.badge, { backgroundColor: colors.danger }]}>
-                  <Text style={[styles.badgeText, { color: colors.textInverse }]}>
-                    {totalUnreadCount > 99 ? '99+' : totalUnreadCount}
-                  </Text>
-                </View>
-              )}
-            </View>
-          ),
+          tabBarIcon: ({ color, focused }) =>
+            renderTabIcon(
+              <View>
+                <Ionicons name="chatbubbles" size={24} color={color} />
+                {totalUnreadCount > 0 && (
+                  <View style={[styles.badge, { backgroundColor: colors.danger }]}>
+                    <Text style={[styles.badgeText, { color: colors.textInverse }]}>
+                      {totalUnreadCount > 99 ? '99+' : totalUnreadCount}
+                    </Text>
+                  </View>
+                )}
+              </View>,
+              focused
+            ),
         }}
       />
       <Tabs.Screen
         name="sos-alerts"
         options={{
           title: 'SOS',
-          tabBarIcon: ({ color }) => (
-            <View>
-              <Ionicons name="warning" size={28} color={color} />
-              {sosUnreadCount > 0 && (
-                <View style={[styles.badge, { backgroundColor: colors.danger }]}>
-                  <Text style={[styles.badgeText, { color: colors.textInverse }]}>{sosUnreadCount > 99 ? '99+' : sosUnreadCount}</Text>
-                </View>
-              )}
-            </View>
-          ),
+          tabBarIcon: ({ color, focused }) =>
+            renderTabIcon(
+              <View>
+                <Ionicons name="warning" size={24} color={color} />
+                {sosUnreadCount > 0 && (
+                  <View style={[styles.badge, { backgroundColor: colors.danger }]}>
+                    <Text style={[styles.badgeText, { color: colors.textInverse }]}>{sosUnreadCount > 99 ? '99+' : sosUnreadCount}</Text>
+                  </View>
+                )}
+              </View>,
+              focused
+            ),
         }}
       />
       <Tabs.Screen

@@ -219,20 +219,30 @@ export default function CommunityScreen() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
       {/* Tab Selector */}
-      <View style={[styles.tabContainer, { backgroundColor: colors.surface, borderBottomColor: colors.surfaceBorder }]}>
+      <View style={[styles.tabContainer, { backgroundColor: isDark ? 'rgba(0, 29, 57, 0.95)' : 'rgba(235, 244, 249, 0.92)' }]}>
         <TouchableOpacity
-          style={[styles.tab, activeTab === 'my' && [styles.activeTab, { borderBottomColor: colors.accent }]]}
+          style={[
+            styles.tab,
+            activeTab === 'my' && {
+              backgroundColor: isDark ? 'rgba(123, 189, 232, 0.18)' : 'rgba(10, 65, 116, 0.12)',
+            },
+          ]}
           onPress={() => setActiveTab('my')}
         >
-          <Text style={[styles.tabText, { color: colors.textSecondary }, activeTab === 'my' && { color: colors.accent }]}>
+          <Text style={[styles.tabText, { color: activeTab === 'my' ? colors.accent : colors.textSecondary }, activeTab === 'my' && { fontWeight: '700' }]}>
             My Communities
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.tab, activeTab === 'public' && [styles.activeTab, { borderBottomColor: colors.accent }]]}
+          style={[
+            styles.tab,
+            activeTab === 'public' && {
+              backgroundColor: isDark ? 'rgba(123, 189, 232, 0.18)' : 'rgba(10, 65, 116, 0.12)',
+            },
+          ]}
           onPress={() => setActiveTab('public')}
         >
-          <Text style={[styles.tabText, { color: colors.textSecondary }, activeTab === 'public' && { color: colors.accent }]}>
+          <Text style={[styles.tabText, { color: activeTab === 'public' ? colors.accent : colors.textSecondary }, activeTab === 'public' && { fontWeight: '700' }]}>
             Public Communities
           </Text>
         </TouchableOpacity>
@@ -284,10 +294,19 @@ export default function CommunityScreen() {
 
       {/* Floating Action Button */}
       <TouchableOpacity
-        style={[styles.fab, { backgroundColor: colors.accent, shadowColor: colors.shadow }]}
+        style={[
+          styles.fab,
+          {
+            backgroundColor: 'rgba(0, 29, 57, 0.94)',
+            borderColor: 'rgba(123, 189, 232, 0.35)',
+            borderWidth: 1.5,
+            shadowColor: '#000000',
+          },
+        ]}
         onPress={() => setShowCreateModal(true)}
+        activeOpacity={0.8}
       >
-        <Ionicons name="add" size={28} color={colors.textInverse} />
+        <Ionicons name="add" size={28} color="#7BBDE8" />
       </TouchableOpacity>
 
       {/* Create Community Modal */}
@@ -311,19 +330,24 @@ const styles = StyleSheet.create({
   },
   tabContainer: {
     flexDirection: 'row',
-    borderBottomWidth: 1,
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 10,
+    gap: 8,
   },
   tab: {
-    flex: 1,
-    paddingVertical: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  activeTab: {
-    borderBottomWidth: 2,
-  },
+  activeTab: {},
   tabText: {
-    fontSize: 15,
-    fontWeight: '600',
+    fontSize: 14,
+    fontWeight: '500',
   },
   searchContainer: {
     flexDirection: 'row',
@@ -353,7 +377,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     padding: 16,
-    paddingBottom: 80, // Space for FAB
+    paddingBottom: 110,
   },
   communityCard: {
     borderRadius: 16,
@@ -472,7 +496,7 @@ const styles = StyleSheet.create({
   fab: {
     position: 'absolute',
     right: 20,
-    bottom: 20,
+    bottom: 90,
     width: 56,
     height: 56,
     borderRadius: 28,

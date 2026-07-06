@@ -17,6 +17,7 @@ import {
   Share as RNShare,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import communityService, { CommunityPostResponse, CommunityResponse, CommunityMemberResponse } from '../services/communityService';
 import { APP_URL, MAX_POST_LENGTH } from '../constants/config';
@@ -396,100 +397,121 @@ export default function CommunityPostsScreen() {
   const currentPosts = activeTab === 'approved' ? approvedPosts : pendingPosts;
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      {/* Header */}
-      <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.surfaceBorder }]}>
-        <TouchableOpacity 
-          onPress={() => {
-            if (router.canGoBack()) {
-              router.back();
-            } else {
-              router.push('/(tabs)/community');
-            }
-          }} 
-          style={styles.backButton}
-        >
-          <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
-        </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>{community.name}</Text>
-        <TouchableOpacity onPress={handleShareCommunity} style={styles.shareIconButton}>
-          <Ionicons name="share-outline" size={22} color={colors.accent} />
-        </TouchableOpacity>
-      </View>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
+      {/* Top Gradient Header Container */}
+      <View style={{ backgroundColor: isDark ? 'rgba(0, 29, 57, 0.95)' : 'rgba(235, 244, 249, 0.92)' }}>
+        {/* Community Details Banner & Inline Back Button */}
+        <View style={styles.communityBanner}>
+          <TouchableOpacity 
+            onPress={() => {
+              if (router.canGoBack()) {
+                router.back();
+              } else {
+                router.push('/(tabs)/community');
+              }
+            }} 
+            style={styles.backButton}
+          >
+            <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
+          </TouchableOpacity>
 
-      {/* Community Details Banner */}
-      <View style={[styles.communityBanner, { backgroundColor: colors.surface, borderBottomColor: colors.surfaceBorder }]}>
-        {community.profilePicture ? (
-          <Image source={{ uri: community.profilePicture }} style={styles.communityPic} />
-        ) : (
-          <View style={[styles.communityAvatar, { backgroundColor: colors.accent }]}>
-            <Text style={[styles.communityAvatarText, { color: colors.textInverse }]}>
-              {community.name.charAt(0).toUpperCase()}
+          {community.profilePicture ? (
+            <Image source={{ uri: community.profilePicture }} style={styles.communityPic} />
+          ) : (
+            <View style={[styles.communityAvatar, { backgroundColor: colors.accent }]}>
+              <Text style={[styles.communityAvatarText, { color: colors.textInverse }]}>
+                {community.name.charAt(0).toUpperCase()}
+              </Text>
+            </View>
+          )}
+          <View style={styles.communityDetails}>
+            <Text style={[styles.communityName, { color: colors.textPrimary }]} numberOfLines={1}>
+              {community.name}
             </Text>
+            {community.description ? (
+              <Text style={[styles.communityDescription, { color: colors.textSecondary }]} numberOfLines={1}>
+                {community.description}
+              </Text>
+            ) : null}
+            <View style={styles.communityMeta}>
+              <Text style={[styles.metaText, { color: colors.textTertiary }]}>
+                👤 {formatMemberCount(community.memberCount)}
+              </Text>
+              {community.isPrivate && (
+                <View style={[styles.privateBadge, { backgroundColor: colors.inputBg }]}>
+                  <Ionicons name="lock-closed" size={12} color={colors.textSecondary} />
+                  <Text style={[styles.privateBadgeText, { color: colors.textSecondary }]}>Private</Text>
+                </View>
+              )}
+              {community.isAdmin && (
+                <View style={styles.adminBadgeSmall}>
+                  <Text style={[styles.adminBadgeSmallText, { color: colors.textPrimary }]}>👑 Admin</Text>
+                </View>
+              )}
+            </View>
+          </View>
+
+          <TouchableOpacity onPress={handleShareCommunity} style={styles.shareIconButton}>
+            <Ionicons name="share-outline" size={22} color={colors.accent} />
+          </TouchableOpacity>
+
+          {!community.isAdmin && community.isMember && (
+            <TouchableOpacity style={[styles.leaveButton, { backgroundColor: colors.surface, borderColor: colors.danger }]} onPress={handleLeaveCommunity}>
+              <Text style={[styles.leaveButtonText, { color: colors.danger }]}>Leave</Text>
+            </TouchableOpacity>
+          )}
+          {!community.isAdmin && !community.isMember && (
+            <TouchableOpacity style={[styles.joinButton, { backgroundColor: colors.accent }]} onPress={handleJoinCommunity}>
+              <Text style={[styles.joinButtonText, { color: colors.textInverse }]}>Join</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {/* Admin Tabs */}
+        {community.isAdmin && community.isMember && (
+          <View style={styles.tabContainer}>
+            <TouchableOpacity
+              style={[
+                styles.tab,
+                activeTab === 'approved' && {
+                  backgroundColor: isDark ? 'rgba(123, 189, 232, 0.18)' : 'rgba(10, 65, 116, 0.12)',
+                },
+              ]}
+              onPress={() => setActiveTab('approved')}
+            >
+              <Text style={[styles.tabText, { color: activeTab === 'approved' ? colors.accent : colors.textSecondary }, activeTab === 'approved' && { fontWeight: '700' }]}>
+                Approved Posts
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.tab,
+                activeTab === 'pending' && {
+                  backgroundColor: isDark ? 'rgba(123, 189, 232, 0.18)' : 'rgba(10, 65, 116, 0.12)',
+                },
+              ]}
+              onPress={() => setActiveTab('pending')}
+            >
+              <Text style={[styles.tabText, { color: activeTab === 'pending' ? colors.accent : colors.textSecondary }, activeTab === 'pending' && { fontWeight: '700' }]}>
+                Pending ({pendingPosts.length})
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.tab,
+                activeTab === 'members' && {
+                  backgroundColor: isDark ? 'rgba(123, 189, 232, 0.18)' : 'rgba(10, 65, 116, 0.12)',
+                },
+              ]}
+              onPress={() => setActiveTab('members')}
+            >
+              <Text style={[styles.tabText, { color: activeTab === 'members' ? colors.accent : colors.textSecondary }, activeTab === 'members' && { fontWeight: '700' }]}>
+                Members ({members.length})
+              </Text>
+            </TouchableOpacity>
           </View>
         )}
-        <View style={styles.communityDetails}>
-          <Text style={[styles.communityDescription, { color: colors.textSecondary }]} numberOfLines={2}>
-            {community.description}
-          </Text>
-          <View style={styles.communityMeta}>
-            <Text style={[styles.metaText, { color: colors.textTertiary }]}>
-              👤 {formatMemberCount(community.memberCount)}
-            </Text>
-            {community.isPrivate && (
-              <View style={[styles.privateBadge, { backgroundColor: colors.inputBg }]}>
-                <Ionicons name="lock-closed" size={12} color={colors.textSecondary} />
-                <Text style={[styles.privateBadgeText, { color: colors.textSecondary }]}>Private</Text>
-              </View>
-            )}
-            {community.isAdmin && (
-              <View style={styles.adminBadgeSmall}>
-                <Text style={[styles.adminBadgeSmallText, { color: colors.textPrimary }]}>👑 Admin</Text>
-              </View>
-            )}
-          </View>
-        </View>
-        {!community.isAdmin && community.isMember && (
-          <TouchableOpacity style={[styles.leaveButton, { backgroundColor: colors.surface, borderColor: colors.danger }]} onPress={handleLeaveCommunity}>
-            <Text style={[styles.leaveButtonText, { color: colors.danger }]}>Leave</Text>
-          </TouchableOpacity>
-        )}
-        {!community.isAdmin && !community.isMember && (
-          <TouchableOpacity style={[styles.joinButton, { backgroundColor: colors.accent }]} onPress={handleJoinCommunity}>
-            <Text style={[styles.joinButtonText, { color: colors.textInverse }]}>Join</Text>
-          </TouchableOpacity>
-        )}
       </View>
-
-      {/* Admin Tabs */}
-      {community.isAdmin && community.isMember && (
-        <View style={[styles.tabContainer, { backgroundColor: colors.surface, borderBottomColor: colors.surfaceBorder }]}>
-          <TouchableOpacity
-            style={[styles.tab, activeTab === 'approved' && [styles.activeTab, { borderBottomColor: colors.accent }]]}
-            onPress={() => setActiveTab('approved')}
-          >
-            <Text style={[styles.tabText, { color: colors.textSecondary }, activeTab === 'approved' && { color: colors.accent }]}>
-              Approved Posts
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.tab, activeTab === 'pending' && [styles.activeTab, { borderBottomColor: colors.accent }]]}
-            onPress={() => setActiveTab('pending')}
-          >
-            <Text style={[styles.tabText, { color: colors.textSecondary }, activeTab === 'pending' && { color: colors.accent }]}>
-              Pending ({pendingPosts.length})
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.tab, activeTab === 'members' && [styles.activeTab, { borderBottomColor: colors.accent }]]}
-            onPress={() => setActiveTab('members')}
-          >
-            <Text style={[styles.tabText, { color: colors.textSecondary }, activeTab === 'members' && { color: colors.accent }]}>
-              Members ({members.length})
-            </Text>
-          </TouchableOpacity>
-        </View>
-      )}
 
       {/* Show join prompt if not a member */}
       {!community.isMember ? (
@@ -631,7 +653,7 @@ export default function CommunityPostsScreen() {
           </View>
         </KeyboardAvoidingView>
       </Modal>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -650,10 +672,9 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingTop: 50,
-    paddingBottom: 16,
+    paddingTop: 12,
+    paddingBottom: 4,
     paddingHorizontal: 16,
-    borderBottomWidth: 1,
   },
   backButton: {
     padding: 4,
@@ -669,20 +690,20 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   communityBanner: {
-    padding: 16,
-    borderBottomWidth: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     flexDirection: 'row',
     alignItems: 'center',
   },
   communityPic: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    width: 54,
+    height: 54,
+    borderRadius: 27,
   },
   communityAvatar: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    width: 54,
+    height: 54,
+    borderRadius: 27,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -693,6 +714,11 @@ const styles = StyleSheet.create({
   communityDetails: {
     flex: 1,
     marginLeft: 12,
+  },
+  communityName: {
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 2,
   },
   communityDescription: {
     fontSize: 14,
@@ -749,19 +775,24 @@ const styles = StyleSheet.create({
   },
   tabContainer: {
     flexDirection: 'row',
-    borderBottomWidth: 1,
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingTop: 4,
+    paddingBottom: 10,
+    gap: 8,
   },
   tab: {
-    flex: 1,
-    paddingVertical: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  activeTab: {
-    borderBottomWidth: 2,
-  },
+  activeTab: {},
   tabText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   activeTabText: {},
   createPostSection: {
