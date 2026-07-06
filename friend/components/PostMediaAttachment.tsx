@@ -228,7 +228,7 @@ export default function PostMediaAttachment({ uri, mediaStyle, hintMediaType }: 
   };
 
   if (mediaType === 'image') {
-    return <Image source={{ uri }} style={mediaStyle} resizeMode="cover" />;
+    return <Image source={{ uri }} style={mediaStyle as StyleProp<ImageStyle>} resizeMode="cover" />;
   }
 
   if (mediaType === 'video') {

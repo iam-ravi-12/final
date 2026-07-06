@@ -25,10 +25,12 @@ import { useAuth } from '../contexts/AuthContext';
 import { router } from 'expo-router';
 import PostMediaAttachment from '../components/PostMediaAttachment';
 import { inferMediaType } from '../utils/media';
+import { useAppTheme } from '../constants/AppTheme';
 
 type PostSection = 'all' | 'professional' | 'help';
 
 export default function HomeScreen() {
+  const { colors, isDark } = useAppTheme();
   const [activeSection, setActiveSection] = useState<PostSection>('all');
   const [posts, setPosts] = useState<PostResponse[]>([]);
   const [loading, setLoading] = useState(true);
@@ -183,12 +185,15 @@ export default function HomeScreen() {
   };
 
   const getPostCardStyle = (item: PostResponse): StyleProp<ViewStyle> => {
+    const glassBg = isDark ? 'rgba(10, 37, 66, 0.68)' : 'rgba(255, 255, 255, 0.78)';
+    const glassBorder = isDark ? 'rgba(123, 189, 232, 0.22)' : 'rgba(189, 216, 233, 0.6)';
+
     if (item.isHelpSection) {
       return item.isSolved 
-        ? [styles.postCard, styles.postCardSolved]
-        : [styles.postCard, styles.postCardHelp];
+        ? [styles.postCard, { backgroundColor: isDark ? 'rgba(20, 42, 25, 0.75)' : 'rgba(232, 248, 235, 0.85)', borderColor: isDark ? 'rgba(63, 185, 80, 0.35)' : 'rgba(63, 185, 80, 0.5)', borderWidth: 1 }]
+        : [styles.postCard, { backgroundColor: isDark ? 'rgba(48, 22, 25, 0.75)' : 'rgba(253, 235, 236, 0.85)', borderColor: isDark ? 'rgba(229, 83, 75, 0.35)' : 'rgba(229, 83, 75, 0.5)', borderWidth: 1 }];
     }
-    return styles.postCard;
+    return [styles.postCard, { backgroundColor: glassBg, borderColor: glassBorder, borderWidth: 1, shadowColor: colors.shadow }];
   };
 
   const shouldShowMarkSolvedButton = (item: PostResponse): boolean => {
@@ -222,25 +227,25 @@ export default function HomeScreen() {
                 style={styles.avatar}
               />
             ) : (
-              <View style={styles.avatar}>
-                <Text style={styles.avatarText}>
+              <View style={[styles.avatar, { backgroundColor: colors.accent }]}>
+                <Text style={[styles.avatarText, { color: colors.textInverse }]}>
                   {item.username.charAt(0).toUpperCase()}
                 </Text>
               </View>
             )}
           </TouchableOpacity>
           <View style={styles.userInfoText}>
-            <Text style={styles.username}>{item.username}</Text>
-            <Text style={styles.profession}>{item.userProfession}</Text>
+            <Text style={[styles.username, { color: colors.textPrimary }]}>{item.username}</Text>
+            <Text style={[styles.profession, { color: colors.textSecondary }]}>{item.userProfession}</Text>
           </View>
         </View>
         
         <View style={styles.postHeaderRight}>
-          <Text style={styles.timestamp}>{formatTimeAgo(item.createdAt)}</Text>
+          <Text style={[styles.timestamp, { color: colors.textTertiary }]}>{formatTimeAgo(item.createdAt)}</Text>
 
             {item.isHelpSection && (
-                <View style={styles.helpBadge}>
-                    <Text style={styles.helpBadgeText}>
+                <View style={[styles.helpBadge, { backgroundColor: colors.warning }]}>
+                    <Text style={[styles.helpBadgeText, { color: colors.textInverse }]}>
                         {item.isSolved ? 'Solved' : 'Help'}
                     </Text>
                 </View>
@@ -254,9 +259,9 @@ export default function HomeScreen() {
                   activeOpacity={0.6}
               >
                   <View style={styles.dotsContainer}>
-                      <View style={styles.dot} />
-                      <View style={styles.dot} />
-                      <View style={styles.dot} />
+                      <View style={[styles.dot, { backgroundColor: colors.textSecondary }]} />
+                      <View style={[styles.dot, { backgroundColor: colors.textSecondary }]} />
+                      <View style={[styles.dot, { backgroundColor: colors.textSecondary }]} />
                   </View>
               </TouchableOpacity>
           )}
@@ -271,24 +276,24 @@ export default function HomeScreen() {
           onRequestClose={() => setMenuVisible(null)}
         >
           <Pressable
-            style={styles.menuOverlay}
+            style={[styles.menuOverlay, { backgroundColor: colors.overlay }]}
             onPress={() => setMenuVisible(null)}
           >
-            <View style={styles.menuContainer}>
+            <View style={[styles.menuContainer, { backgroundColor: colors.surface, shadowColor: colors.shadow }]}>
               <TouchableOpacity
                 style={styles.menuItem}
                 onPress={() => handleEditPost(item.id)}
               >
-                <Ionicons name="create-outline" size={20} color="#007AFF" />
-                <Text style={styles.menuItemText}>Edit Post</Text>
+                <Ionicons name="create-outline" size={20} color={colors.accent} />
+                <Text style={[styles.menuItemText, { color: colors.textPrimary }]}>Edit Post</Text>
               </TouchableOpacity>
-              <View style={styles.menuDivider} />
+              <View style={[styles.menuDivider, { backgroundColor: colors.surfaceBorder }]} />
               <TouchableOpacity
                 style={styles.menuItem}
                 onPress={() => handleDeletePost(item.id)}
               >
-                <Ionicons name="trash-outline" size={20} color="#FF3B30" />
-                <Text style={[styles.menuItemText, { color: '#FF3B30' }]}>
+                <Ionicons name="trash-outline" size={20} color={colors.danger} />
+                <Text style={[styles.menuItemText, { color: colors.danger }]}>
                   Delete Post
                 </Text>
               </TouchableOpacity>
@@ -301,7 +306,7 @@ export default function HomeScreen() {
         onPress={() => router.push(`/post/${item.id}`)}
         activeOpacity={0.7}
       >
-        <Text style={styles.postContent} numberOfLines={3} ellipsizeMode="tail">
+        <Text style={[styles.postContent, { color: colors.textPrimary }]} numberOfLines={3} ellipsizeMode="tail">
           {item.content}
         </Text>
         
@@ -321,29 +326,29 @@ export default function HomeScreen() {
           <Ionicons
             name={item.isLiked ? 'heart' : 'heart-outline'}
             size={20}
-            color={item.isLiked ? '#FF3B30' : '#666'}
+            color={item.isLiked ? colors.danger : colors.textSecondary}
           />
-          <Text style={styles.actionText}>{item.likeCount}</Text>
+          <Text style={[styles.actionText, { color: colors.textSecondary }]}>{item.likeCount}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.actionButton}
           onPress={() => router.push(`/post/${item.id}`)}
         >
-          <Ionicons name="chatbubble-outline" size={20} color="#666" />
-          <Text style={styles.actionText}>{item.commentCount}</Text>
+          <Ionicons name="chatbubble-outline" size={20} color={colors.textSecondary} />
+          <Text style={[styles.actionText, { color: colors.textSecondary }]}>{item.commentCount}</Text>
         </TouchableOpacity>
       </View>
 
       {/* Mark as Solved button for help posts */}
       {shouldShowMarkSolvedButton(item) && (
         <TouchableOpacity
-          style={styles.markSolvedButton}
+          style={[styles.markSolvedButton, { backgroundColor: colors.success }]}
           onPress={() => handleMarkAsSolved(item.id)}
           activeOpacity={0.7}
         >
-          <Ionicons name="checkmark-circle" size={20} color="#fff" />
-          <Text style={styles.markSolvedButtonText}>Mark as Solved</Text>
+          <Ionicons name="checkmark-circle" size={20} color={colors.textInverse} />
+          <Text style={[styles.markSolvedButtonText, { color: colors.textInverse }]}>Mark as Solved</Text>
         </TouchableOpacity>
       )}
     </View>
@@ -351,8 +356,8 @@ export default function HomeScreen() {
 };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
+      <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.surfaceBorder }]}>
         <TouchableOpacity
           style={styles.profileInfo}
           onPress={() => router.push('/(tabs)/profile')}
@@ -364,17 +369,17 @@ export default function HomeScreen() {
               style={styles.headerAvatar}
             />
           ) : (
-            <View style={styles.headerAvatar}>
-              <Text style={styles.headerAvatarText}>
+            <View style={[styles.headerAvatar, { backgroundColor: colors.accent }]}>
+              <Text style={[styles.headerAvatarText, { color: colors.textInverse }]}>
                 {getUserInitial()}
               </Text>
             </View>
           )}
           <View style={styles.profileTextContainer}>
-            <Text style={styles.profileName} numberOfLines={1}>
+            <Text style={[styles.profileName, { color: colors.textPrimary }]} numberOfLines={1}>
               {user?.name || user?.username || 'User'}
             </Text>
-            <Text style={styles.profileProfession} numberOfLines={1}>
+            <Text style={[styles.profileProfession, { color: colors.textSecondary }]} numberOfLines={1}>
               {user?.profession || 'Add your profession'}
             </Text>
           </View>
@@ -382,19 +387,19 @@ export default function HomeScreen() {
         
         <View style={styles.headerActions}>
           <TouchableOpacity
-            style={styles.headerActionButton}
+            style={[styles.headerActionButton, { backgroundColor: colors.accentLight }]}
             onPress={() => router.push('/(tabs)/leaderboard')}
             activeOpacity={0.6}
           >
-            <Ionicons name="trophy" size={24} color="#007AFF" />
+            <Ionicons name="trophy" size={24} color={colors.accent} />
           </TouchableOpacity>
           
           <TouchableOpacity
-            style={styles.headerActionButton}
+            style={[styles.headerActionButton, { backgroundColor: colors.accentLight }]}
             onPress={handleSearchToggle}
             activeOpacity={0.6}
           >
-            <Ionicons name="search" size={24} color="#007AFF" />
+            <Ionicons name="search" size={24} color={colors.accent} />
           </TouchableOpacity>
           
           <TouchableOpacity
@@ -408,35 +413,36 @@ export default function HomeScreen() {
       </View>
 
       {showSearchBar && (
-        <View style={styles.searchBarContainer}>
-          <Ionicons name="search" size={20} color="#666" style={styles.searchIcon} />
+        <View style={[styles.searchBarContainer, { backgroundColor: colors.surface, borderBottomColor: colors.surfaceBorder }]}>
+          <Ionicons name="search" size={20} color={colors.textTertiary} style={styles.searchIcon} />
           <TextInput
-            style={styles.searchInput}
+            style={[styles.searchInput, { color: colors.inputText }]}
             placeholder="Search posts, users, professions..."
             value={searchQuery}
             onChangeText={setSearchQuery}
             autoFocus
-            placeholderTextColor="#999"
+            placeholderTextColor={colors.inputPlaceholder}
           />
           <TouchableOpacity
             onPress={handleSearchToggle}
             style={styles.closeSearchButton}
             activeOpacity={0.6}
           >
-            <Ionicons name="close" size={24} color="#666" />
+            <Ionicons name="close" size={24} color={colors.textSecondary} />
           </TouchableOpacity>
         </View>
       )}
 
-      <View style={styles.tabs}>
+      <View style={[styles.tabs, { backgroundColor: colors.surface, borderBottomColor: colors.surfaceBorder }]}>
         <TouchableOpacity
-          style={[styles.tab, activeSection === 'all' && styles.activeTab]}
+          style={[styles.tab, activeSection === 'all' && { borderBottomColor: colors.accent }]}
           onPress={() => setActiveSection('all')}
         >
           <Text
             style={[
               styles.tabText,
-              activeSection === 'all' && styles.activeTabText,
+              { color: colors.textSecondary },
+              activeSection === 'all' && { color: colors.accent, fontWeight: '600' },
             ]}
           >
             All Posts
@@ -446,14 +452,15 @@ export default function HomeScreen() {
         <TouchableOpacity
           style={[
             styles.tab,
-            activeSection === 'professional' && styles.activeTab,
+            activeSection === 'professional' && { borderBottomColor: colors.accent },
           ]}
           onPress={() => setActiveSection('professional')}
         >
           <Text
             style={[
               styles.tabText,
-              activeSection === 'professional' && styles.activeTabText,
+              { color: colors.textSecondary },
+              activeSection === 'professional' && { color: colors.accent, fontWeight: '600' },
             ]}
           >
             Professional
@@ -461,13 +468,14 @@ export default function HomeScreen() {
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.tab, activeSection === 'help' && styles.activeTab]}
+          style={[styles.tab, activeSection === 'help' && { borderBottomColor: colors.accent }]}
           onPress={() => setActiveSection('help')}
         >
           <Text
             style={[
               styles.tabText,
-              activeSection === 'help' && styles.activeTabText,
+              { color: colors.textSecondary },
+              activeSection === 'help' && { color: colors.accent, fontWeight: '600' },
             ]}
           >
             Help
@@ -477,7 +485,7 @@ export default function HomeScreen() {
 
       {loading ? (
         <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color="#007AFF" />
+          <ActivityIndicator size="large" color={colors.accent} />
         </View>
       ) : (
         <FlatList
@@ -490,7 +498,7 @@ export default function HomeScreen() {
           contentContainerStyle={styles.listContainer}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>
+              <Text style={[styles.emptyText, { color: colors.textTertiary }]}>
                 {searchQuery ? 'No posts found' : 'No posts yet'}
               </Text>
             </View>
@@ -500,11 +508,11 @@ export default function HomeScreen() {
 
       {/* Floating Action Button */}
       <TouchableOpacity
-        style={styles.fab}
+        style={[styles.fab, { backgroundColor: colors.accent, shadowColor: colors.shadow }]}
         onPress={() => router.push('/create-post')}
         activeOpacity={0.8}
       >
-        <Ionicons name="add" size={24} color="#fff" />
+        <Ionicons name="add" size={24} color={colors.textInverse} />
       </TouchableOpacity>
 
       {/* SOS Modal controlled by header button */}
@@ -519,16 +527,13 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 16,
-    backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
     paddingTop: 16,
   },
   profileInfo: {
@@ -541,13 +546,11 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#007AFF',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 10,
   },
   headerAvatarText: {
-    color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',
   },
@@ -558,11 +561,9 @@ const styles = StyleSheet.create({
   profileName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
   },
   profileProfession: {
     fontSize: 13,
-    color: '#666',
     marginTop: 2,
   },
   headerActions: {
@@ -573,7 +574,6 @@ const styles = StyleSheet.create({
   headerActionButton: {
     padding: 8,
     borderRadius: 50,
-    backgroundColor: '#f0f0f0',
   },
   sosCircleButton: {
     width: 50,
@@ -595,9 +595,7 @@ const styles = StyleSheet.create({
   },
   tabs: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
   },
   tab: {
     flex: 1,
@@ -606,37 +604,21 @@ const styles = StyleSheet.create({
     borderBottomWidth: 2,
     borderBottomColor: 'transparent',
   },
-  activeTab: {
-    borderBottomColor: '#007AFF',
-  },
   tabText: {
     fontSize: 14,
-    color: '#666',
     fontWeight: '500',
-  },
-  activeTabText: {
-    color: '#007AFF',
-    fontWeight: '600',
   },
   listContainer: {
     padding: 16,
   },
   postCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 16,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  postCardHelp: {
-    backgroundColor: '#ffe6e6', // Light red for help posts
-  },
-  postCardSolved: {
-    backgroundColor: '#e6ffe6', // Light green for solved posts
+    marginBottom: 14,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.12,
+    shadowRadius: 10,
+    elevation: 4,
   },
   postHeader: {
     flexDirection: 'row',
@@ -658,7 +640,6 @@ const styles = StyleSheet.create({
   },
   timestamp: {
     fontSize: 12,
-    color: '#999',
       marginRight:4,
     marginBottom: 4,
   },
@@ -682,40 +663,33 @@ const styles = StyleSheet.create({
     width: 4,
     height: 4,
     borderRadius: 2,
-    backgroundColor: '#666',
   },
   avatar: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#007AFF',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
   },
   avatarText: {
-    color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',
   },
   username: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
   },
   profession: {
     fontSize: 12,
-    color: '#666',
     marginTop: 2,
   },
   helpBadge: {
-    backgroundColor: '#FF9500',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 4,
   },
   helpBadgeText: {
-    color: '#fff',
     fontSize: 10,
     fontWeight: '600',
   },
@@ -724,20 +698,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: '#4CAF50',
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderRadius: 8,
     marginTop: 12,
   },
   markSolvedButtonText: {
-    color: '#fff',
     fontSize: 14,
     fontWeight: '600',
   },
   postContent: {
     fontSize: 15,
-    color: '#333',
     lineHeight: 22,
     marginBottom: 12,
   },
@@ -765,7 +736,6 @@ const styles = StyleSheet.create({
   },
   actionText: {
     fontSize: 14,
-    color: '#666',
   },
   centerContainer: {
     flex: 1,
@@ -778,7 +748,6 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: '#999',
   },
   fab: {
     position: 'absolute',
@@ -787,10 +756,8 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#007AFF',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
@@ -798,15 +765,12 @@ const styles = StyleSheet.create({
   },
   menuOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   menuContainer: {
-    backgroundColor: '#fff',
     borderRadius: 12,
     width: 200,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 4,
@@ -820,20 +784,16 @@ const styles = StyleSheet.create({
   },
   menuItemText: {
     fontSize: 16,
-    color: '#333',
   },
   menuDivider: {
     height: 1,
-    backgroundColor: '#e0e0e0',
   },
   searchBarContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
   },
   searchIcon: {
     marginRight: 8,
@@ -841,7 +801,6 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 16,
-    color: '#333',
     paddingVertical: 0,
   },
   closeSearchButton: {

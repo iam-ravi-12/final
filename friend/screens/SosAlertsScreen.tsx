@@ -19,8 +19,11 @@ import sosService, { SosAlertResponse, SosResponseRequest } from '../services/so
 import notificationService from '../services/notificationService';
 import { parseUTCDate } from '../utils/helpers';
 
+import { useAppTheme } from '../constants/AppTheme';
+
 const SosAlertsScreen = () => {
   const router = useRouter();
+  const { colors, isDark } = useAppTheme();
   const [alerts, setAlerts] = useState<SosAlertResponse[]>([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -221,124 +224,130 @@ const SosAlertsScreen = () => {
     });
   };
 
-  const renderAlertCard = ({ item }: { item: SosAlertResponse }) => (
-    <View style={styles.alertCard}>
-      <View style={styles.alertHeader}>
-        <View style={styles.emergencyBadge}>
-          <Text style={styles.emergencyBadgeText}>
-            {getEmergencyTypeLabel(item.emergencyType)}
+  const renderAlertCard = ({ item }: { item: SosAlertResponse }) => {
+    const glassBg = isDark ? 'rgba(25, 15, 20, 0.78)' : 'rgba(255, 245, 245, 0.82)';
+    const glassBorder = isDark ? 'rgba(229, 83, 75, 0.35)' : 'rgba(229, 83, 75, 0.5)';
+
+    return (
+      <View style={[styles.alertCard, { backgroundColor: glassBg, borderColor: glassBorder, borderWidth: 1, shadowColor: colors.shadow }]}>
+        <View style={styles.alertHeader}>
+          <View style={styles.emergencyBadge}>
+            <Text style={styles.emergencyBadgeText}>
+              {getEmergencyTypeLabel(item.emergencyType)}
+            </Text>
+          </View>
+          <Text style={[styles.timeBadge, { color: colors.textTertiary }]}>{formatTime(item.createdAt)}</Text>
+        </View>
+
+        <View style={styles.alertUser}>
+          <View style={[styles.userAvatar, { backgroundColor: colors.accent }]}>
+            <Text style={[styles.avatarText, { color: colors.textInverse }]}>
+              {item.username?.[0]?.toUpperCase()}
+            </Text>
+          </View>
+          <View style={styles.userInfo}>
+            <Text style={[styles.username, { color: colors.textPrimary }]}>{item.username}</Text>
+            <Text style={[styles.userProfession, { color: colors.textSecondary }]}>
+              {item.userProfession || 'Community Member'}
+            </Text>
+          </View>
+        </View>
+
+        {item.description && (
+          <View style={[styles.descriptionContainer, { backgroundColor: isDark ? 'rgba(0, 29, 57, 0.6)' : 'rgba(235, 244, 249, 0.7)' }]}>
+            <Text style={[styles.description, { color: colors.textPrimary }]}>{item.description}</Text>
+          </View>
+        )}
+
+        {item.distance !== null && (
+          <Text style={[styles.distance, { color: colors.textSecondary }]}>📍 {formatDistance(item.distance)}</Text>
+        )}
+
+        {item.googleMapsUrl && (
+          <TouchableOpacity
+            style={[styles.locationButton, { backgroundColor: colors.accent }]}
+            onPress={() => handleOpenMaps(item.googleMapsUrl!)}
+          >
+            <Text style={[styles.locationButtonText, { color: colors.textInverse }]}>🗺️ Open in Google Maps</Text>
+          </TouchableOpacity>
+        )}
+
+        {item.emergencyContactNumber && (
+          <TouchableOpacity
+            style={styles.emergencyButton}
+            onPress={() => handleCallEmergency(item.emergencyContactNumber!)}
+          >
+            <Text style={styles.emergencyButtonText}>
+              📞 Call Emergency: {item.emergencyContactNumber}
+            </Text>
+          </TouchableOpacity>
+        )}
+
+        <View style={styles.statsContainer}>
+          <Text style={[styles.stats, { color: colors.textSecondary }]}>
+            👥 {item.responseCount} responder{item.responseCount !== 1 ? 's' : ''}
           </Text>
         </View>
-        <Text style={styles.timeBadge}>{formatTime(item.createdAt)}</Text>
-      </View>
 
-      <View style={styles.alertUser}>
-        <View style={styles.userAvatar}>
-          <Text style={styles.avatarText}>
-            {item.username?.[0]?.toUpperCase()}
-          </Text>
-        </View>
-        <View style={styles.userInfo}>
-          <Text style={styles.username}>{item.username}</Text>
-          <Text style={styles.userProfession}>
-            {item.userProfession || 'Community Member'}
-          </Text>
-        </View>
-      </View>
-
-      {item.description && (
-        <View style={styles.descriptionContainer}>
-          <Text style={styles.description}>{item.description}</Text>
-        </View>
-      )}
-
-      {item.distance !== null && (
-        <Text style={styles.distance}>📍 {formatDistance(item.distance)}</Text>
-      )}
-
-      {item.googleMapsUrl && (
-        <TouchableOpacity
-          style={styles.locationButton}
-          onPress={() => handleOpenMaps(item.googleMapsUrl!)}
-        >
-          <Text style={styles.locationButtonText}>🗺️ Open in Google Maps</Text>
-        </TouchableOpacity>
-      )}
-
-      {item.emergencyContactNumber && (
-        <TouchableOpacity
-          style={styles.emergencyButton}
-          onPress={() => handleCallEmergency(item.emergencyContactNumber!)}
-        >
-          <Text style={styles.emergencyButtonText}>
-            📞 Call Emergency: {item.emergencyContactNumber}
-          </Text>
-        </TouchableOpacity>
-      )}
-
-      <View style={styles.statsContainer}>
-        <Text style={styles.stats}>
-          👥 {item.responseCount} responder{item.responseCount !== 1 ? 's' : ''}
-        </Text>
-      </View>
-
-      {item.hasCurrentUserResponded && (
-        <View style={styles.respondedBadge}>
-          <Text style={styles.respondedBadgeText}>✅ You have responded to this alert</Text>
-          {item.currentUserResponseType && (
-            <View style={styles.respondedDetails}>
-              <Text style={styles.respondedDetailsText}>
-                Response Type: {formatResponseType(item.currentUserResponseType)}
-              </Text>
-              {item.currentUserResponseMessage && (
+        {item.hasCurrentUserResponded && (
+          <View style={styles.respondedBadge}>
+            <Text style={styles.respondedBadgeText}>✅ You have responded to this alert</Text>
+            {item.currentUserResponseType && (
+              <View style={styles.respondedDetails}>
                 <Text style={styles.respondedDetailsText}>
-                  Message: {item.currentUserResponseMessage}
+                  Response Type: {formatResponseType(item.currentUserResponseType)}
                 </Text>
-              )}
-            </View>
-          )}
-        </View>
-      )}
+                {item.currentUserResponseMessage && (
+                  <Text style={styles.respondedDetailsText}>
+                    Message: {item.currentUserResponseMessage}
+                  </Text>
+                )}
+              </View>
+            )}
+          </View>
+        )}
 
-      {item.isCurrentUserAlertOwner && (
-        <View style={styles.alertOwnerBadge}>
-          <Text style={styles.alertOwnerBadgeText}>⚠️ This is your SOS alert</Text>
-        </View>
-      )}
+        {item.isCurrentUserAlertOwner && (
+          <View style={styles.alertOwnerBadge}>
+            <Text style={styles.alertOwnerBadgeText}>⚠️ This is your SOS alert</Text>
+          </View>
+        )}
 
-      <TouchableOpacity
-        style={[
-          styles.respondButton,
-          (item.hasCurrentUserResponded || item.isCurrentUserAlertOwner) && styles.respondButtonDisabled,
-        ]}
-        onPress={() => handleRespond(item)}
-        disabled={item.hasCurrentUserResponded || item.isCurrentUserAlertOwner}
-      >
-        <Text style={styles.respondButtonText}>
-          {item.isCurrentUserAlertOwner
-            ? 'Your Alert - Cannot Respond'
-            : item.hasCurrentUserResponded && item.currentUserResponseType
-            ? `Responded: ${formatResponseType(item.currentUserResponseType)}`
-            : item.hasCurrentUserResponded
-            ? 'Already Responded'
-            : 'Respond to Alert'}
-        </Text>
-      </TouchableOpacity>
-    </View>
-  );
+        <TouchableOpacity
+          style={[
+            styles.respondButton,
+            { backgroundColor: colors.success },
+            (item.hasCurrentUserResponded || item.isCurrentUserAlertOwner) && styles.respondButtonDisabled,
+          ]}
+          onPress={() => handleRespond(item)}
+          disabled={item.hasCurrentUserResponded || item.isCurrentUserAlertOwner}
+        >
+          <Text style={styles.respondButtonText}>
+            {item.isCurrentUserAlertOwner
+              ? 'Your Alert - Cannot Respond'
+              : item.hasCurrentUserResponded && item.currentUserResponseType
+              ? `Responded: ${formatResponseType(item.currentUserResponseType)}`
+              : item.hasCurrentUserResponded
+              ? 'Already Responded'
+              : 'Respond to Alert'}
+          </Text>
+        </TouchableOpacity>
+      </View>
+    );
+  };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>🚨 Active SOS Alerts</Text>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
+      <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.surfaceBorder }]}>
+        <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>🚨 Active SOS Alerts</Text>
       </View>
 
       {loading && !refreshing ? (
-        <ActivityIndicator size="large" color="#ff0000" style={styles.loader} />
+        <ActivityIndicator size="large" color={colors.accent} style={styles.loader} />
       ) : alerts.length === 0 ? (
         <View style={styles.emptyState}>
-          <Text style={styles.emptyTitle}>✅ No Active SOS Alerts</Text>
-          <Text style={styles.emptyText}>
+          <Text style={[styles.emptyTitle, { color: colors.textPrimary }]}>✅ No Active SOS Alerts</Text>
+          <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
             Great! There are no active emergencies in your area.
           </Text>
         </View>

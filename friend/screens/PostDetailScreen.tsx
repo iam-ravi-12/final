@@ -22,6 +22,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { parseUTCDate } from '../utils/helpers';
 import PostMediaAttachment from '../components/PostMediaAttachment';
 import { inferMediaType } from '../utils/media';
+import { useAppTheme } from '../constants/AppTheme';
 
 export default function PostDetailScreen() {
   const { postId } = useLocalSearchParams<{ postId: string }>();
@@ -32,6 +33,7 @@ export default function PostDetailScreen() {
   const [submitting, setSubmitting] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
   const { user } = useAuth();
+  const { colors, isDark } = useAppTheme();
 
   useEffect(() => {
     loadPostData();
@@ -146,29 +148,29 @@ export default function PostDetailScreen() {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#007AFF" />
+      <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.accent} />
       </View>
     );
   }
 
   if (!post) {
     return (
-      <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>Post not found</Text>
+      <View style={[styles.errorContainer, { backgroundColor: colors.background }]}>
+        <Text style={[styles.errorText, { color: colors.textSecondary }]}>Post not found</Text>
       </View>
     );
   }
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: colors.background }]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
     >
       <ScrollView style={styles.scrollView}>
         {/* Post Card */}
-        <View style={styles.postCard}>
+        <View style={[styles.postCard, { backgroundColor: colors.surface, borderBottomColor: colors.surfaceBorder }]}>
           <View style={styles.postHeader}>
             <View style={styles.userInfo}>
               <TouchableOpacity
@@ -181,21 +183,21 @@ export default function PostDetailScreen() {
                     style={styles.avatar}
                   />
                 ) : (
-                  <View style={[styles.avatar, styles.avatarPlaceholder]}>
-                    <Text style={styles.avatarText}>
+                  <View style={[styles.avatar, styles.avatarPlaceholder, { backgroundColor: colors.accent }]}>
+                    <Text style={[styles.avatarText, { color: colors.textInverse }]}>
                       {post.username.charAt(0).toUpperCase()}
                     </Text>
                   </View>
                 )}
               </TouchableOpacity>
               <View>
-                <Text style={styles.username}>{post.username}</Text>
-                <Text style={styles.profession}>{post.userProfession}</Text>
+                <Text style={[styles.username, { color: colors.textPrimary }]}>{post.username}</Text>
+                <Text style={[styles.profession, { color: colors.textSecondary }]}>{post.userProfession}</Text>
               </View>
             </View>
             
             <View style={styles.postHeaderRight}>
-              <Text style={styles.timestamp}>{formatDate(post.createdAt)}</Text>
+              <Text style={[styles.timestamp, { color: colors.textTertiary }]}>{formatDate(post.createdAt)}</Text>
 
                 {post.isHelpSection && (
                     <View style={styles.helpBadge}>
@@ -210,13 +212,13 @@ export default function PostDetailScreen() {
               {user?.id === post.userId && (
                   <TouchableOpacity
                       onPress={() => setMenuVisible(!menuVisible)}
-                      style={styles.menuButton}
+                      style={[styles.menuButton, { backgroundColor: colors.inputBg }]}
                       activeOpacity={0.6}
                   >
                       <View style={styles.dotsContainer}>
-                          <View style={styles.dot} />
-                          <View style={styles.dot} />
-                          <View style={styles.dot} />
+                          <View style={[styles.dot, { backgroundColor: colors.textSecondary }]} />
+                          <View style={[styles.dot, { backgroundColor: colors.textSecondary }]} />
+                          <View style={[styles.dot, { backgroundColor: colors.textSecondary }]} />
                       </View>
                   </TouchableOpacity>
               )}
@@ -231,24 +233,24 @@ export default function PostDetailScreen() {
               onRequestClose={() => setMenuVisible(false)}
             >
               <Pressable
-                style={styles.menuOverlay}
+                style={[styles.menuOverlay, { backgroundColor: colors.overlay }]}
                 onPress={() => setMenuVisible(false)}
               >
-                <View style={styles.menuContainer}>
+                <View style={[styles.menuContainer, { backgroundColor: colors.surface, shadowColor: colors.shadow }]}>
                   <TouchableOpacity
                     style={styles.menuItem}
                     onPress={handleEditPost}
                   >
-                    <Ionicons name="create-outline" size={20} color="#007AFF" />
-                    <Text style={styles.menuItemText}>Edit Post</Text>
+                    <Ionicons name="create-outline" size={20} color={colors.accent} />
+                    <Text style={[styles.menuItemText, { color: colors.textPrimary }]}>Edit Post</Text>
                   </TouchableOpacity>
-                  <View style={styles.menuDivider} />
+                  <View style={[styles.menuDivider, { backgroundColor: colors.surfaceBorder }]} />
                   <TouchableOpacity
                     style={styles.menuItem}
                     onPress={handleDeletePost}
                   >
-                    <Ionicons name="trash-outline" size={20} color="#FF3B30" />
-                    <Text style={[styles.menuItemText, { color: '#FF3B30' }]}>
+                    <Ionicons name="trash-outline" size={20} color={colors.danger} />
+                    <Text style={[styles.menuItemText, { color: colors.danger }]}>
                       Delete Post
                     </Text>
                   </TouchableOpacity>
@@ -257,7 +259,7 @@ export default function PostDetailScreen() {
             </Modal>
           )}
 
-          <Text style={styles.postContent}>{post.content}</Text>
+          <Text style={[styles.postContent, { color: colors.textPrimary }]}>{post.content}</Text>
            
           {post.mediaUrls && post.mediaUrls.length > 0 && (
             <PostMediaAttachment
@@ -270,7 +272,7 @@ export default function PostDetailScreen() {
             />
           )}
 
-          <View style={styles.postActions}>
+          <View style={[styles.postActions, { borderTopColor: colors.surfaceBorder }]}>
             <TouchableOpacity
               style={styles.actionButton}
               onPress={handleLike}
@@ -278,35 +280,35 @@ export default function PostDetailScreen() {
               <Ionicons
                 name={post.isLiked ? 'heart' : 'heart-outline'}
                 size={24}
-                color={post.isLiked ? '#FF3B30' : '#666'}
+                color={post.isLiked ? colors.danger : colors.textSecondary}
               />
-              <Text style={styles.actionText}>{post.likeCount}</Text>
+              <Text style={[styles.actionText, { color: colors.textSecondary }]}>{post.likeCount}</Text>
             </TouchableOpacity>
 
             <View style={styles.actionButton}>
-              <Ionicons name="chatbubble-outline" size={24} color="#666" />
-              <Text style={styles.actionText}>{post.commentCount}</Text>
+              <Ionicons name="chatbubble-outline" size={24} color={colors.textSecondary} />
+              <Text style={[styles.actionText, { color: colors.textSecondary }]}>{post.commentCount}</Text>
             </View>
           </View>
         </View>
 
         {/* Comments Section */}
-        <View style={styles.commentsSection}>
-          <Text style={styles.commentsTitle}>
+        <View style={[styles.commentsSection, { backgroundColor: colors.surface }]}>
+          <Text style={[styles.commentsTitle, { color: colors.textPrimary }]}>
             Comments ({comments.length})
           </Text>
 
           {comments.length === 0 ? (
             <View style={styles.emptyComments}>
-              <Ionicons name="chatbubble-outline" size={48} color="#ccc" />
-              <Text style={styles.emptyCommentsText}>No comments yet</Text>
-              <Text style={styles.emptyCommentsSubtext}>
+              <Ionicons name="chatbubble-outline" size={48} color={colors.textTertiary} />
+              <Text style={[styles.emptyCommentsText, { color: colors.textSecondary }]}>No comments yet</Text>
+              <Text style={[styles.emptyCommentsSubtext, { color: colors.textTertiary }]}>
                 Be the first to comment!
               </Text>
             </View>
           ) : (
             comments.map((comment) => (
-              <View key={comment.id} style={styles.commentCard}>
+              <View key={comment.id} style={[styles.commentCard, { borderBottomColor: colors.surfaceBorder }]}>
                 <View style={styles.commentHeader}>
                   <TouchableOpacity
                     onPress={() => router.push(`/user/${comment.userId}`)}
@@ -318,21 +320,21 @@ export default function PostDetailScreen() {
                         style={styles.commentAvatar}
                       />
                     ) : (
-                      <View style={[styles.commentAvatar, styles.avatarPlaceholder]}>
-                        <Text style={styles.commentAvatarText}>
+                      <View style={[styles.commentAvatar, styles.avatarPlaceholder, { backgroundColor: colors.accent }]}>
+                        <Text style={[styles.commentAvatarText, { color: colors.textInverse }]}>
                           {comment.username.charAt(0).toUpperCase()}
                         </Text>
                       </View>
                     )}
                   </TouchableOpacity>
                   <View style={styles.commentInfo}>
-                    <Text style={styles.commentUsername}>{comment.username}</Text>
-                    <Text style={styles.commentTime}>
+                    <Text style={[styles.commentUsername, { color: colors.textPrimary }]}>{comment.username}</Text>
+                    <Text style={[styles.commentTime, { color: colors.textTertiary }]}>
                       {formatDate(comment.createdAt)}
                     </Text>
                   </View>
                 </View>
-                <Text style={styles.commentContent}>{comment.content}</Text>
+                <Text style={[styles.commentContent, { color: colors.textPrimary }]}>{comment.content}</Text>
               </View>
             ))
           )}
@@ -340,10 +342,11 @@ export default function PostDetailScreen() {
       </ScrollView>
 
       {/* Comment Input */}
-      <View style={styles.commentInputContainer}>
+      <View style={[styles.commentInputContainer, { backgroundColor: colors.surface, borderTopColor: colors.surfaceBorder }]}>
         <TextInput
-          style={styles.commentInput}
+          style={[styles.commentInput, { backgroundColor: colors.inputBg, color: colors.inputText }]}
           placeholder="Write a comment..."
+          placeholderTextColor={colors.inputPlaceholder}
           value={newComment}
           onChangeText={setNewComment}
           multiline
@@ -358,10 +361,10 @@ export default function PostDetailScreen() {
           disabled={!newComment.trim() || submitting}
         >
           {submitting ? (
-            <ActivityIndicator size="small" color="#fff" />
+            <ActivityIndicator size="small" color={colors.textInverse} />
           ) : (
-            <View style={styles.sendIconContainer}>
-              <Ionicons name="send" size={18} color="#fff" />
+            <View style={[styles.sendIconContainer, { backgroundColor: colors.accent }]}>
+              <Ionicons name="send" size={18} color={colors.textInverse} />
             </View>
           )}
         </TouchableOpacity>
@@ -373,33 +376,27 @@ export default function PostDetailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
   },
   errorContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
   },
   errorText: {
     fontSize: 16,
-    color: '#666',
   },
   scrollView: {
     flex: 1,
   },
   postCard: {
-    backgroundColor: '#fff',
     padding: 16,
     marginBottom: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
   },
   postHeader: {
     flexDirection: 'row',
@@ -419,23 +416,19 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   avatarPlaceholder: {
-    backgroundColor: '#007AFF',
     justifyContent: 'center',
     alignItems: 'center',
   },
   avatarText: {
-    color: '#fff',
     fontSize: 20,
     fontWeight: 'bold',
   },
   username: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#000',
   },
   profession: {
     fontSize: 14,
-    color: '#666',
     marginTop: 2,
   },
   helpBadge: {
@@ -451,14 +444,12 @@ const styles = StyleSheet.create({
   },
   timestamp: {
     fontSize: 12,
-    color: '#999',
-      marginTop:6,
+    marginTop: 6,
     marginBottom: 6,
   },
   postContent: {
     fontSize: 15,
     lineHeight: 22,
-    color: '#000',
     marginBottom: 16,
   },
   postImage: {
@@ -477,7 +468,6 @@ const styles = StyleSheet.create({
     gap: 24,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#f0f0f0',
   },
   actionButton: {
     flexDirection: 'row',
@@ -486,17 +476,14 @@ const styles = StyleSheet.create({
   },
   actionText: {
     fontSize: 14,
-    color: '#666',
     fontWeight: '500',
   },
   commentsSection: {
-    backgroundColor: '#fff',
     padding: 16,
   },
   commentsTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#000',
     marginBottom: 16,
   },
   emptyComments: {
@@ -505,19 +492,16 @@ const styles = StyleSheet.create({
   },
   emptyCommentsText: {
     fontSize: 16,
-    color: '#666',
     marginTop: 12,
   },
   emptyCommentsSubtext: {
     fontSize: 14,
-    color: '#999',
     marginTop: 4,
   },
   commentCard: {
     marginBottom: 16,
     paddingBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
   },
   commentHeader: {
     flexDirection: 'row',
@@ -531,7 +515,6 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   commentAvatarText: {
-    color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
   },
@@ -541,32 +524,26 @@ const styles = StyleSheet.create({
   commentUsername: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#000',
   },
   commentTime: {
     fontSize: 12,
-    color: '#999',
     marginTop: 2,
   },
   commentContent: {
     fontSize: 14,
     lineHeight: 20,
-    color: '#333',
     marginLeft: 46,
   },
   commentInputContainer: {
     flexDirection: 'row',
     alignItems: 'flex-end',
     padding: 12,
-    backgroundColor: '#fff',
     borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
   },
   commentInput: {
     flex: 1,
     minHeight: 40,
     maxHeight: 100,
-    backgroundColor: '#f5f5f5',
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 10,
@@ -583,7 +560,6 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   sendIconContainer: {
-    backgroundColor: '#007AFF',
     width: 36,
     height: 36,
     borderRadius: 18,
@@ -595,10 +571,9 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   menuButton: {
-      marginLeft: 4,
+    marginLeft: 4,
     padding: 8,
     borderRadius: 16,
-    backgroundColor: '#f0f0f0',
     minWidth: 10,
     minHeight: 10,
     justifyContent: 'center',
@@ -613,19 +588,15 @@ const styles = StyleSheet.create({
     width: 4,
     height: 4,
     borderRadius: 2,
-    backgroundColor: '#666',
   },
   menuOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   menuContainer: {
-    backgroundColor: '#fff',
     borderRadius: 12,
     width: 200,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 4,
@@ -639,10 +610,8 @@ const styles = StyleSheet.create({
   },
   menuItemText: {
     fontSize: 16,
-    color: '#333',
   },
   menuDivider: {
     height: 1,
-    backgroundColor: '#e0e0e0',
   },
 });

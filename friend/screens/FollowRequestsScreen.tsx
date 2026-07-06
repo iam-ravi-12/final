@@ -14,12 +14,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import followService, { FollowResponse } from '../services/followService';
+import { useAppTheme } from '../constants/AppTheme';
 
 export default function FollowRequestsScreen() {
   const [requests, setRequests] = useState<FollowResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [processingIds, setProcessingIds] = useState<Set<number>>(new Set());
+  const { colors, isDark } = useAppTheme();
 
   const loadRequests = useCallback(async () => {
     try {
@@ -104,7 +106,7 @@ export default function FollowRequestsScreen() {
     const isProcessing = processingIds.has(item.id);
     
     return (
-      <View style={styles.requestItem}>
+      <View style={[styles.requestItem, { backgroundColor: colors.surface, borderBottomColor: colors.surfaceBorder }]}>
         <TouchableOpacity
           style={styles.userSection}
           onPress={() => router.push(`/user/${item.followerId}`)}
@@ -117,74 +119,74 @@ export default function FollowRequestsScreen() {
                 style={styles.avatarPlaceholder}
               />
             ) : (
-              <View style={styles.avatarPlaceholder}>
-                <Text style={styles.avatarText}>
+              <View style={[styles.avatarPlaceholder, { backgroundColor: colors.accent }]}>
+                <Text style={[styles.avatarText, { color: colors.textInverse }]}>
                   {item.followerUsername?.charAt(0).toUpperCase() || 'U'}
                 </Text>
               </View>
             )}
           </View>
           <View style={styles.userInfo}>
-            <Text style={styles.username}>{item.followerUsername}</Text>
-            {item.name && <Text style={styles.name}>{item.name}</Text>}
+            <Text style={[styles.username, { color: colors.textPrimary }]}>{item.followerUsername}</Text>
+            {item.name && <Text style={[styles.name, { color: colors.textSecondary }]}>{item.name}</Text>}
             {item.profession && (
-              <Text style={styles.profession}>{item.profession}</Text>
+              <Text style={[styles.profession, { color: colors.textTertiary }]}>{item.profession}</Text>
             )}
           </View>
         </TouchableOpacity>
 
         <View style={styles.actions}>
           <TouchableOpacity
-            style={[styles.actionButton, styles.acceptButton]}
+            style={[styles.actionButton, { backgroundColor: colors.success }]}
             onPress={() => handleAccept(item.id)}
             disabled={isProcessing}
           >
             {isProcessing ? (
-              <ActivityIndicator size="small" color="#fff" />
+              <ActivityIndicator size="small" color={colors.textInverse} />
             ) : (
-              <Ionicons name="checkmark" size={20} color="#fff" />
+              <Ionicons name="checkmark" size={20} color={colors.textInverse} />
             )}
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.actionButton, styles.rejectButton]}
+            style={[styles.actionButton, { backgroundColor: colors.danger }]}
             onPress={() => handleReject(item.id)}
             disabled={isProcessing}
           >
             {isProcessing ? (
-              <ActivityIndicator size="small" color="#fff" />
+              <ActivityIndicator size="small" color={colors.textInverse} />
             ) : (
-              <Ionicons name="close" size={20} color="#fff" />
+              <Ionicons name="close" size={20} color={colors.textInverse} />
             )}
           </TouchableOpacity>
         </View>
       </View>
     );
-  }, [processingIds, handleAccept, handleReject]);
+  }, [processingIds, handleAccept, handleReject, colors]);
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.centerContainer} edges={['top']}>
-        <View style={styles.header}>
+      <SafeAreaView style={[styles.centerContainer, { backgroundColor: colors.background }]} edges={['top']}>
+        <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.surfaceBorder }]}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color="#333" />
+            <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Follow Requests</Text>
+          <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>Follow Requests</Text>
           <View style={styles.headerRight} />
         </View>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#007AFF" />
+          <ActivityIndicator size="large" color={colors.accent} />
         </View>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
+      <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.surfaceBorder }]}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#333" />
+          <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Follow Requests</Text>
+        <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>Follow Requests</Text>
         <View style={styles.headerRight} />
       </View>
 
@@ -198,8 +200,8 @@ export default function FollowRequestsScreen() {
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Ionicons name="people-outline" size={60} color="#ccc" />
-            <Text style={styles.emptyText}>No pending follow requests</Text>
+            <Ionicons name="people-outline" size={60} color={colors.textTertiary} />
+            <Text style={[styles.emptyText, { color: colors.textTertiary }]}>No pending follow requests</Text>
           </View>
         }
       />
@@ -210,11 +212,9 @@ export default function FollowRequestsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
   },
   centerContainer: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
   },
   loadingContainer: {
     flex: 1,
@@ -227,9 +227,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
   },
   backButton: {
     padding: 4,
@@ -237,7 +235,6 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#333',
   },
   headerRight: {
     width: 32,
@@ -249,9 +246,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
-    backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
   },
   userSection: {
     flex: 1,
@@ -265,12 +260,10 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: '#007AFF',
     justifyContent: 'center',
     alignItems: 'center',
   },
   avatarText: {
-    color: '#fff',
     fontSize: 20,
     fontWeight: 'bold',
   },
@@ -280,16 +273,13 @@ const styles = StyleSheet.create({
   username: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
   },
   name: {
     fontSize: 14,
-    color: '#666',
     marginTop: 2,
   },
   profession: {
     fontSize: 13,
-    color: '#999',
     marginTop: 2,
   },
   actions: {
@@ -303,12 +293,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  acceptButton: {
-    backgroundColor: '#34C759',
-  },
-  rejectButton: {
-    backgroundColor: '#FF3B30',
-  },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -317,7 +301,6 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: '#999',
     marginTop: 16,
   },
 });

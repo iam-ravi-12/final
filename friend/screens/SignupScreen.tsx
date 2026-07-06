@@ -13,6 +13,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
 import { router } from 'expo-router';
+import { useAppTheme } from '../constants/AppTheme';
 
 export default function SignupScreen() {
   const [username, setUsername] = useState('');
@@ -24,6 +25,7 @@ export default function SignupScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { signup } = useAuth();
+  const { colors, isDark } = useAppTheme();
 
   const handleSignup = async () => {
     if (!username || !name || !email || !password || !confirmPassword) {
@@ -73,17 +75,18 @@ export default function SignupScreen() {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}
+      style={[styles.container, { backgroundColor: colors.background }]}
     >
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.content}>
-          <Text style={styles.title}>Create Account</Text>
-          <Text style={styles.subtitle}>Sign up to get started</Text>
+          <Text style={[styles.title, { color: colors.textPrimary }]}>Create Account</Text>
+          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>Sign up to get started</Text>
 
           <View style={styles.form}>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { backgroundColor: colors.inputBg, borderColor: colors.inputBorder, color: colors.inputText }]}
               placeholder="Username"
+              placeholderTextColor={colors.inputPlaceholder}
               value={username}
               onChangeText={setUsername}
               autoCapitalize="none"
@@ -91,16 +94,18 @@ export default function SignupScreen() {
             />
 
             <TextInput
-              style={styles.input}
+              style={[styles.input, { backgroundColor: colors.inputBg, borderColor: colors.inputBorder, color: colors.inputText }]}
               placeholder="Name"
+              placeholderTextColor={colors.inputPlaceholder}
               value={name}
               onChangeText={setName}
               editable={!loading}
             />
 
             <TextInput
-              style={styles.input}
+              style={[styles.input, { backgroundColor: colors.inputBg, borderColor: colors.inputBorder, color: colors.inputText }]}
               placeholder="Email"
+              placeholderTextColor={colors.inputPlaceholder}
               value={email}
               onChangeText={setEmail}
               autoCapitalize="none"
@@ -110,8 +115,9 @@ export default function SignupScreen() {
 
             <View style={styles.passwordContainer}>
               <TextInput
-                style={styles.passwordInput}
+                style={[styles.passwordInput, { backgroundColor: colors.inputBg, borderColor: colors.inputBorder, color: colors.inputText }]}
                 placeholder="Password"
+                placeholderTextColor={colors.inputPlaceholder}
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry={!showPassword}
@@ -125,15 +131,16 @@ export default function SignupScreen() {
                 <Ionicons
                   name={showPassword ? 'eye-off' : 'eye'}
                   size={24}
-                  color="#666"
+                  color={colors.textTertiary}
                 />
               </TouchableOpacity>
             </View>
 
             <View style={styles.passwordContainer}>
               <TextInput
-                style={styles.passwordInput}
+                style={[styles.passwordInput, { backgroundColor: colors.inputBg, borderColor: colors.inputBorder, color: colors.inputText }]}
                 placeholder="Confirm Password"
+                placeholderTextColor={colors.inputPlaceholder}
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
                 secureTextEntry={!showConfirmPassword}
@@ -147,17 +154,17 @@ export default function SignupScreen() {
                 <Ionicons
                   name={showConfirmPassword ? 'eye-off' : 'eye'}
                   size={24}
-                  color="#666"
+                  color={colors.textTertiary}
                 />
               </TouchableOpacity>
             </View>
 
             <TouchableOpacity
-              style={[styles.button, loading && styles.buttonDisabled]}
+              style={[styles.button, { backgroundColor: colors.accent }, loading && styles.buttonDisabled]}
               onPress={handleSignup}
               disabled={loading}
             >
-              <Text style={styles.buttonText}>
+              <Text style={[styles.buttonText, { color: colors.textInverse }]}>
                 {loading ? 'Creating account...' : 'Sign Up'}
               </Text>
             </TouchableOpacity>
@@ -166,7 +173,7 @@ export default function SignupScreen() {
               onPress={() => router.back()}
               disabled={loading}
             >
-              <Text style={styles.linkText}>
+              <Text style={[styles.linkText, { color: colors.accentText }]}>
                 Already have an account? Sign In
               </Text>
             </TouchableOpacity>
@@ -180,7 +187,6 @@ export default function SignupScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
   },
   scrollContainer: {
     flexGrow: 1,
@@ -193,13 +199,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#333',
     marginBottom: 8,
     textAlign: 'center',
   },
   subtitle: {
     fontSize: 16,
-    color: '#666',
     marginBottom: 40,
     textAlign: 'center',
   },
@@ -207,26 +211,22 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   input: {
-    backgroundColor: '#fff',
     padding: 15,
     borderRadius: 10,
     fontSize: 16,
     marginBottom: 15,
     borderWidth: 1,
-    borderColor: '#ddd',
   },
   passwordContainer: {
     position: 'relative',
     marginBottom: 15,
   },
   passwordInput: {
-    backgroundColor: '#fff',
     padding: 15,
     paddingRight: 50,
     borderRadius: 10,
     fontSize: 16,
     borderWidth: 1,
-    borderColor: '#ddd',
   },
   eyeIcon: {
     position: 'absolute',
@@ -235,7 +235,6 @@ const styles = StyleSheet.create({
     padding: 5,
   },
   button: {
-    backgroundColor: '#007AFF',
     padding: 15,
     borderRadius: 10,
     alignItems: 'center',
@@ -245,12 +244,10 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   buttonText: {
-    color: '#fff',
     fontSize: 16,
     fontWeight: '600',
   },
   linkText: {
-    color: '#007AFF',
     fontSize: 14,
     textAlign: 'center',
     marginTop: 20,

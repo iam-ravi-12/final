@@ -42,7 +42,7 @@ const SosButton: React.FC<SosButtonProps> = ({ style, showModal: externalShowMod
   }, []);
 
   useEffect(() => {
-    let timer: NodeJS.Timeout;
+    let timer: ReturnType<typeof setTimeout>;
     if (showModal && countdown > 0) {
       timer = setTimeout(() => {
         setCountdown(countdown - 1);

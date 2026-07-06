@@ -25,6 +25,7 @@ import { uploadMedia } from '../../services/mediaUploadService';
 import { useAuth } from '../../contexts/AuthContext';
 import { useChat } from '../../contexts/ChatContext';
 import { parseUTCDate } from '../../utils/helpers';
+import { useAppTheme } from '../../constants/AppTheme';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const MEDIA_MAX_WIDTH = SCREEN_WIDTH * 0.65;
@@ -58,6 +59,7 @@ export default function ChatScreen() {
   const { user } = useAuth();
   const { onNewMessage, markConversationRead } = useChat();
   const flatListRef = useRef<FlatList>(null);
+  const { colors, isDark } = useAppTheme();
 
   // ── Load messages on mount ──────────────────────────────────────────
   const loadMessages = useCallback(async () => {
@@ -259,7 +261,7 @@ export default function ChatScreen() {
   };
 
   // ── Render media inside a message bubble ────────────────────────────
-  const renderMediaContent = (item: MessageResponse) => {
+  const renderMediaContent = (item: MessageResponse, isOwnMessage: boolean) => {
     if (!item.mediaUrl) return null;
 
     if (item.mediaType === 'image') {
@@ -290,14 +292,14 @@ export default function ChatScreen() {
     }
 
     if (item.mediaType === 'audio') {
-      return <AudioPlayer uri={item.mediaUrl} />;
+      return <AudioPlayer uri={item.mediaUrl} colors={colors} />;
     }
 
     // Fallback: generic file link
     return (
       <View style={styles.genericFile}>
-        <Ionicons name="document" size={24} color="#007AFF" />
-        <Text style={styles.genericFileText}>Attachment</Text>
+        <Ionicons name="document" size={24} color={colors.accent} />
+        <Text style={[styles.genericFileText, { color: colors.accent }]}>Attachment</Text>
       </View>
     );
   };
@@ -318,16 +320,20 @@ export default function ChatScreen() {
         <View
           style={[
             styles.messageBubble,
-            isOwnMessage ? styles.ownBubble : styles.otherBubble,
+            isOwnMessage
+              ? [styles.ownBubble, { backgroundColor: colors.accent }]
+              : [styles.otherBubble, { backgroundColor: colors.surface }],
             hasMedia && styles.mediaBubble,
           ]}
         >
-          {renderMediaContent(item)}
+          {renderMediaContent(item, isOwnMessage)}
           {hasText && (
             <Text
               style={[
                 styles.messageText,
-                isOwnMessage ? styles.ownMessageText : styles.otherMessageText,
+                isOwnMessage
+                  ? { color: colors.textInverse }
+                  : { color: colors.textPrimary },
                 hasMedia && styles.mediaCaption,
               ]}
             >
@@ -337,7 +343,9 @@ export default function ChatScreen() {
           <Text
             style={[
               styles.messageTime,
-              isOwnMessage ? styles.ownMessageTime : styles.otherMessageTime,
+              isOwnMessage
+                ? styles.ownMessageTime
+                : { color: colors.textTertiary },
             ]}
           >
             {formatTime(item.createdAt)}
@@ -351,7 +359,7 @@ export default function ChatScreen() {
   return (
     <>
       <Stack.Screen options={{ title: getChatTitle() }} />
-      <SafeAreaView style={styles.container} edges={['bottom']}>
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['bottom']}>
         <KeyboardAvoidingView
           style={styles.flex}
           behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
@@ -359,7 +367,7 @@ export default function ChatScreen() {
         >
           {loading ? (
             <View style={styles.centerContainer}>
-              <ActivityIndicator size="large" color="#007AFF" />
+              <ActivityIndicator size="large" color={colors.accent} />
             </View>
           ) : (
             <FlatList
@@ -372,8 +380,8 @@ export default function ChatScreen() {
               keyboardShouldPersistTaps="handled"
               ListEmptyComponent={
                 <View style={styles.emptyContainer}>
-                  <Text style={styles.emptyText}>No messages yet</Text>
-                  <Text style={styles.emptySubtext}>Start the conversation!</Text>
+                  <Text style={[styles.emptyText, { color: colors.textTertiary }]}>No messages yet</Text>
+                  <Text style={[styles.emptySubtext, { color: colors.textTertiary }]}>Start the conversation!</Text>
                 </View>
               }
             />
@@ -381,47 +389,48 @@ export default function ChatScreen() {
 
           {/* Upload progress indicator */}
           {uploadStatus ? (
-            <View style={styles.uploadBar}>
-              <ActivityIndicator size="small" color="#007AFF" />
-              <Text style={styles.uploadText}>{uploadStatus}</Text>
+            <View style={[styles.uploadBar, { backgroundColor: colors.accentLight }]}>
+              <ActivityIndicator size="small" color={colors.accent} />
+              <Text style={[styles.uploadText, { color: colors.accent }]}>{uploadStatus}</Text>
             </View>
           ) : null}
 
           {/* Attachment preview */}
           {attachment && (
-            <View style={styles.attachmentPreview}>
+            <View style={[styles.attachmentPreview, { backgroundColor: colors.surface, borderTopColor: colors.surfaceBorder }]}>
               {attachment.mediaType === 'image' ? (
                 <Image source={{ uri: attachment.uri }} style={styles.attachmentThumb} />
               ) : attachment.mediaType === 'video' ? (
-                <View style={styles.attachmentIconBox}>
-                  <Ionicons name="videocam" size={24} color="#007AFF" />
-                  <Text style={styles.attachmentLabel}>Video</Text>
+                <View style={[styles.attachmentIconBox, { backgroundColor: colors.inputBg }]}>
+                  <Ionicons name="videocam" size={24} color={colors.accent} />
+                  <Text style={[styles.attachmentLabel, { color: colors.textSecondary }]}>Video</Text>
                 </View>
               ) : (
-                <View style={styles.attachmentIconBox}>
-                  <Ionicons name="musical-notes" size={24} color="#007AFF" />
-                  <Text style={styles.attachmentLabel}>Audio</Text>
+                <View style={[styles.attachmentIconBox, { backgroundColor: colors.inputBg }]}>
+                  <Ionicons name="musical-notes" size={24} color={colors.accent} />
+                  <Text style={[styles.attachmentLabel, { color: colors.textSecondary }]}>Audio</Text>
                 </View>
               )}
               <TouchableOpacity style={styles.attachmentRemove} onPress={removeAttachment}>
-                <Ionicons name="close-circle" size={22} color="#ff3b30" />
+                <Ionicons name="close-circle" size={22} color={colors.danger} />
               </TouchableOpacity>
             </View>
           )}
 
           {/* Input bar */}
-          <View style={styles.inputContainer}>
+          <View style={[styles.inputContainer, { backgroundColor: colors.surface, borderTopColor: colors.surfaceBorder }]}>
             <TouchableOpacity
               style={styles.attachButton}
               onPress={() => setShowAttachMenu(true)}
               disabled={sending}
             >
-              <Ionicons name="add-circle" size={28} color={sending ? '#ccc' : '#007AFF'} />
+              <Ionicons name="add-circle" size={28} color={sending ? colors.textTertiary : colors.accent} />
             </TouchableOpacity>
 
             <TextInput
-              style={styles.input}
+              style={[styles.input, { backgroundColor: colors.inputBg, color: colors.inputText, borderColor: colors.inputBorder }]}
               placeholder="Type a message..."
+              placeholderTextColor={colors.inputPlaceholder}
               value={newMessage}
               onChangeText={setNewMessage}
               multiline
@@ -432,15 +441,16 @@ export default function ChatScreen() {
             <TouchableOpacity
               style={[
                 styles.sendButton,
+                { backgroundColor: colors.accent },
                 (!newMessage.trim() && !attachment || sending) && styles.sendButtonDisabled,
               ]}
               onPress={handleSend}
               disabled={(!newMessage.trim() && !attachment) || sending}
             >
               {sending ? (
-                <ActivityIndicator size="small" color="#fff" />
+                <ActivityIndicator size="small" color={colors.textInverse} />
               ) : (
-                <Ionicons name="send" size={20} color="#fff" />
+                <Ionicons name="send" size={20} color={colors.textInverse} />
               )}
             </TouchableOpacity>
           </View>
@@ -455,43 +465,43 @@ export default function ChatScreen() {
         onRequestClose={() => setShowAttachMenu(false)}
       >
         <TouchableOpacity
-          style={styles.modalOverlay}
+          style={[styles.modalOverlay, { backgroundColor: colors.overlay }]}
           activeOpacity={1}
           onPress={() => setShowAttachMenu(false)}
         >
-          <View style={styles.attachMenuContainer}>
-            <Text style={styles.attachMenuTitle}>Send Attachment</Text>
+          <View style={[styles.attachMenuContainer, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.attachMenuTitle, { color: colors.textPrimary }]}>Send Attachment</Text>
             <View style={styles.attachMenuGrid}>
               <TouchableOpacity style={styles.attachMenuOption} onPress={pickImage}>
-                <View style={[styles.attachMenuIcon, { backgroundColor: '#e8f5e9' }]}>
+                <View style={[styles.attachMenuIcon, { backgroundColor: isDark ? 'rgba(76,175,80,0.15)' : '#e8f5e9' }]}>
                   <Ionicons name="image" size={28} color="#4CAF50" />
                 </View>
-                <Text style={styles.attachMenuLabel}>Photo</Text>
+                <Text style={[styles.attachMenuLabel, { color: colors.textSecondary }]}>Photo</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.attachMenuOption} onPress={takePhoto}>
-                <View style={[styles.attachMenuIcon, { backgroundColor: '#e3f2fd' }]}>
+                <View style={[styles.attachMenuIcon, { backgroundColor: isDark ? 'rgba(33,150,243,0.15)' : '#e3f2fd' }]}>
                   <Ionicons name="camera" size={28} color="#2196F3" />
                 </View>
-                <Text style={styles.attachMenuLabel}>Camera</Text>
+                <Text style={[styles.attachMenuLabel, { color: colors.textSecondary }]}>Camera</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.attachMenuOption} onPress={pickVideo}>
-                <View style={[styles.attachMenuIcon, { backgroundColor: '#fce4ec' }]}>
+                <View style={[styles.attachMenuIcon, { backgroundColor: isDark ? 'rgba(233,30,99,0.15)' : '#fce4ec' }]}>
                   <Ionicons name="videocam" size={28} color="#E91E63" />
                 </View>
-                <Text style={styles.attachMenuLabel}>Video</Text>
+                <Text style={[styles.attachMenuLabel, { color: colors.textSecondary }]}>Video</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.attachMenuOption} onPress={pickAudio}>
-                <View style={[styles.attachMenuIcon, { backgroundColor: '#fff3e0' }]}>
+                <View style={[styles.attachMenuIcon, { backgroundColor: isDark ? 'rgba(255,152,0,0.15)' : '#fff3e0' }]}>
                   <Ionicons name="musical-notes" size={28} color="#FF9800" />
                 </View>
-                <Text style={styles.attachMenuLabel}>Audio</Text>
+                <Text style={[styles.attachMenuLabel, { color: colors.textSecondary }]}>Audio</Text>
               </TouchableOpacity>
             </View>
             <TouchableOpacity
-              style={styles.attachMenuCancel}
+              style={[styles.attachMenuCancel, { borderTopColor: colors.surfaceBorder }]}
               onPress={() => setShowAttachMenu(false)}
             >
-              <Text style={styles.attachMenuCancelText}>Cancel</Text>
+              <Text style={[styles.attachMenuCancelText, { color: colors.danger }]}>Cancel</Text>
             </TouchableOpacity>
           </View>
         </TouchableOpacity>
@@ -528,7 +538,7 @@ export default function ChatScreen() {
 // Audio Player mini-component
 // ─────────────────────────────────────────────────────────────────────────────
 
-function AudioPlayer({ uri }: { uri: string }) {
+function AudioPlayer({ uri, colors }: { uri: string; colors: any }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
   const [position, setPosition] = useState(0);
@@ -585,14 +595,14 @@ function AudioPlayer({ uri }: { uri: string }) {
 
   return (
     <View style={styles.audioPlayer}>
-      <TouchableOpacity onPress={togglePlay} style={styles.audioPlayBtn}>
-        <Ionicons name={isPlaying ? 'pause' : 'play'} size={22} color="#007AFF" />
+      <TouchableOpacity onPress={togglePlay} style={[styles.audioPlayBtn, { backgroundColor: colors.accentLight }]}>
+        <Ionicons name={isPlaying ? 'pause' : 'play'} size={22} color={colors.accent} />
       </TouchableOpacity>
       <View style={styles.audioProgress}>
-        <View style={styles.audioTrack}>
-          <View style={[styles.audioFill, { width: `${progress * 100}%` }]} />
+        <View style={[styles.audioTrack, { backgroundColor: colors.surfaceBorder }]}>
+          <View style={[styles.audioFill, { width: `${progress * 100}%`, backgroundColor: colors.accent }]} />
         </View>
-        <Text style={styles.audioDuration}>
+        <Text style={[styles.audioDuration, { color: colors.textTertiary }]}>
           {formatDuration(position)} / {formatDuration(duration)}
         </Text>
       </View>
@@ -607,7 +617,6 @@ function AudioPlayer({ uri }: { uri: string }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
   },
   flex: {
     flex: 1,
@@ -636,11 +645,9 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   ownBubble: {
-    backgroundColor: '#007AFF',
     borderBottomRightRadius: 4,
   },
   otherBubble: {
-    backgroundColor: '#fff',
     borderBottomLeftRadius: 4,
   },
   mediaBubble: {
@@ -651,12 +658,6 @@ const styles = StyleSheet.create({
   messageText: {
     fontSize: 15,
     lineHeight: 20,
-  },
-  ownMessageText: {
-    color: '#fff',
-  },
-  otherMessageText: {
-    color: '#333',
   },
   mediaCaption: {
     marginTop: 6,
@@ -670,9 +671,6 @@ const styles = StyleSheet.create({
   ownMessageTime: {
     color: 'rgba(255, 255, 255, 0.7)',
     textAlign: 'right',
-  },
-  otherMessageTime: {
-    color: '#999',
   },
 
   // ── Media in bubbles ──────────────────────────────────────────────
@@ -693,7 +691,6 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   genericFileText: {
-    color: '#007AFF',
     fontSize: 14,
     fontWeight: '500',
   },
@@ -709,7 +706,6 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: 'rgba(0,122,255,0.12)',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 10,
@@ -719,18 +715,15 @@ const styles = StyleSheet.create({
   },
   audioTrack: {
     height: 4,
-    backgroundColor: 'rgba(0,0,0,0.1)',
     borderRadius: 2,
     overflow: 'hidden',
   },
   audioFill: {
     height: '100%',
-    backgroundColor: '#007AFF',
     borderRadius: 2,
   },
   audioDuration: {
     fontSize: 11,
-    color: '#999',
     marginTop: 4,
   },
 
@@ -738,14 +731,12 @@ const styles = StyleSheet.create({
   uploadBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#e8f4fd',
     paddingHorizontal: 16,
     paddingVertical: 8,
     gap: 10,
   },
   uploadText: {
     fontSize: 13,
-    color: '#007AFF',
     fontWeight: '500',
   },
 
@@ -753,9 +744,7 @@ const styles = StyleSheet.create({
   attachmentPreview: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
     borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
     paddingHorizontal: 12,
     paddingVertical: 8,
   },
@@ -768,13 +757,11 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 8,
-    backgroundColor: '#f0f0f0',
     justifyContent: 'center',
     alignItems: 'center',
   },
   attachmentLabel: {
     fontSize: 10,
-    color: '#666',
     marginTop: 2,
   },
   attachmentRemove: {
@@ -786,9 +773,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     padding: 8,
     paddingHorizontal: 10,
-    backgroundColor: '#fff',
     borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
     alignItems: 'flex-end',
   },
   attachButton: {
@@ -799,7 +784,6 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 10,
@@ -811,7 +795,6 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#007AFF',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 2,
@@ -823,11 +806,9 @@ const styles = StyleSheet.create({
   // ── Attachment picker menu ────────────────────────────────────────
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
     justifyContent: 'flex-end',
   },
   attachMenuContainer: {
-    backgroundColor: '#fff',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingTop: 20,
@@ -837,7 +818,6 @@ const styles = StyleSheet.create({
   attachMenuTitle: {
     fontSize: 17,
     fontWeight: '600',
-    color: '#333',
     textAlign: 'center',
     marginBottom: 20,
   },
@@ -859,19 +839,16 @@ const styles = StyleSheet.create({
   },
   attachMenuLabel: {
     fontSize: 12,
-    color: '#555',
     fontWeight: '500',
   },
   attachMenuCancel: {
     paddingVertical: 14,
     alignItems: 'center',
     borderTopWidth: 1,
-    borderTopColor: '#f0f0f0',
     marginTop: 4,
   },
   attachMenuCancelText: {
     fontSize: 16,
-    color: '#ff3b30',
     fontWeight: '500',
   },
 
@@ -903,12 +880,10 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: '#999',
     fontWeight: '600',
   },
   emptySubtext: {
     fontSize: 14,
-    color: '#999',
     marginTop: 8,
   },
 });

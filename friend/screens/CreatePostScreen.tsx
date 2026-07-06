@@ -23,6 +23,7 @@ import { getMimeTypeFromUri } from '../utils/media';
 import { uploadMedia } from '../services/mediaUploadService';
 import CameraModal from '../components/CameraModal';
 import AudioRecorderModal from '../components/AudioRecorderModal';
+import { useAppTheme } from '../constants/AppTheme';
 
 type SelectedMedia = {
   uri: string;
@@ -39,6 +40,7 @@ export default function CreatePostScreen() {
   const [uploadStatus, setUploadStatus] = useState('');
   const [cameraVisible, setCameraVisible] = useState(false);
   const [audioRecorderVisible, setAudioRecorderVisible] = useState(false);
+  const { colors, isDark } = useAppTheme();
 
   const pickImage = async () => {
     try {
@@ -234,20 +236,21 @@ export default function CreatePostScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.surface }]} edges={['top']}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.container}
+        style={[styles.container, { backgroundColor: colors.background }]}
       >
-        <View style={styles.header}>
+        <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.surfaceBorder }]}>
           <TouchableOpacity onPress={() => router.back()}>
-            <Text style={styles.cancelButton}>Cancel</Text>
+            <Text style={[styles.cancelButton, { color: colors.textSecondary }]}>Cancel</Text>
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Create Post</Text>
+          <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>Create Post</Text>
           <TouchableOpacity onPress={handleSubmit} disabled={loading || uploadingMedia}>
             <Text
               style={[
                 styles.postButton,
+                { color: colors.accent },
                 (loading || uploadingMedia) && styles.postButtonDisabled,
               ]}
             >
@@ -258,8 +261,9 @@ export default function CreatePostScreen() {
 
       <ScrollView style={styles.content}>
         <TextInput
-          style={styles.textArea}
+          style={[styles.textArea, { backgroundColor: colors.surface, borderBottomColor: colors.surfaceBorder, color: colors.textPrimary }]}
           placeholder="What's on your mind?"
+          placeholderTextColor={colors.inputPlaceholder}
           value={content}
           onChangeText={setContent}
           multiline
@@ -269,7 +273,7 @@ export default function CreatePostScreen() {
         />
 
         {selectedMedia?.uri && (
-          <View style={styles.imageContainer}>
+          <View style={[styles.imageContainer, { backgroundColor: colors.surface, borderBottomColor: colors.surfaceBorder }]}>
             <PostMediaAttachment uri={selectedMedia.uri} mediaStyle={styles.image} />
             <TouchableOpacity
               style={styles.removeImageButton}
@@ -285,16 +289,16 @@ export default function CreatePostScreen() {
         <View style={styles.mediaActionsRow}>
           {/* Gallery / file picker */}
           <TouchableOpacity
-            style={[styles.mediaActionButton, (loading || uploadingMedia) && styles.mediaActionDisabled]}
+            style={[styles.mediaActionButton, { backgroundColor: colors.surface, shadowColor: colors.shadow }, (loading || uploadingMedia) && styles.mediaActionDisabled]}
             onPress={showMediaPickerOptions}
             disabled={loading || uploadingMedia}
           >
             {uploadingMedia ? (
-              <ActivityIndicator size="small" color="#007AFF" />
+              <ActivityIndicator size="small" color={colors.accent} />
             ) : (
-              <Ionicons name="attach-outline" size={22} color="#007AFF" />
+              <Ionicons name="attach-outline" size={22} color={colors.accent} />
             )}
-            <Text style={styles.mediaActionText} numberOfLines={1}>
+            <Text style={[styles.mediaActionText, { color: colors.accent }]} numberOfLines={1}>
               {uploadingMedia
                 ? (uploadStatus || 'Uploading…')
                 : selectedMedia
@@ -305,12 +309,12 @@ export default function CreatePostScreen() {
 
           {/* Camera capture button */}
           <TouchableOpacity
-            style={[styles.cameraActionButton, (loading || uploadingMedia) && styles.mediaActionDisabled]}
+            style={[styles.cameraActionButton, { backgroundColor: colors.accent, shadowColor: colors.accent }, (loading || uploadingMedia) && styles.mediaActionDisabled]}
             onPress={() => setCameraVisible(true)}
             disabled={loading || uploadingMedia}
           >
-            <Ionicons name="camera-outline" size={22} color="#fff" />
-            <Text style={styles.cameraActionText}>Camera</Text>
+            <Ionicons name="camera-outline" size={22} color={colors.textInverse} />
+            <Text style={[styles.cameraActionText, { color: colors.textInverse }]}>Camera</Text>
           </TouchableOpacity>
 
           {/* Audio record button */}
@@ -338,10 +342,10 @@ export default function CreatePostScreen() {
           onCapture={handleAudioCapture}
         />
 
-        <View style={styles.option}>
+        <View style={[styles.option, { backgroundColor: colors.surface }]}>
           <View>
-            <Text style={styles.optionLabel}>Mark as Help Request</Text>
-            <Text style={styles.optionDescription}>
+            <Text style={[styles.optionLabel, { color: colors.textPrimary }]}>Mark as Help Request</Text>
+            <Text style={[styles.optionDescription, { color: colors.textSecondary }]}>
               Post this in the Help section
             </Text>
           </View>
@@ -349,13 +353,15 @@ export default function CreatePostScreen() {
             value={isHelpSection}
             onValueChange={setIsHelpSection}
             disabled={loading}
+            trackColor={{ false: colors.surfaceBorder, true: colors.accent }}
+            thumbColor={colors.surface}
           />
         </View>
 
-        <View style={styles.option}>
+        <View style={[styles.option, { backgroundColor: colors.surface }]}>
           <View>
-            <Text style={styles.optionLabel}>Show in Home Page</Text>
-            <Text style={styles.optionDescription}>
+            <Text style={[styles.optionLabel, { color: colors.textPrimary }]}>Show in Home Page</Text>
+            <Text style={[styles.optionDescription, { color: colors.textSecondary }]}>
               Display this post on the home feed
             </Text>
           </View>
@@ -363,6 +369,8 @@ export default function CreatePostScreen() {
             value={showInHome}
             onValueChange={setShowInHome}
             disabled={loading}
+            trackColor={{ false: colors.surfaceBorder, true: colors.accent }}
+            thumbColor={colors.surface}
           />
         </View>
       </ScrollView>
@@ -374,33 +382,26 @@ export default function CreatePostScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#fff',
   },
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 16,
-    backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#333',
   },
   cancelButton: {
     fontSize: 16,
-    color: '#666',
   },
   postButton: {
     fontSize: 16,
-    color: '#007AFF',
     fontWeight: '600',
   },
   postButtonDisabled: {
@@ -410,19 +411,15 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   textArea: {
-    backgroundColor: '#fff',
     padding: 16,
     fontSize: 16,
     minHeight: 200,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
   },
   imageContainer: {
     position: 'relative',
-    backgroundColor: '#fff',
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
   },
   image: {
     width: '100%',
@@ -450,12 +447,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#fff',
     paddingVertical: 14,
     paddingHorizontal: 12,
     borderRadius: 10,
     gap: 6,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.06,
     shadowRadius: 3,
@@ -463,7 +458,6 @@ const styles = StyleSheet.create({
   },
   mediaActionText: {
     fontSize: 14,
-    color: '#007AFF',
     fontWeight: '500',
     flexShrink: 1,
   },
@@ -471,12 +465,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#007AFF',
     paddingVertical: 14,
     paddingHorizontal: 18,
     borderRadius: 10,
     gap: 6,
-    shadowColor: '#007AFF',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.35,
     shadowRadius: 4,
@@ -484,7 +476,6 @@ const styles = StyleSheet.create({
   },
   cameraActionText: {
     fontSize: 14,
-    color: '#fff',
     fontWeight: '600',
   },
   audioActionButton: {
@@ -514,18 +505,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#fff',
     padding: 16,
     marginTop: 12,
   },
   optionLabel: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#333',
   },
   optionDescription: {
     fontSize: 13,
-    color: '#666',
     marginTop: 2,
   },
 });

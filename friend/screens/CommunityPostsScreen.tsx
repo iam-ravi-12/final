@@ -23,11 +23,13 @@ import { APP_URL, MAX_POST_LENGTH } from '../constants/config';
 import { copyToClipboard, formatRelativeDate, formatMemberCount } from '../utils/helpers';
 import PostMediaAttachment from '../components/PostMediaAttachment';
 import { inferMediaType } from '../utils/media';
+import { useAppTheme } from '../constants/AppTheme';
 
 type TabType = 'approved' | 'pending' | 'members';
 
 export default function CommunityPostsScreen() {
   const router = useRouter();
+  const { colors, isDark } = useAppTheme();
   const params = useLocalSearchParams();
   const communityId = parseInt(params.communityId as string);
   const communityName = params.communityName as string;
@@ -260,8 +262,11 @@ export default function CommunityPostsScreen() {
   const renderPost = ({ item, isPending = false }: { item: CommunityPostResponse; isPending?: boolean }) => {
     const initial = item.username.charAt(0).toUpperCase();
 
+    const glassBg = isDark ? 'rgba(10, 37, 66, 0.68)' : 'rgba(255, 255, 255, 0.78)';
+    const glassBorder = isDark ? 'rgba(123, 189, 232, 0.22)' : 'rgba(189, 216, 233, 0.6)';
+
     return (
-      <View style={styles.postCard}>
+      <View style={[styles.postCard, { backgroundColor: glassBg, borderColor: glassBorder, borderWidth: 1, shadowColor: colors.shadow }]}>
         <View style={styles.postHeader}>
           <TouchableOpacity
             onPress={() => router.push(`/user/${item.userId}`)}
@@ -270,23 +275,23 @@ export default function CommunityPostsScreen() {
             {item.userProfilePicture ? (
               <Image source={{ uri: item.userProfilePicture }} style={styles.profilePic} />
             ) : (
-              <View style={styles.avatar}>
-                <Text style={styles.avatarText}>{initial}</Text>
+              <View style={[styles.avatar, { backgroundColor: colors.accent }]}>
+                <Text style={[styles.avatarText, { color: colors.textInverse }]}>{initial}</Text>
               </View>
             )}
           </TouchableOpacity>
           <View style={styles.postHeaderInfo}>
-            <Text style={styles.username}>@{item.username}</Text>
-            <Text style={styles.postDate}>{formatDate(item.createdAt)}</Text>
+            <Text style={[styles.username, { color: colors.textPrimary }]}>@{item.username}</Text>
+            <Text style={[styles.postDate, { color: colors.textTertiary }]}>{formatDate(item.createdAt)}</Text>
           </View>
           {isPending && (
-            <View style={styles.pendingBadge}>
-              <Text style={styles.pendingText}>Pending</Text>
+            <View style={[styles.pendingBadge, { backgroundColor: colors.warning }]}>
+              <Text style={[styles.pendingText, { color: colors.textInverse }]}>Pending</Text>
             </View>
           )}
         </View>
 
-        <Text style={styles.postContent}>{item.content}</Text>
+        <Text style={[styles.postContent, { color: colors.textPrimary }]}>{item.content}</Text>
 
         {item.mediaUrls && item.mediaUrls.length > 0 && (
           <View style={styles.mediaContainer}>
@@ -303,18 +308,18 @@ export default function CommunityPostsScreen() {
         {isPending && community?.isAdmin && (
           <View style={styles.adminActions}>
             <TouchableOpacity
-              style={styles.approveButton}
+              style={[styles.approveButton, { backgroundColor: colors.success }]}
               onPress={() => handleApprovePost(item.id)}
             >
-              <Ionicons name="checkmark-circle" size={20} color="#fff" />
-              <Text style={styles.approveButtonText}>Approve</Text>
+              <Ionicons name="checkmark-circle" size={20} color={colors.textInverse} />
+              <Text style={[styles.approveButtonText, { color: colors.textInverse }]}>Approve</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={styles.rejectButton}
+              style={[styles.rejectButton, { backgroundColor: colors.danger }]}
               onPress={() => handleRejectPost(item.id)}
             >
-              <Ionicons name="close-circle" size={20} color="#fff" />
-              <Text style={styles.rejectButtonText}>Reject</Text>
+              <Ionicons name="close-circle" size={20} color={colors.textInverse} />
+              <Text style={[styles.rejectButtonText, { color: colors.textInverse }]}>Reject</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -323,36 +328,39 @@ export default function CommunityPostsScreen() {
   };
 
   const renderMember = ({ item }: { item: CommunityMemberResponse }) => {
+    const glassBg = isDark ? 'rgba(10, 37, 66, 0.68)' : 'rgba(255, 255, 255, 0.78)';
+    const glassBorder = isDark ? 'rgba(123, 189, 232, 0.22)' : 'rgba(189, 216, 233, 0.6)';
+
     return (
-      <View style={styles.memberCard}>
+      <View style={[styles.memberCard, { backgroundColor: glassBg, borderColor: glassBorder, borderWidth: 1, shadowColor: colors.shadow }]}>
         <TouchableOpacity
           style={styles.memberInfo}
           onPress={() => router.push(`/user/${item.userId}`)}
           activeOpacity={0.7}
         >
           {item.profilePicture ? (
-            <Image source={{ uri: item.profilePicture }} style={styles.memberAvatar} />
+            <Image source={{ uri: item.profilePicture }} style={[styles.memberAvatar, { backgroundColor: undefined }]} />
           ) : (
-            <View style={styles.memberAvatar}>
-              <Text style={styles.memberAvatarText}>
+            <View style={[styles.memberAvatar, { backgroundColor: colors.accent }]}>
+              <Text style={[styles.memberAvatarText, { color: colors.textInverse }]}>
                 {(item.name || item.username).charAt(0).toUpperCase()}
               </Text>
             </View>
           )}
           <View style={styles.memberDetails}>
             <View style={styles.memberNameContainer}>
-              <Text style={styles.memberName}>{item.name || item.username}</Text>
+              <Text style={[styles.memberName, { color: colors.textPrimary }]}>{item.name || item.username}</Text>
               {item.isAdmin && (
                 <View style={styles.adminBadge}>
-                  <Text style={styles.adminBadgeText}>Admin</Text>
+                  <Text style={[styles.adminBadgeText, { color: colors.textPrimary }]}>Admin</Text>
                 </View>
               )}
             </View>
-            <Text style={styles.memberUsername}>@{item.username}</Text>
+            <Text style={[styles.memberUsername, { color: colors.textSecondary }]}>@{item.username}</Text>
             {item.profession && (
-              <Text style={styles.memberProfession}>{item.profession}</Text>
+              <Text style={[styles.memberProfession, { color: colors.textTertiary }]}>{item.profession}</Text>
             )}
-            <Text style={styles.memberJoinDate}>
+            <Text style={[styles.memberJoinDate, { color: colors.textTertiary }]}>
               Joined {formatRelativeDate(item.joinedAt)}
             </Text>
           </View>
@@ -362,7 +370,7 @@ export default function CommunityPostsScreen() {
             style={styles.removeMemberButton}
             onPress={() => handleRemoveMember(item.userId, item.username)}
           >
-            <Ionicons name="close-circle" size={24} color="#FF3B30" />
+            <Ionicons name="close-circle" size={24} color={colors.danger} />
           </TouchableOpacity>
         )}
       </View>
@@ -371,16 +379,16 @@ export default function CommunityPostsScreen() {
 
   if (loading) {
     return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#007AFF" />
+      <View style={[styles.centerContainer, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.accent} />
       </View>
     );
   }
 
   if (!community) {
     return (
-      <View style={styles.centerContainer}>
-        <Text style={styles.errorText}>Community not found</Text>
+      <View style={[styles.centerContainer, { backgroundColor: colors.background }]}>
+        <Text style={[styles.errorText, { color: colors.textTertiary }]}>Community not found</Text>
       </View>
     );
   }
@@ -388,9 +396,9 @@ export default function CommunityPostsScreen() {
   const currentPosts = activeTab === 'approved' ? approvedPosts : pendingPosts;
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.surfaceBorder }]}>
         <TouchableOpacity 
           onPress={() => {
             if (router.canGoBack()) {
@@ -401,82 +409,82 @@ export default function CommunityPostsScreen() {
           }} 
           style={styles.backButton}
         >
-          <Ionicons name="arrow-back" size={24} color="#333" />
+          <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>{community.name}</Text>
+        <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>{community.name}</Text>
         <TouchableOpacity onPress={handleShareCommunity} style={styles.shareIconButton}>
-          <Ionicons name="share-outline" size={22} color="#007AFF" />
+          <Ionicons name="share-outline" size={22} color={colors.accent} />
         </TouchableOpacity>
       </View>
 
       {/* Community Details Banner */}
-      <View style={styles.communityBanner}>
+      <View style={[styles.communityBanner, { backgroundColor: colors.surface, borderBottomColor: colors.surfaceBorder }]}>
         {community.profilePicture ? (
           <Image source={{ uri: community.profilePicture }} style={styles.communityPic} />
         ) : (
-          <View style={styles.communityAvatar}>
-            <Text style={styles.communityAvatarText}>
+          <View style={[styles.communityAvatar, { backgroundColor: colors.accent }]}>
+            <Text style={[styles.communityAvatarText, { color: colors.textInverse }]}>
               {community.name.charAt(0).toUpperCase()}
             </Text>
           </View>
         )}
         <View style={styles.communityDetails}>
-          <Text style={styles.communityDescription} numberOfLines={2}>
+          <Text style={[styles.communityDescription, { color: colors.textSecondary }]} numberOfLines={2}>
             {community.description}
           </Text>
           <View style={styles.communityMeta}>
-            <Text style={styles.metaText}>
+            <Text style={[styles.metaText, { color: colors.textTertiary }]}>
               👤 {formatMemberCount(community.memberCount)}
             </Text>
             {community.isPrivate && (
-              <View style={styles.privateBadge}>
-                <Ionicons name="lock-closed" size={12} color="#666" />
-                <Text style={styles.privateBadgeText}>Private</Text>
+              <View style={[styles.privateBadge, { backgroundColor: colors.inputBg }]}>
+                <Ionicons name="lock-closed" size={12} color={colors.textSecondary} />
+                <Text style={[styles.privateBadgeText, { color: colors.textSecondary }]}>Private</Text>
               </View>
             )}
             {community.isAdmin && (
               <View style={styles.adminBadgeSmall}>
-                <Text style={styles.adminBadgeSmallText}>👑 Admin</Text>
+                <Text style={[styles.adminBadgeSmallText, { color: colors.textPrimary }]}>👑 Admin</Text>
               </View>
             )}
           </View>
         </View>
         {!community.isAdmin && community.isMember && (
-          <TouchableOpacity style={styles.leaveButton} onPress={handleLeaveCommunity}>
-            <Text style={styles.leaveButtonText}>Leave</Text>
+          <TouchableOpacity style={[styles.leaveButton, { backgroundColor: colors.surface, borderColor: colors.danger }]} onPress={handleLeaveCommunity}>
+            <Text style={[styles.leaveButtonText, { color: colors.danger }]}>Leave</Text>
           </TouchableOpacity>
         )}
         {!community.isAdmin && !community.isMember && (
-          <TouchableOpacity style={styles.joinButton} onPress={handleJoinCommunity}>
-            <Text style={styles.joinButtonText}>Join</Text>
+          <TouchableOpacity style={[styles.joinButton, { backgroundColor: colors.accent }]} onPress={handleJoinCommunity}>
+            <Text style={[styles.joinButtonText, { color: colors.textInverse }]}>Join</Text>
           </TouchableOpacity>
         )}
       </View>
 
       {/* Admin Tabs */}
       {community.isAdmin && community.isMember && (
-        <View style={styles.tabContainer}>
+        <View style={[styles.tabContainer, { backgroundColor: colors.surface, borderBottomColor: colors.surfaceBorder }]}>
           <TouchableOpacity
-            style={[styles.tab, activeTab === 'approved' && styles.activeTab]}
+            style={[styles.tab, activeTab === 'approved' && [styles.activeTab, { borderBottomColor: colors.accent }]]}
             onPress={() => setActiveTab('approved')}
           >
-            <Text style={[styles.tabText, activeTab === 'approved' && styles.activeTabText]}>
+            <Text style={[styles.tabText, { color: colors.textSecondary }, activeTab === 'approved' && { color: colors.accent }]}>
               Approved Posts
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.tab, activeTab === 'pending' && styles.activeTab]}
+            style={[styles.tab, activeTab === 'pending' && [styles.activeTab, { borderBottomColor: colors.accent }]]}
             onPress={() => setActiveTab('pending')}
           >
-            <Text style={[styles.tabText, activeTab === 'pending' && styles.activeTabText]}>
+            <Text style={[styles.tabText, { color: colors.textSecondary }, activeTab === 'pending' && { color: colors.accent }]}>
               Pending ({pendingPosts.length})
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.tab, activeTab === 'members' && styles.activeTab]}
+            style={[styles.tab, activeTab === 'members' && [styles.activeTab, { borderBottomColor: colors.accent }]]}
             onPress={() => setActiveTab('members')}
           >
-            <Text style={[styles.tabText, activeTab === 'members' && styles.activeTabText]}>
+            <Text style={[styles.tabText, { color: colors.textSecondary }, activeTab === 'members' && { color: colors.accent }]}>
               Members ({members.length})
             </Text>
           </TouchableOpacity>
@@ -485,14 +493,14 @@ export default function CommunityPostsScreen() {
 
       {/* Show join prompt if not a member */}
       {!community.isMember ? (
-        <View style={styles.notMemberContainer}>
-          <Ionicons name="lock-closed-outline" size={64} color="#ccc" />
-          <Text style={styles.notMemberTitle}>Join to See Posts</Text>
-          <Text style={styles.notMemberText}>
+        <View style={[styles.notMemberContainer, { backgroundColor: colors.background }]}>
+          <Ionicons name="lock-closed-outline" size={64} color={colors.textTertiary} />
+          <Text style={[styles.notMemberTitle, { color: colors.textPrimary }]}>Join to See Posts</Text>
+          <Text style={[styles.notMemberText, { color: colors.textSecondary }]}>
             You must be a member of this community to view and create posts.
           </Text>
           <TouchableOpacity
-            style={styles.joinButton}
+            style={[styles.joinButton, { backgroundColor: colors.accent, shadowColor: colors.shadow }]}
             onPress={async () => {
               try {
                 await communityService.joinCommunity(communityId);
@@ -504,20 +512,20 @@ export default function CommunityPostsScreen() {
               }
             }}
           >
-            <Text style={styles.joinButtonText}>Join Community</Text>
+            <Text style={[styles.joinButtonText, { color: colors.textInverse }]}>Join Community</Text>
           </TouchableOpacity>
         </View>
       ) : (
         <>
           {/* Create Post Button - only show for posts tabs */}
           {activeTab !== 'members' && (
-            <View style={styles.createPostSection}>
+            <View style={[styles.createPostSection, { backgroundColor: colors.surface, borderBottomColor: colors.surfaceBorder }]}>
               <TouchableOpacity
-                style={styles.createPostButton}
+                style={[styles.createPostButton, { backgroundColor: colors.accentLight, borderColor: colors.accent }]}
                 onPress={() => setShowCreatePost(true)}
               >
-                <Ionicons name="add-circle-outline" size={20} color="#007AFF" />
-                <Text style={styles.createPostButtonText}>Create Post</Text>
+                <Ionicons name="add-circle-outline" size={20} color={colors.accent} />
+                <Text style={[styles.createPostButtonText, { color: colors.accent }]}>Create Post</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -534,8 +542,8 @@ export default function CommunityPostsScreen() {
               }
               ListEmptyComponent={
                 <View style={styles.emptyState}>
-                  <Ionicons name="people-outline" size={64} color="#ccc" />
-                  <Text style={styles.emptyText}>No members yet</Text>
+                  <Ionicons name="people-outline" size={64} color={colors.textTertiary} />
+                  <Text style={[styles.emptyText, { color: colors.textTertiary }]}>No members yet</Text>
                 </View>
               }
             />
@@ -550,11 +558,11 @@ export default function CommunityPostsScreen() {
               }
               ListEmptyComponent={
                 <View style={styles.emptyState}>
-                  <Ionicons name="chatbubbles-outline" size={64} color="#ccc" />
-                  <Text style={styles.emptyText}>
+                  <Ionicons name="chatbubbles-outline" size={64} color={colors.textTertiary} />
+                  <Text style={[styles.emptyText, { color: colors.textTertiary }]}>
                     {activeTab === 'approved' ? 'No posts yet' : 'No pending posts'}
                   </Text>
-                  <Text style={styles.emptySubtext}>
+                  <Text style={[styles.emptySubtext, { color: colors.textTertiary }]}>
                     {activeTab === 'approved' && 'Be the first to post in this community!'}
                   </Text>
                 </View>
@@ -575,21 +583,22 @@ export default function CommunityPostsScreen() {
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.modalContainer}
         >
-          <View style={styles.modalBackdrop}>
-            <View style={styles.modalContent}>
-              <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Create Post</Text>
+          <View style={[styles.modalBackdrop, { backgroundColor: colors.overlay }]}>
+            <View style={[styles.modalContent, { backgroundColor: colors.surface }]}>
+              <View style={[styles.modalHeader, { borderBottomColor: colors.surfaceBorder }]}>
+                <Text style={[styles.modalTitle, { color: colors.textPrimary }]}>Create Post</Text>
                 <TouchableOpacity onPress={() => setShowCreatePost(false)}>
-                  <Ionicons name="close" size={24} color="#333" />
+                  <Ionicons name="close" size={24} color={colors.textPrimary} />
                 </TouchableOpacity>
               </View>
 
               <ScrollView style={styles.modalBody}>
                 <TextInput
-                  style={styles.postInput}
+                  style={[styles.postInput, { color: colors.inputText }]}
                   value={postContent}
                   onChangeText={setPostContent}
                   placeholder="What's on your mind?"
+                  placeholderTextColor={colors.inputPlaceholder}
                   multiline
                   numberOfLines={6}
                   maxLength={MAX_POST_LENGTH}
@@ -597,23 +606,23 @@ export default function CommunityPostsScreen() {
                 />
               </ScrollView>
 
-              <View style={styles.modalFooter}>
+              <View style={[styles.modalFooter, { borderTopColor: colors.surfaceBorder }]}>
                 <TouchableOpacity
-                  style={styles.cancelButton}
+                  style={[styles.cancelButton, { backgroundColor: colors.inputBg }]}
                   onPress={() => {
                     setShowCreatePost(false);
                     setPostContent('');
                   }}
                   disabled={submitting}
                 >
-                  <Text style={styles.cancelButtonText}>Cancel</Text>
+                  <Text style={[styles.cancelButtonText, { color: colors.textSecondary }]}>Cancel</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={[styles.submitButton, submitting && styles.disabledButton]}
+                  style={[styles.submitButton, { backgroundColor: colors.accent }, submitting && styles.disabledButton]}
                   onPress={handleCreatePost}
                   disabled={submitting}
                 >
-                  <Text style={styles.submitButtonText}>
+                  <Text style={[styles.submitButtonText, { color: colors.textInverse }]}>
                     {submitting ? 'Posting...' : 'Post'}
                   </Text>
                 </TouchableOpacity>
@@ -629,27 +638,22 @@ export default function CommunityPostsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
   },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
   },
   errorText: {
     fontSize: 16,
-    color: '#999',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
     paddingTop: 50,
     paddingBottom: 16,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
   },
   backButton: {
     padding: 4,
@@ -658,7 +662,6 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#333',
     textAlign: 'center',
     marginLeft: -28,
   },
@@ -666,10 +669,8 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   communityBanner: {
-    backgroundColor: '#fff',
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -682,12 +683,10 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: '#007AFF',
     justifyContent: 'center',
     alignItems: 'center',
   },
   communityAvatarText: {
-    color: '#fff',
     fontSize: 20,
     fontWeight: 'bold',
   },
@@ -697,7 +696,6 @@ const styles = StyleSheet.create({
   },
   communityDescription: {
     fontSize: 14,
-    color: '#666',
     marginBottom: 6,
   },
   communityMeta: {
@@ -708,12 +706,10 @@ const styles = StyleSheet.create({
   },
   metaText: {
     fontSize: 12,
-    color: '#999',
   },
   privateBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f0f0f0',
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 10,
@@ -721,7 +717,6 @@ const styles = StyleSheet.create({
   },
   privateBadgeText: {
     fontSize: 11,
-    color: '#666',
   },
   adminBadgeSmall: {
     backgroundColor: '#FFD700',
@@ -732,37 +727,29 @@ const styles = StyleSheet.create({
   adminBadgeSmallText: {
     fontSize: 11,
     fontWeight: '600',
-    color: '#333',
   },
   leaveButton: {
-    backgroundColor: '#fff',
     borderWidth: 1,
-    borderColor: '#FF3B30',
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 16,
   },
   leaveButtonText: {
-    color: '#FF3B30',
     fontSize: 14,
     fontWeight: '600',
   },
   joinButton: {
-    backgroundColor: '#007AFF',
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 16,
   },
   joinButtonText: {
-    color: '#fff',
     fontSize: 14,
     fontWeight: '600',
   },
   tabContainer: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
   },
   tab: {
     flex: 1,
@@ -771,36 +758,27 @@ const styles = StyleSheet.create({
   },
   activeTab: {
     borderBottomWidth: 2,
-    borderBottomColor: '#007AFF',
   },
   tabText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#666',
   },
-  activeTabText: {
-    color: '#007AFF',
-  },
+  activeTabText: {},
   createPostSection: {
-    backgroundColor: '#fff',
     padding: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
   },
   createPostButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#f0f8ff',
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#007AFF',
     gap: 8,
   },
   createPostButtonText: {
-    color: '#007AFF',
     fontSize: 15,
     fontWeight: '600',
   },
@@ -808,11 +786,9 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   postCard: {
-    backgroundColor: '#fff',
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -832,12 +808,10 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#007AFF',
     justifyContent: 'center',
     alignItems: 'center',
   },
   avatarText: {
-    color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',
   },
@@ -848,27 +822,22 @@ const styles = StyleSheet.create({
   username: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#333',
   },
   postDate: {
     fontSize: 12,
-    color: '#999',
     marginTop: 2,
   },
   pendingBadge: {
-    backgroundColor: '#FFA500',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
   },
   pendingText: {
-    color: '#fff',
     fontSize: 10,
     fontWeight: '600',
   },
   postContent: {
     fontSize: 15,
-    color: '#333',
     lineHeight: 22,
   },
   mediaContainer: {
@@ -897,13 +866,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#34C759',
     paddingVertical: 10,
     borderRadius: 8,
     gap: 6,
   },
   approveButtonText: {
-    color: '#fff',
     fontSize: 14,
     fontWeight: '600',
   },
@@ -912,13 +879,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FF3B30',
     paddingVertical: 10,
     borderRadius: 8,
     gap: 6,
   },
   rejectButtonText: {
-    color: '#fff',
     fontSize: 14,
     fontWeight: '600',
   },
@@ -929,13 +894,11 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 18,
-    color: '#999',
     marginTop: 16,
     fontWeight: '600',
   },
   emptySubtext: {
     fontSize: 14,
-    color: '#ccc',
     marginTop: 8,
     textAlign: 'center',
   },
@@ -944,11 +907,9 @@ const styles = StyleSheet.create({
   },
   modalBackdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#fff',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     maxHeight: '80%',
@@ -959,19 +920,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
   },
   modalTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333',
   },
   modalBody: {
     padding: 20,
   },
   postInput: {
     fontSize: 16,
-    color: '#333',
     minHeight: 150,
     textAlignVertical: 'top',
   },
@@ -980,7 +938,6 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingTop: 16,
     borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
     gap: 12,
   },
   cancelButton: {
@@ -988,24 +945,20 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 8,
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
   },
   cancelButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#666',
   },
   submitButton: {
     flex: 1,
     paddingVertical: 12,
     borderRadius: 8,
     alignItems: 'center',
-    backgroundColor: '#007AFF',
   },
   submitButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#fff',
   },
   disabledButton: {
     opacity: 0.6,
@@ -1015,46 +968,25 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 40,
-    backgroundColor: '#f5f5f5',
   },
   notMemberTitle: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: '#333',
     marginTop: 20,
     marginBottom: 10,
   },
   notMemberText: {
     fontSize: 16,
-    color: '#666',
     textAlign: 'center',
     marginBottom: 30,
     lineHeight: 24,
   },
-  joinButton: {
-    backgroundColor: '#007AFF',
-    paddingHorizontal: 40,
-    paddingVertical: 14,
-    borderRadius: 25,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
-  },
-  joinButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
   memberCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
     padding: 16,
     marginBottom: 8,
     borderRadius: 12,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
@@ -1069,13 +1001,11 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: '#007AFF',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
   },
   memberAvatarText: {
-    color: '#fff',
     fontSize: 20,
     fontWeight: 'bold',
   },
@@ -1090,22 +1020,18 @@ const styles = StyleSheet.create({
   memberName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
     marginRight: 8,
   },
   memberUsername: {
     fontSize: 14,
-    color: '#666',
     marginBottom: 2,
   },
   memberProfession: {
     fontSize: 13,
-    color: '#888',
     marginBottom: 2,
   },
   memberJoinDate: {
     fontSize: 12,
-    color: '#999',
   },
   adminBadge: {
     backgroundColor: '#FFD700',
@@ -1116,7 +1042,6 @@ const styles = StyleSheet.create({
   adminBadgeText: {
     fontSize: 10,
     fontWeight: '600',
-    color: '#333',
   },
   removeMemberButton: {
     padding: 8,

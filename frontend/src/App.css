@@ -95,7 +95,7 @@
   width: 60px;
   height: 60px;
   border-radius: 50%;
-  background: #6b7280;
+  background: var(--primary-gradient);
   color: white;
   border: none;
   box-shadow: var(--shadow-lg);

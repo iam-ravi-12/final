@@ -13,6 +13,7 @@ import {
 import { router, useLocalSearchParams } from 'expo-router';
 import authService from '../services/authService';
 import { useAuth } from '../contexts/AuthContext';
+import { useAppTheme } from '../constants/AppTheme';
 
 export default function OTPVerificationScreen() {
   const { email } = useLocalSearchParams();
@@ -22,6 +23,7 @@ export default function OTPVerificationScreen() {
   const [resending, setResending] = useState(false);
   const [timer, setTimer] = useState(60);
   const inputRefs = useRef<Array<TextInput | null>>([]);
+  const { colors, isDark } = useAppTheme();
 
   useEffect(() => {
     if (!email) {
@@ -109,22 +111,22 @@ export default function OTPVerificationScreen() {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}
+      style={[styles.container, { backgroundColor: colors.background }]}
     >
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.content}>
-          <Text style={styles.title}>Verify Your Email</Text>
-          <Text style={styles.subtitle}>
+          <Text style={[styles.title, { color: colors.textPrimary }]}>Verify Your Email</Text>
+          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
             We've sent a 6-digit code to{'\n'}
-            <Text style={styles.email}>{email}</Text>
+            <Text style={[styles.email, { color: colors.textPrimary }]}>{email}</Text>
           </Text>
 
           <View style={styles.otpContainer}>
             {otp.map((digit, index) => (
               <TextInput
                 key={index}
-                ref={(ref) => (inputRefs.current[index] = ref)}
-                style={styles.otpInput}
+                ref={(ref) => { inputRefs.current[index] = ref; }}
+                style={[styles.otpInput, { borderColor: colors.inputBorder, backgroundColor: colors.inputBg, color: colors.inputText }]}
                 value={digit}
                 onChangeText={(value) => handleChange(index, value)}
                 onKeyPress={({ nativeEvent: { key } }) =>
@@ -134,29 +136,30 @@ export default function OTPVerificationScreen() {
                 maxLength={1}
                 editable={!loading && !resending}
                 autoFocus={index === 0}
+                placeholderTextColor={colors.inputPlaceholder}
               />
             ))}
           </View>
 
           <TouchableOpacity
-            style={[styles.button, (loading || resending) && styles.buttonDisabled]}
+            style={[styles.button, { backgroundColor: colors.accent }, (loading || resending) && styles.buttonDisabled]}
             onPress={handleVerify}
             disabled={loading || resending}
           >
-            <Text style={styles.buttonText}>
+            <Text style={[styles.buttonText, { color: colors.textInverse }]}>
               {loading ? 'Verifying...' : 'Verify Email'}
             </Text>
           </TouchableOpacity>
 
           <View style={styles.resendContainer}>
             {timer > 0 ? (
-              <Text style={styles.timerText}>Resend code in {timer}s</Text>
+              <Text style={[styles.timerText, { color: colors.textSecondary }]}>Resend code in {timer}s</Text>
             ) : (
               <TouchableOpacity
                 onPress={handleResend}
                 disabled={resending}
               >
-                <Text style={styles.resendText}>
+                <Text style={[styles.resendText, { color: colors.accentText }]}>
                   {resending ? 'Sending...' : 'Resend Code'}
                 </Text>
               </TouchableOpacity>
@@ -171,7 +174,6 @@ export default function OTPVerificationScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
   },
   scrollContainer: {
     flexGrow: 1,
@@ -184,19 +186,16 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#333',
     marginBottom: 8,
     textAlign: 'center',
   },
   subtitle: {
     fontSize: 16,
-    color: '#666',
     marginBottom: 40,
     textAlign: 'center',
   },
   email: {
     fontWeight: 'bold',
-    color: '#333',
   },
   otpContainer: {
     flexDirection: 'row',
@@ -208,15 +207,12 @@ const styles = StyleSheet.create({
     width: 50,
     height: 60,
     borderWidth: 2,
-    borderColor: '#ddd',
     borderRadius: 10,
     textAlign: 'center',
     fontSize: 24,
     fontWeight: 'bold',
-    backgroundColor: '#fff',
   },
   button: {
-    backgroundColor: '#007AFF',
     padding: 15,
     borderRadius: 10,
     alignItems: 'center',
@@ -226,7 +222,6 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   buttonText: {
-    color: '#fff',
     fontSize: 16,
     fontWeight: '600',
   },
@@ -235,11 +230,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   timerText: {
-    color: '#666',
     fontSize: 14,
   },
   resendText: {
-    color: '#007AFF',
     fontSize: 14,
     fontWeight: '600',
   },

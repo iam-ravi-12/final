@@ -20,11 +20,13 @@ import communityService, { CommunityResponse } from '../services/communityServic
 import CreateCommunityModal from '../components/CreateCommunityModal';
 import { APP_URL } from '../constants/config';
 import { copyToClipboard, formatMemberCount } from '../utils/helpers';
+import { useAppTheme } from '../constants/AppTheme';
 
 type TabType = 'my' | 'public';
 
 export default function CommunityScreen() {
   const router = useRouter();
+  const { colors, isDark } = useAppTheme();
   const [activeTab, setActiveTab] = useState<TabType>('my');
   const [myCommunities, setMyCommunities] = useState<CommunityResponse[]>([]);
   const [publicCommunities, setPublicCommunities] = useState<CommunityResponse[]>([]);
@@ -112,37 +114,40 @@ export default function CommunityScreen() {
   const renderCommunity = ({ item }: { item: CommunityResponse }) => {
     const initial = item.name.charAt(0).toUpperCase();
 
+    const glassBg = isDark ? 'rgba(10, 37, 66, 0.68)' : 'rgba(255, 255, 255, 0.78)';
+    const glassBorder = isDark ? 'rgba(123, 189, 232, 0.22)' : 'rgba(189, 216, 233, 0.6)';
+
     return (
       <TouchableOpacity
-        style={styles.communityCard}
+        style={[styles.communityCard, { backgroundColor: glassBg, borderColor: glassBorder, borderWidth: 1, shadowColor: colors.shadow }]}
         onPress={() => handleCommunityPress(item.id, item.name)}
       >
         <View style={styles.communityHeader}>
           {item.profilePicture ? (
             <Image source={{ uri: item.profilePicture }} style={styles.communityPic} />
           ) : (
-            <View style={[styles.communityAvatar, { backgroundColor: '#007AFF' }]}>
-              <Text style={styles.avatarText}>{initial}</Text>
+            <View style={[styles.communityAvatar, { backgroundColor: colors.accent }]}>
+              <Text style={[styles.avatarText, { color: colors.textInverse }]}>{initial}</Text>
             </View>
           )}
           <View style={styles.communityInfo}>
             <View style={styles.communityTitleRow}>
-              <Text style={styles.communityName}>{item.name}</Text>
+              <Text style={[styles.communityName, { color: colors.textPrimary }]}>{item.name}</Text>
               {item.isPrivate && (
-                <Ionicons name="lock-closed" size={16} color="#666" style={styles.lockIcon} />
+                <Ionicons name="lock-closed" size={16} color={colors.textSecondary} style={styles.lockIcon} />
               )}
               {item.isAdmin && (
                 <View style={styles.adminBadge}>
-                  <Text style={styles.adminBadgeText}>👑 Admin</Text>
+                  <Text style={[styles.adminBadgeText, { color: colors.textPrimary }]}>👑 Admin</Text>
                 </View>
               )}
             </View>
             {item.description && (
-              <Text style={styles.communityDescription} numberOfLines={2}>
+              <Text style={[styles.communityDescription, { color: colors.textSecondary }]} numberOfLines={2}>
                 {item.description}
               </Text>
             )}
-            <Text style={styles.communityMeta}>
+            <Text style={[styles.communityMeta, { color: colors.textTertiary }]}>
               {formatMemberCount(item.memberCount)} • by @{item.adminUsername}
             </Text>
           </View>
@@ -150,34 +155,34 @@ export default function CommunityScreen() {
         
         <View style={styles.communityActions}>
           <TouchableOpacity
-            style={styles.shareButton}
+            style={[styles.shareButton, { borderColor: colors.accent }]}
             onPress={(e) => {
               e.stopPropagation();
               handleShareCommunity(item);
             }}
           >
-            <Ionicons name="share-outline" size={20} color="#007AFF" />
-            <Text style={styles.shareButtonText}>Share</Text>
+            <Ionicons name="share-outline" size={20} color={colors.accent} />
+            <Text style={[styles.shareButtonText, { color: colors.accent }]}>Share</Text>
           </TouchableOpacity>
           
           {item.isMember ? (
             <TouchableOpacity
-              style={styles.viewButton}
+              style={[styles.viewButton, { backgroundColor: colors.accent }]}
               onPress={() => handleCommunityPress(item.id, item.name)}
             >
-              <Text style={styles.viewButtonText}>View</Text>
-              <Ionicons name="arrow-forward" size={16} color="#fff" />
+              <Text style={[styles.viewButtonText, { color: colors.textInverse }]}>View</Text>
+              <Ionicons name="arrow-forward" size={16} color={colors.textInverse} />
             </TouchableOpacity>
           ) : (
             !item.isPrivate && (
               <TouchableOpacity
-                style={styles.joinButton}
+                style={[styles.joinButton, { backgroundColor: colors.accent }]}
                 onPress={(e) => {
                   e.stopPropagation();
                   handleJoinToggle(item.id, item.isMember);
                 }}
               >
-                <Text style={styles.joinButtonText}>Join</Text>
+                <Text style={[styles.joinButtonText, { color: colors.textInverse }]}>Join</Text>
               </TouchableOpacity>
             )
           )}
@@ -205,41 +210,41 @@ export default function CommunityScreen() {
 
   if (loading) {
     return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#007AFF" />
+      <View style={[styles.centerContainer, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.accent} />
       </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
       {/* Tab Selector */}
-      <View style={styles.tabContainer}>
+      <View style={[styles.tabContainer, { backgroundColor: colors.surface, borderBottomColor: colors.surfaceBorder }]}>
         <TouchableOpacity
-          style={[styles.tab, activeTab === 'my' && styles.activeTab]}
+          style={[styles.tab, activeTab === 'my' && [styles.activeTab, { borderBottomColor: colors.accent }]]}
           onPress={() => setActiveTab('my')}
         >
-          <Text style={[styles.tabText, activeTab === 'my' && styles.activeTabText]}>
+          <Text style={[styles.tabText, { color: colors.textSecondary }, activeTab === 'my' && { color: colors.accent }]}>
             My Communities
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.tab, activeTab === 'public' && styles.activeTab]}
+          style={[styles.tab, activeTab === 'public' && [styles.activeTab, { borderBottomColor: colors.accent }]]}
           onPress={() => setActiveTab('public')}
         >
-          <Text style={[styles.tabText, activeTab === 'public' && styles.activeTabText]}>
+          <Text style={[styles.tabText, { color: colors.textSecondary }, activeTab === 'public' && { color: colors.accent }]}>
             Public Communities
           </Text>
         </TouchableOpacity>
       </View>
 
       {/* Search Bar */}
-      <View style={styles.searchContainer}>
-        <Ionicons name="search" size={20} color="#999" style={styles.searchIcon} />
+      <View style={[styles.searchContainer, { backgroundColor: colors.inputBg, borderColor: colors.inputBorder, shadowColor: colors.shadow }]}>
+        <Ionicons name="search" size={20} color={colors.textTertiary} style={styles.searchIcon} />
         <TextInput
-          style={styles.searchInput}
+          style={[styles.searchInput, { color: colors.inputText }]}
           placeholder="Search communities..."
-          placeholderTextColor="#999"
+          placeholderTextColor={colors.inputPlaceholder}
           value={searchQuery}
           onChangeText={setSearchQuery}
           autoCapitalize="none"
@@ -250,7 +255,7 @@ export default function CommunityScreen() {
             onPress={() => setSearchQuery('')}
             style={styles.clearButton}
           >
-            <Ionicons name="close-circle" size={20} color="#999" />
+            <Ionicons name="close-circle" size={20} color={colors.textTertiary} />
           </TouchableOpacity>
         )}
       </View>
@@ -265,8 +270,8 @@ export default function CommunityScreen() {
         }
         ListEmptyComponent={
           <View style={styles.emptyState}>
-            <Ionicons name="people-circle-outline" size={64} color="#ccc" />
-            <Text style={styles.emptyText}>
+            <Ionicons name="people-circle-outline" size={64} color={colors.textTertiary} />
+            <Text style={[styles.emptyText, { color: colors.textTertiary }]}>
               {searchQuery.trim() 
                 ? `No communities found matching "${searchQuery}"` 
                 : activeTab === 'my' 
@@ -279,10 +284,10 @@ export default function CommunityScreen() {
 
       {/* Floating Action Button */}
       <TouchableOpacity
-        style={styles.fab}
+        style={[styles.fab, { backgroundColor: colors.accent, shadowColor: colors.shadow }]}
         onPress={() => setShowCreateModal(true)}
       >
-        <Ionicons name="add" size={28} color="#fff" />
+        <Ionicons name="add" size={28} color={colors.textInverse} />
       </TouchableOpacity>
 
       {/* Create Community Modal */}
@@ -298,19 +303,15 @@ export default function CommunityScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
   },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
   },
   tabContainer: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
   },
   tab: {
     flex: 1,
@@ -319,28 +320,20 @@ const styles = StyleSheet.create({
   },
   activeTab: {
     borderBottomWidth: 2,
-    borderBottomColor: '#007AFF',
   },
   tabText: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#666',
-  },
-  activeTabText: {
-    color: '#007AFF',
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
     marginHorizontal: 16,
     marginVertical: 12,
     paddingHorizontal: 12,
     paddingVertical: 10,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,
@@ -352,7 +345,6 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 15,
-    color: '#333',
     paddingVertical: 0,
   },
   clearButton: {
@@ -364,15 +356,13 @@ const styles = StyleSheet.create({
     paddingBottom: 80, // Space for FAB
   },
   communityCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 16,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    marginBottom: 14,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.12,
+    shadowRadius: 10,
+    elevation: 4,
   },
   communityHeader: {
     flexDirection: 'row',
@@ -391,7 +381,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   avatarText: {
-    color: '#fff',
     fontSize: 24,
     fontWeight: 'bold',
   },
@@ -407,7 +396,6 @@ const styles = StyleSheet.create({
   communityName: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333',
   },
   lockIcon: {
     marginLeft: 6,
@@ -422,16 +410,13 @@ const styles = StyleSheet.create({
   adminBadgeText: {
     fontSize: 11,
     fontWeight: '600',
-    color: '#333',
   },
   communityDescription: {
     fontSize: 14,
-    color: '#666',
     marginTop: 4,
   },
   communityMeta: {
     fontSize: 12,
-    color: '#999',
     marginTop: 6,
   },
   communityActions: {
@@ -447,36 +432,30 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#007AFF',
     gap: 6,
   },
   shareButtonText: {
-    color: '#007AFF',
     fontSize: 14,
     fontWeight: '600',
   },
   viewButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#007AFF',
     paddingHorizontal: 20,
     paddingVertical: 8,
     borderRadius: 20,
     gap: 6,
   },
   viewButtonText: {
-    color: '#fff',
     fontSize: 14,
     fontWeight: '600',
   },
   joinButton: {
-    backgroundColor: '#007AFF',
     paddingHorizontal: 24,
     paddingVertical: 8,
     borderRadius: 20,
   },
   joinButtonText: {
-    color: '#fff',
     fontSize: 14,
     fontWeight: '600',
   },
@@ -487,7 +466,6 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: '#999',
     marginTop: 16,
     textAlign: 'center',
   },
@@ -498,10 +476,8 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#007AFF',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,

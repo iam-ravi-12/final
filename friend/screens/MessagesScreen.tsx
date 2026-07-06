@@ -15,6 +15,7 @@ import { useFocusEffect } from 'expo-router';
 import { ConversationResponse } from '../services/messageService';
 import { parseUTCDate } from '../utils/helpers';
 import { useChat } from '../contexts/ChatContext';
+import { useAppTheme } from '../constants/AppTheme';
 
 export default function MessagesScreen() {
   const {
@@ -23,6 +24,8 @@ export default function MessagesScreen() {
     loadConversations,
     isSocketConnected,
   } = useChat();
+
+  const { colors, isDark } = useAppTheme();
 
   // Refresh conversations when screen comes into focus
   useFocusEffect(
@@ -47,33 +50,34 @@ export default function MessagesScreen() {
 
   const renderConversation = ({ item }: { item: ConversationResponse }) => (
     <TouchableOpacity
-      style={styles.conversationCard}
+      style={[styles.conversationCard, { backgroundColor: colors.surface, borderBottomColor: colors.surfaceBorder }]}
       onPress={() => router.push(`/chat/${item.userId}`)}
     >
-      <View style={styles.avatar}>
-        <Text style={styles.avatarText}>
+      <View style={[styles.avatar, { backgroundColor: colors.accent }]}>
+        <Text style={[styles.avatarText, { color: colors.textInverse }]}>
           {item.username.charAt(0).toUpperCase()}
         </Text>
       </View>
 
       <View style={styles.conversationInfo}>
         <View style={styles.conversationHeader}>
-          <Text style={styles.username}>{item.username}</Text>
-          <Text style={styles.time}>{formatTime(item.lastMessageTime)}</Text>
+          <Text style={[styles.username, { color: colors.textPrimary }]}>{item.username}</Text>
+          <Text style={[styles.time, { color: colors.textTertiary }]}>{formatTime(item.lastMessageTime)}</Text>
         </View>
         <View style={styles.messageRow}>
           <Text
             style={[
               styles.lastMessage,
-              item.unreadCount > 0 && styles.unreadMessage,
+              { color: colors.textSecondary },
+              item.unreadCount > 0 && [styles.unreadMessage, { color: colors.textPrimary }],
             ]}
             numberOfLines={1}
           >
             {item.lastMessage}
           </Text>
           {item.unreadCount > 0 && (
-            <View style={styles.unreadBadge}>
-              <Text style={styles.unreadBadgeText}>{item.unreadCount}</Text>
+            <View style={[styles.unreadBadge, { backgroundColor: colors.accent }]}>
+              <Text style={[styles.unreadBadgeText, { color: colors.textInverse }]}>{item.unreadCount}</Text>
             </View>
           )}
         </View>
@@ -82,16 +86,16 @@ export default function MessagesScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Messages</Text>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
+      <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.surfaceBorder }]}>
+        <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>Messages</Text>
         {/* Connection status indicator */}
-        <View style={[styles.statusDot, isSocketConnected ? styles.statusOnline : styles.statusOffline]} />
+        <View style={[styles.statusDot, isSocketConnected ? styles.statusOnline : { backgroundColor: colors.textTertiary }]} />
       </View>
 
       {isLoadingConversations && conversations.length === 0 ? (
         <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color="#007AFF" />
+          <ActivityIndicator size="large" color={colors.accent} />
         </View>
       ) : (
         <FlatList
@@ -103,14 +107,14 @@ export default function MessagesScreen() {
             <RefreshControl
               refreshing={isLoadingConversations}
               onRefresh={loadConversations}
-              tintColor="#007AFF"
+              tintColor={colors.accent}
             />
           }
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <IconSymbol name="envelope" size={60} color="#ccc" />
-              <Text style={styles.emptyText}>No messages yet</Text>
-              <Text style={styles.emptySubtext}>
+              <IconSymbol name="envelope" size={60} color={colors.textTertiary} />
+              <Text style={[styles.emptyText, { color: colors.textTertiary }]}>No messages yet</Text>
+              <Text style={[styles.emptySubtext, { color: colors.textTertiary }]}>
                 Start a conversation by messaging someone
               </Text>
             </View>
@@ -124,13 +128,10 @@ export default function MessagesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
   },
   header: {
     padding: 16,
-    backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -138,7 +139,6 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#333',
   },
   statusDot: {
     width: 8,
@@ -148,30 +148,23 @@ const styles = StyleSheet.create({
   statusOnline: {
     backgroundColor: '#34C759',
   },
-  statusOffline: {
-    backgroundColor: '#ccc',
-  },
   listContainer: {
     flexGrow: 1,
   },
   conversationCard: {
     flexDirection: 'row',
     padding: 16,
-    backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
   },
   avatar: {
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: '#007AFF',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
   },
   avatarText: {
-    color: '#fff',
     fontSize: 20,
     fontWeight: 'bold',
   },
@@ -188,11 +181,9 @@ const styles = StyleSheet.create({
   username: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
   },
   time: {
     fontSize: 12,
-    color: '#999',
   },
   messageRow: {
     flexDirection: 'row',
@@ -201,15 +192,12 @@ const styles = StyleSheet.create({
   },
   lastMessage: {
     fontSize: 14,
-    color: '#666',
     flex: 1,
   },
   unreadMessage: {
-    color: '#333',
     fontWeight: '600',
   },
   unreadBadge: {
-    backgroundColor: '#007AFF',
     borderRadius: 10,
     minWidth: 20,
     height: 20,
@@ -219,7 +207,6 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   unreadBadgeText: {
-    color: '#fff',
     fontSize: 12,
     fontWeight: 'bold',
   },
@@ -236,13 +223,11 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 18,
-    color: '#999',
     marginTop: 16,
     fontWeight: '600',
   },
   emptySubtext: {
     fontSize: 14,
-    color: '#999',
     marginTop: 8,
   },
 });

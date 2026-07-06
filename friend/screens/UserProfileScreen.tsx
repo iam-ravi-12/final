@@ -21,6 +21,7 @@ import postService, { PostResponse } from '../services/postService';
 import { parseUTCDate } from '../utils/helpers';
 import PostMediaAttachment from '../components/PostMediaAttachment';
 import { inferMediaType } from '../utils/media';
+import { useAppTheme } from '../constants/AppTheme';
 
 const formatTimeAgo = (dateString: string): string => {
   const now = new Date();
@@ -54,6 +55,7 @@ export default function UserProfileScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [showAllPosts, setShowAllPosts] = useState(false);
   const [loadingAction, setLoadingAction] = useState(false);
+  const { colors, isDark } = useAppTheme();
 
   const loadUserData = useCallback(async () => {
     if (!userId) return;
@@ -130,11 +132,11 @@ export default function UserProfileScreen() {
         : styles.postImage;
     return (
       <TouchableOpacity
-        style={styles.postCard}
+        style={[styles.postCard, { backgroundColor: colors.surface, shadowColor: colors.shadow }]}
         onPress={() => router.push(`/post/${item.id}`)}
         activeOpacity={0.7}
       >
-        <Text style={styles.postContent} numberOfLines={3} ellipsizeMode="tail">
+        <Text style={[styles.postContent, { color: colors.textPrimary }]} numberOfLines={3} ellipsizeMode="tail">
           {item.content}
         </Text>
         {item.mediaUrls && item.mediaUrls.length > 0 && (
@@ -142,18 +144,18 @@ export default function UserProfileScreen() {
         )}
         <View style={styles.postActions}>
           <View style={styles.actionItem}>
-            <Ionicons name="heart-outline" size={16} color="#666" />
-            <Text style={styles.actionText}>{item.likeCount}</Text>
+            <Ionicons name="heart-outline" size={16} color={colors.textSecondary} />
+            <Text style={[styles.actionText, { color: colors.textSecondary }]}>{item.likeCount}</Text>
           </View>
           <View style={styles.actionItem}>
-            <Ionicons name="chatbubble-outline" size={16} color="#666" />
-            <Text style={styles.actionText}>{item.commentCount}</Text>
+            <Ionicons name="chatbubble-outline" size={16} color={colors.textSecondary} />
+            <Text style={[styles.actionText, { color: colors.textSecondary }]}>{item.commentCount}</Text>
           </View>
-          <Text style={styles.postTimestamp}>{formatTimeAgo(item.createdAt)}</Text>
+          <Text style={[styles.postTimestamp, { color: colors.textTertiary }]}>{formatTimeAgo(item.createdAt)}</Text>
         </View>
       </TouchableOpacity>
     );
-  }, []);
+  }, [colors]);
 
   const displayedPosts = useMemo(() => {
     return showAllPosts ? userPosts : userPosts.slice(0, 3);
@@ -161,22 +163,22 @@ export default function UserProfileScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.centerContainer} edges={['top']}>
-        <ActivityIndicator size="large" color="#007AFF" />
+      <SafeAreaView style={[styles.centerContainer, { backgroundColor: colors.background }]} edges={['top']}>
+        <ActivityIndicator size="large" color={colors.accent} />
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
+      <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.surfaceBorder }]}>
         <TouchableOpacity
           onPress={() => router.back()}
           style={styles.backButton}
         >
-          <Ionicons name="arrow-back" size={24} color="#333" />
+          <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Profile</Text>
+        <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>Profile</Text>
         <View style={styles.headerRight} />
       </View>
 
@@ -186,25 +188,25 @@ export default function UserProfileScreen() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
-        <View style={styles.profileHeader}>
+        <View style={[styles.profileHeader, { backgroundColor: colors.surface, borderBottomColor: colors.surfaceBorder }]}>
           {profileData?.profilePicture ? (
             <Image
               source={{ uri: profileData.profilePicture }}
               style={styles.avatarLarge}
             />
           ) : (
-            <View style={styles.avatarLarge}>
-              <Text style={styles.avatarTextLarge}>
+            <View style={[styles.avatarLarge, { backgroundColor: colors.accent }]}>
+              <Text style={[styles.avatarTextLarge, { color: colors.textInverse }]}>
                 {profileData?.name?.charAt(0).toUpperCase() || 
                  profileData?.username?.charAt(0).toUpperCase() || 'U'}
               </Text>
             </View>
           )}
-          <Text style={styles.name}>
+          <Text style={[styles.name, { color: colors.textPrimary }]}>
             {profileData?.name || profileData?.username}
           </Text>
-          <Text style={styles.username}>@{profileData?.username}</Text>
-          <Text style={styles.email}>{profileData?.email}</Text>
+          <Text style={[styles.username, { color: colors.textSecondary }]}>@{profileData?.username}</Text>
+          <Text style={[styles.email, { color: colors.textSecondary }]}>{profileData?.email}</Text>
 
           {/* Follow Button - only show if not viewing own profile */}
           {currentUser?.id !== userId && (
@@ -212,18 +214,20 @@ export default function UserProfileScreen() {
               <TouchableOpacity
                 style={[
                   styles.followButton,
-                  followStats?.isFollowing && styles.followingButton,
+                  { backgroundColor: colors.accent },
+                  followStats?.isFollowing && { backgroundColor: colors.surfaceBorder },
                 ]}
                 onPress={handleFollowAction}
                 disabled={loadingAction || followStats?.followStatus === 'PENDING'}
               >
                 {loadingAction ? (
-                  <ActivityIndicator size="small" color="#fff" />
+                  <ActivityIndicator size="small" color={colors.textInverse} />
                 ) : (
                   <Text
                     style={[
                       styles.followButtonText,
-                      followStats?.isFollowing && styles.followingButtonText,
+                      { color: colors.textInverse },
+                      followStats?.isFollowing && { color: colors.textPrimary },
                     ]}
                   >
                     {getFollowButtonText()}
@@ -232,11 +236,11 @@ export default function UserProfileScreen() {
               </TouchableOpacity>
               
               <TouchableOpacity
-                style={styles.messageButton}
+                style={[styles.messageButton, { backgroundColor: colors.accent }]}
                 onPress={handleMessage}
               >
-                <Ionicons name="chatbubble-outline" size={20} color="#fff" />
-                <Text style={styles.messageButtonText}>Message</Text>
+                <Ionicons name="chatbubble-outline" size={20} color={colors.textInverse} />
+                <Text style={[styles.messageButtonText, { color: colors.textInverse }]}>Message</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -244,44 +248,44 @@ export default function UserProfileScreen() {
           {/* Followers/Following Stats */}
           <View style={styles.statsContainer}>
             <View style={styles.statItem}>
-              <Text style={styles.statValue}>{followStats?.followersCount || 0}</Text>
-              <Text style={styles.statLabel}>Followers</Text>
+              <Text style={[styles.statValue, { color: colors.textPrimary }]}>{followStats?.followersCount || 0}</Text>
+              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Followers</Text>
             </View>
-            <View style={styles.statDivider} />
+            <View style={[styles.statDivider, { backgroundColor: colors.surfaceBorder }]} />
             <View style={styles.statItem}>
-              <Text style={styles.statValue}>{followStats?.followingCount || 0}</Text>
-              <Text style={styles.statLabel}>Following</Text>
+              <Text style={[styles.statValue, { color: colors.textPrimary }]}>{followStats?.followingCount || 0}</Text>
+              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Following</Text>
             </View>
           </View>
         </View>
 
         <View style={styles.infoSection}>
-          <View style={styles.infoCard}>
-            <Ionicons name="briefcase" size={24} color="#007AFF" />
+          <View style={[styles.infoCard, { backgroundColor: colors.surface }]}>
+            <Ionicons name="briefcase" size={24} color={colors.accent} />
             <View style={styles.infoTextContainer}>
-              <Text style={styles.infoLabel}>Profession</Text>
-              <Text style={styles.infoValue}>
+              <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>Profession</Text>
+              <Text style={[styles.infoValue, { color: colors.textPrimary }]}>
                 {profileData?.profession || 'Not set'}
               </Text>
             </View>
           </View>
 
-          <View style={styles.infoCard}>
-            <Ionicons name="business" size={24} color="#007AFF" />
+          <View style={[styles.infoCard, { backgroundColor: colors.surface }]}>
+            <Ionicons name="business" size={24} color={colors.accent} />
             <View style={styles.infoTextContainer}>
-              <Text style={styles.infoLabel}>Organization</Text>
-              <Text style={styles.infoValue}>
+              <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>Organization</Text>
+              <Text style={[styles.infoValue, { color: colors.textPrimary }]}>
                 {profileData?.organization || 'Not set'}
               </Text>
             </View>
           </View>
 
           {profileData?.location && (
-            <View style={styles.infoCard}>
-              <Ionicons name="location" size={24} color="#007AFF" />
+            <View style={[styles.infoCard, { backgroundColor: colors.surface }]}>
+              <Ionicons name="location" size={24} color={colors.accent} />
               <View style={styles.infoTextContainer}>
-                <Text style={styles.infoLabel}>Location</Text>
-                <Text style={styles.infoValue}>
+                <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>Location</Text>
+                <Text style={[styles.infoValue, { color: colors.textPrimary }]}>
                   {profileData.location}
                 </Text>
               </View>
@@ -292,14 +296,14 @@ export default function UserProfileScreen() {
         {/* Posts Section */}
         <View style={styles.postsSection}>
           <View style={styles.postsSectionHeader}>
-            <Text style={styles.postsSectionTitle}>
+            <Text style={[styles.postsSectionTitle, { color: colors.textPrimary }]}>
               Posts ({userPosts.length})
             </Text>
             {userPosts.length > 0 && (
               <TouchableOpacity
                 onPress={() => setShowAllPosts(!showAllPosts)}
               >
-                <Text style={styles.viewAllButton}>
+                <Text style={[styles.viewAllButton, { color: colors.accent }]}>
                   {showAllPosts ? 'Show Less' : 'View All'}
                 </Text>
               </TouchableOpacity>
@@ -307,9 +311,9 @@ export default function UserProfileScreen() {
           </View>
 
           {userPosts.length === 0 ? (
-            <View style={styles.emptyPosts}>
-              <Ionicons name="document-text-outline" size={48} color="#ccc" />
-              <Text style={styles.emptyPostsText}>No posts yet</Text>
+            <View style={[styles.emptyPosts, { backgroundColor: colors.surface }]}>
+              <Ionicons name="document-text-outline" size={48} color={colors.textTertiary} />
+              <Text style={[styles.emptyPostsText, { color: colors.textTertiary }]}>No posts yet</Text>
             </View>
           ) : (
             <View>
@@ -329,13 +333,11 @@ export default function UserProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
   },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
   },
   header: {
     flexDirection: 'row',
@@ -343,9 +345,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
   },
   backButton: {
     padding: 4,
@@ -353,7 +353,6 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#333',
   },
   headerRight: {
     width: 32,
@@ -362,40 +361,33 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   profileHeader: {
-    backgroundColor: '#fff',
     alignItems: 'center',
     paddingVertical: 32,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
   },
   avatarLarge: {
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: '#007AFF',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
   },
   avatarTextLarge: {
-    color: '#fff',
     fontSize: 40,
     fontWeight: 'bold',
   },
   name: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#333',
     marginBottom: 4,
   },
   username: {
     fontSize: 16,
-    color: '#666',
     marginBottom: 4,
   },
   email: {
     fontSize: 14,
-    color: '#666',
     marginBottom: 16,
   },
   actionButtonsContainer: {
@@ -404,7 +396,6 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   followButton: {
-    backgroundColor: '#007AFF',
     paddingHorizontal: 32,
     paddingVertical: 10,
     borderRadius: 20,
@@ -412,19 +403,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flex: 1,
   },
-  followingButton: {
-    backgroundColor: '#e0e0e0',
-  },
   followButtonText: {
-    color: '#fff',
     fontSize: 16,
     fontWeight: '600',
   },
-  followingButtonText: {
-    color: '#333',
-  },
   messageButton: {
-    backgroundColor: '#007AFF',
     paddingHorizontal: 32,
     paddingVertical: 10,
     borderRadius: 20,
@@ -435,7 +418,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   messageButtonText: {
-    color: '#fff',
     fontSize: 16,
     fontWeight: '600',
   },
@@ -451,17 +433,14 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: '#333',
   },
   statLabel: {
     fontSize: 13,
-    color: '#666',
     marginTop: 4,
   },
   statDivider: {
     width: 1,
     height: 40,
-    backgroundColor: '#e0e0e0',
   },
   infoSection: {
     padding: 16,
@@ -469,7 +448,6 @@ const styles = StyleSheet.create({
   infoCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
     padding: 16,
     borderRadius: 12,
     marginBottom: 12,
@@ -480,13 +458,11 @@ const styles = StyleSheet.create({
   },
   infoLabel: {
     fontSize: 12,
-    color: '#666',
     marginBottom: 4,
   },
   infoValue: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#333',
   },
   postsSection: {
     padding: 16,
@@ -501,30 +477,24 @@ const styles = StyleSheet.create({
   postsSectionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#333',
   },
   viewAllButton: {
     fontSize: 14,
-    color: '#007AFF',
     fontWeight: '500',
   },
   emptyPosts: {
     alignItems: 'center',
     paddingVertical: 40,
-    backgroundColor: '#fff',
     borderRadius: 12,
   },
   emptyPostsText: {
     fontSize: 16,
-    color: '#999',
     marginTop: 12,
   },
   postCard: {
-    backgroundColor: '#fff',
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -532,7 +502,6 @@ const styles = StyleSheet.create({
   },
   postContent: {
     fontSize: 15,
-    color: '#333',
     lineHeight: 22,
     marginBottom: 12,
   },
@@ -559,11 +528,9 @@ const styles = StyleSheet.create({
   },
   actionText: {
     fontSize: 14,
-    color: '#666',
   },
   postTimestamp: {
     fontSize: 12,
-    color: '#999',
     marginLeft: 'auto',
   },
 });

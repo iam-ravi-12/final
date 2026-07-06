@@ -17,6 +17,7 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useAuth } from '../contexts/AuthContext';
 import { router } from 'expo-router';
 import authService from '../services/authService';
+import { useAppTheme } from '../constants/AppTheme';
 
 export default function EditProfileScreen() {
   const { user, refreshUser } = useAuth();
@@ -27,6 +28,7 @@ export default function EditProfileScreen() {
   const [profilePicture, setProfilePicture] = useState(user?.profilePicture || '');
   const [profilePictureBase64, setProfilePictureBase64] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const { colors, isDark } = useAppTheme();
 
   const pickImage = async () => {
     // Request permissions
@@ -101,13 +103,13 @@ export default function EditProfileScreen() {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}
+      style={[styles.container, { backgroundColor: colors.background }]}
     >
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.content}>
           <View style={styles.avatarContainer}>
             <TouchableOpacity 
-              style={styles.avatarLarge}
+              style={[styles.avatarLarge, { backgroundColor: colors.accent }]}
               onPress={pickImage}
               disabled={loading}
             >
@@ -117,38 +119,40 @@ export default function EditProfileScreen() {
                   style={styles.avatarImage}
                 />
               ) : (
-                <Text style={styles.avatarTextLarge}>
+                <Text style={[styles.avatarTextLarge, { color: colors.textInverse }]}>
                   {name?.charAt(0).toUpperCase() || user?.username?.charAt(0).toUpperCase() || 'U'}
                 </Text>
               )}
-              <View style={styles.editBadge}>
-                <IconSymbol name="camera.fill" size={16} color="#fff" />
+              <View style={[styles.editBadge, { backgroundColor: colors.accent, borderColor: colors.surface }]}>
+                <IconSymbol name="camera.fill" size={16} color={colors.textInverse} />
               </View>
             </TouchableOpacity>
-            <Text style={styles.username}>{user?.username}</Text>
-            <Text style={styles.email}>{user?.email}</Text>
-            <Text style={styles.hint}>Tap to change profile picture</Text>
+            <Text style={[styles.username, { color: colors.textPrimary }]}>{user?.username}</Text>
+            <Text style={[styles.email, { color: colors.textSecondary }]}>{user?.email}</Text>
+            <Text style={[styles.hint, { color: colors.textTertiary }]}>Tap to change profile picture</Text>
           </View>
 
           <View style={styles.form}>
             <View style={styles.fieldContainer}>
-              <Text style={styles.label}>Display Name</Text>
+              <Text style={[styles.label, { color: colors.textPrimary }]}>Display Name</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, { backgroundColor: colors.inputBg, borderColor: colors.inputBorder, color: colors.inputText }]}
                 placeholder="Your full name"
+                placeholderTextColor={colors.inputPlaceholder}
                 value={name}
                 onChangeText={setName}
                 editable={!loading}
                 autoCapitalize="words"
               />
-              <Text style={styles.fieldHint}>This is how others will see your name</Text>
+              <Text style={[styles.fieldHint, { color: colors.textTertiary }]}>This is how others will see your name</Text>
             </View>
 
             <View style={styles.fieldContainer}>
-              <Text style={styles.label}>Profession *</Text>
+              <Text style={[styles.label, { color: colors.textPrimary }]}>Profession *</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, { backgroundColor: colors.inputBg, borderColor: colors.inputBorder, color: colors.inputText }]}
                 placeholder="e.g. Software Engineer"
+                placeholderTextColor={colors.inputPlaceholder}
                 value={profession}
                 onChangeText={setProfession}
                 editable={!loading}
@@ -157,10 +161,11 @@ export default function EditProfileScreen() {
             </View>
 
             <View style={styles.fieldContainer}>
-              <Text style={styles.label}>Organization *</Text>
+              <Text style={[styles.label, { color: colors.textPrimary }]}>Organization *</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, { backgroundColor: colors.inputBg, borderColor: colors.inputBorder, color: colors.inputText }]}
                 placeholder="e.g. Tech Company Inc."
+                placeholderTextColor={colors.inputPlaceholder}
                 value={organization}
                 onChangeText={setOrganization}
                 editable={!loading}
@@ -169,10 +174,11 @@ export default function EditProfileScreen() {
             </View>
 
             <View style={styles.fieldContainer}>
-              <Text style={styles.label}>Location *</Text>
+              <Text style={[styles.label, { color: colors.textPrimary }]}>Location *</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, { backgroundColor: colors.inputBg, borderColor: colors.inputBorder, color: colors.inputText }]}
                 placeholder="e.g. San Francisco, CA"
+                placeholderTextColor={colors.inputPlaceholder}
                 value={location}
                 onChangeText={setLocation}
                 editable={!loading}
@@ -181,11 +187,11 @@ export default function EditProfileScreen() {
             </View>
 
             <TouchableOpacity
-              style={[styles.button, loading && styles.buttonDisabled]}
+              style={[styles.button, { backgroundColor: colors.accent }, loading && styles.buttonDisabled]}
               onPress={handleSave}
               disabled={loading}
             >
-              <Text style={styles.buttonText}>
+              <Text style={[styles.buttonText, { color: colors.textInverse }]}>
                 {loading ? 'Saving...' : 'Save Changes'}
               </Text>
             </TouchableOpacity>
@@ -195,7 +201,7 @@ export default function EditProfileScreen() {
               onPress={() => router.back()}
               disabled={loading}
             >
-              <Text style={styles.cancelButtonText}>Cancel</Text>
+              <Text style={[styles.cancelButtonText, { color: colors.accent }]}>Cancel</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -207,7 +213,6 @@ export default function EditProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
   },
   scrollContainer: {
     flexGrow: 1,
@@ -224,7 +229,6 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: '#007AFF',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
@@ -237,7 +241,6 @@ const styles = StyleSheet.create({
     borderRadius: 50,
   },
   avatarTextLarge: {
-    color: '#fff',
     fontSize: 40,
     fontWeight: 'bold',
   },
@@ -245,29 +248,24 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 0,
     right: 0,
-    backgroundColor: '#007AFF',
     borderRadius: 15,
     width: 30,
     height: 30,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: '#fff',
   },
   username: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#333',
     marginBottom: 4,
   },
   email: {
     fontSize: 14,
-    color: '#666',
     marginBottom: 4,
   },
   hint: {
     fontSize: 12,
-    color: '#999',
     fontStyle: 'italic',
   },
   form: {
@@ -279,25 +277,20 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#333',
     marginBottom: 8,
   },
   input: {
-    backgroundColor: '#fff',
     padding: 15,
     borderRadius: 10,
     fontSize: 16,
     borderWidth: 1,
-    borderColor: '#ddd',
   },
   fieldHint: {
     fontSize: 12,
-    color: '#999',
     marginTop: 4,
     fontStyle: 'italic',
   },
   button: {
-    backgroundColor: '#007AFF',
     padding: 15,
     borderRadius: 10,
     alignItems: 'center',
@@ -307,7 +300,6 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   buttonText: {
-    color: '#fff',
     fontSize: 16,
     fontWeight: '600',
   },
@@ -318,7 +310,6 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   cancelButtonText: {
-    color: '#007AFF',
     fontSize: 16,
     fontWeight: '600',
   },

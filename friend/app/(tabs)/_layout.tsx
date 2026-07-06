@@ -6,19 +6,18 @@ import * as Notifications from 'expo-notifications';
 import { HapticTab } from '@/components/haptic-tab';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useAppTheme } from '@/constants/AppTheme';
 import sosService from '@/services/sosService';
 import notificationService from '@/services/notificationService';
 import { useChat } from '@/contexts/ChatContext';
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
+  const { colors, isDark } = useAppTheme();
   const { totalUnreadCount } = useChat();
   const [sosUnreadCount, setSosUnreadCount] = useState(0);
   const appState = useRef(AppState.currentState);
-  const notificationListener = useRef<Notifications.Subscription>();
-  const responseListener = useRef<Notifications.Subscription>();
+  const notificationListener = useRef<Notifications.Subscription | null>(null);
+  const responseListener = useRef<Notifications.Subscription | null>(null);
 
   useEffect(() => {
     // Initialize FCM push notifications
@@ -92,9 +91,14 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
+        tabBarActiveTintColor: colors.tabActive,
+        tabBarInactiveTintColor: colors.tabInactive,
         headerShown: false,
         tabBarButton: HapticTab,
+        tabBarStyle: {
+          backgroundColor: colors.tabBar,
+          borderTopColor: colors.tabBarBorder,
+        },
       }}>
       <Tabs.Screen
         name="index"
@@ -118,8 +122,8 @@ export default function TabLayout() {
             <View>
               <Ionicons name="chatbubbles" size={28} color={color} />
               {totalUnreadCount > 0 && (
-                <View style={styles.badge}>
-                  <Text style={styles.badgeText}>
+                <View style={[styles.badge, { backgroundColor: colors.danger }]}>
+                  <Text style={[styles.badgeText, { color: colors.textInverse }]}>
                     {totalUnreadCount > 99 ? '99+' : totalUnreadCount}
                   </Text>
                 </View>
@@ -136,8 +140,8 @@ export default function TabLayout() {
             <View>
               <Ionicons name="warning" size={28} color={color} />
               {sosUnreadCount > 0 && (
-                <View style={styles.badge}>
-                  <Text style={styles.badgeText}>{sosUnreadCount > 99 ? '99+' : sosUnreadCount}</Text>
+                <View style={[styles.badge, { backgroundColor: colors.danger }]}>
+                  <Text style={[styles.badgeText, { color: colors.textInverse }]}>{sosUnreadCount > 99 ? '99+' : sosUnreadCount}</Text>
                 </View>
               )}
             </View>
@@ -165,7 +169,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: -6,
     right: -10,
-    backgroundColor: '#ef4444',
     borderRadius: 10,
     minWidth: 20,
     height: 20,
@@ -174,7 +177,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   badgeText: {
-    color: 'white',
     fontSize: 11,
     fontWeight: 'bold',
     textAlign: 'center',
