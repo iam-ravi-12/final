@@ -1,48 +1,70 @@
 package com.social.network.service;
 
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
+import com.sendgrid.Method;
+import com.sendgrid.Request;
+import com.sendgrid.Response;
+import com.sendgrid.SendGrid;
+import com.sendgrid.helpers.mail.Mail;
+import com.sendgrid.helpers.mail.objects.Content;
+import com.sendgrid.helpers.mail.objects.Email;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+
+import java.io.IOException;
 
 @Service
 public class EmailService {
 
     private static final Logger logger = LoggerFactory.getLogger(EmailService.class);
 
-    private final JavaMailSender mailSender;
+    @Value("${sendgrid.api.key:}")
+    private String apiKey;
 
-    @Value("${spring.mail.username}")
+    @Value("${sendgrid.from.email:noreply@yourdomain.com}")
     private String fromEmail;
 
-    @Value("${app.mail.from-name:Friends Social Network}")
+    @Value("${sendgrid.from.name:Friends Social Network}")
     private String fromName;
-
-    public EmailService(JavaMailSender mailSender) {
-        this.mailSender = mailSender;
-    }
 
     @Async
     public void sendOTPEmail(String toEmail, String otp) {
+        logger.info("=================================================");
+        logger.info("  EMAIL VERIFICATION OTP FOR {}: [{}]", toEmail, otp);
+        logger.info("=================================================");
+
+        if (apiKey == null || apiKey.trim().isEmpty() || apiKey.contains("xxxxxxxx") || apiKey.contains("YOUR_SENDGRID")) {
+            logger.warn("SendGrid API key not configured or contains placeholder. OTP printed above to console.");
+            return;
+        }
+
         try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            Email from = new Email(fromEmail, fromName);
+            Email to = new Email(toEmail);
+            String subject = "Friends - Email Verification Code: " + otp;
+            Content content = new Content("text/html", buildOTPEmailHtml(otp));
 
-            helper.setFrom(fromEmail, fromName);
-            helper.setTo(toEmail);
-            helper.setSubject("Friends - Email Verification Code: " + otp);
-            helper.setText(buildOTPEmailHtml(otp), true); // true = HTML
+            Mail mail = new Mail(from, subject, to, content);
 
-            mailSender.send(message);
-            logger.info("OTP email sent successfully to {}", toEmail);
-        } catch (MessagingException | java.io.UnsupportedEncodingException e) {
-            logger.error("Failed to send OTP email to {}: {}", toEmail, e.getMessage(), e);
-            // Don't throw — we don't want to block account creation if email fails
+            SendGrid sg = new SendGrid(apiKey);
+            Request request = new Request();
+            request.setMethod(Method.POST);
+            request.setEndpoint("mail/send");
+            request.setBody(mail.build());
+
+            Response response = sg.api(request);
+            if (response.getStatusCode() >= 200 && response.getStatusCode() < 300) {
+                logger.info("OTP email sent successfully via SendGrid API to {} (status: {})", toEmail, response.getStatusCode());
+            } else {
+                logger.error("Failed to send OTP email via SendGrid to {}. Status: {}, Body: {}", 
+                    toEmail, response.getStatusCode(), response.getBody());
+            }
+        } catch (IOException e) {
+            logger.error("IOException while sending SendGrid OTP email to {}: {}", toEmail, e.getMessage(), e);
+        } catch (Exception e) {
+            logger.error("Unexpected error sending SendGrid OTP email to {}: {}", toEmail, e.getMessage(), e);
         }
     }
 
