@@ -72,22 +72,28 @@ const authService = {
 
   updateProfile: async (data: ProfileData): Promise<string> => {
     const response = await api.post('/api/auth/profile', data);
-    // Update stored user data
-    const userStr = await AsyncStorage.getItem('user');
-    if (userStr) {
-      const user = JSON.parse(userStr);
-      if (data.name) {
-        user.name = data.name;
+    
+    // Fetch the updated profile to get the actual Cloudinary URL and update AsyncStorage
+    try {
+      const profile = await authService.getProfile();
+      const userStr = await AsyncStorage.getItem('user');
+      if (userStr) {
+        const user = JSON.parse(userStr);
+        const updated = {
+          ...user,
+          name: profile.name,
+          profession: profile.profession,
+          organization: profile.organization,
+          location: profile.location,
+          profilePicture: profile.profilePicture,
+          profileCompleted: profile.profileCompleted,
+        };
+        await AsyncStorage.setItem('user', JSON.stringify(updated));
       }
-      user.profession = data.profession;
-      user.organization = data.organization;
-      user.location = data.location;
-      if (data.profilePicture) {
-        user.profilePicture = data.profilePicture;
-      }
-      user.profileCompleted = true;
-      await AsyncStorage.setItem('user', JSON.stringify(user));
+    } catch (e) {
+      console.error('Failed to sync profile after update:', e);
     }
+    
     return response.data;
   },
 

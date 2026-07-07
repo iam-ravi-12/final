@@ -22,9 +22,25 @@ export const authService = {
       requestBody.profilePicture = profilePicture;
     }
     const response = await api.post('/auth/profile', requestBody);
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    user.profileCompleted = true;
-    localStorage.setItem('user', JSON.stringify(user));
+    
+    // Fetch the updated profile to get the actual Cloudinary URL and update localStorage
+    try {
+      const profile = await authService.getUserProfile();
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      const updated = {
+        ...user,
+        name: profile.name,
+        profession: profile.profession,
+        organization: profile.organization,
+        location: profile.location,
+        profilePicture: profile.profilePicture,
+        profileCompleted: profile.profileCompleted,
+      };
+      localStorage.setItem('user', JSON.stringify(updated));
+    } catch (e) {
+      console.error('Failed to sync profile after update:', e);
+    }
+    
     return response.data;
   },
 

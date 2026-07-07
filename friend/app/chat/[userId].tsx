@@ -108,6 +108,14 @@ export default function ChatScreen() {
     return unsubscribe;
   }, [otherUserId, onNewMessage, markConversationRead]);
 
+  // ── Poll for message updates (e.g. read status) every 3 seconds ─────
+  useEffect(() => {
+    const interval = setInterval(() => {
+      loadMessages();
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [loadMessages]);
+
   // ── Attachment pickers ──────────────────────────────────────────────
 
   const pickImage = async () => {
@@ -340,16 +348,26 @@ export default function ChatScreen() {
               {item.content}
             </Text>
           )}
-          <Text
-            style={[
-              styles.messageTime,
-              isOwnMessage
-                ? styles.ownMessageTime
-                : { color: colors.textTertiary },
-            ]}
-          >
-            {formatTime(item.createdAt)}
-          </Text>
+          <View style={[styles.timeContainer, isOwnMessage ? styles.ownTimeContainer : styles.otherTimeContainer]}>
+            <Text
+              style={[
+                styles.messageTime,
+                isOwnMessage
+                  ? styles.ownMessageTime
+                  : { color: colors.textTertiary },
+              ]}
+            >
+              {formatTime(item.createdAt)}
+            </Text>
+            {isOwnMessage && (
+              <Ionicons
+                name={item.isRead ? 'checkmark-done' : 'checkmark'}
+                size={15}
+                color={item.isRead ? '#38bdf8' : 'rgba(255, 255, 255, 0.6)'}
+                style={styles.checkmarkIcon}
+              />
+            )}
+          </View>
         </View>
       </View>
     );
@@ -665,12 +683,26 @@ const styles = StyleSheet.create({
   },
   messageTime: {
     fontSize: 11,
-    marginTop: 4,
-    paddingHorizontal: 8,
   },
   ownMessageTime: {
     color: 'rgba(255, 255, 255, 0.7)',
     textAlign: 'right',
+  },
+  timeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+    paddingHorizontal: 8,
+    gap: 4,
+  },
+  ownTimeContainer: {
+    justifyContent: 'flex-end',
+  },
+  otherTimeContainer: {
+    justifyContent: 'flex-start',
+  },
+  checkmarkIcon: {
+    marginLeft: 2,
   },
 
   // ── Media in bubbles ──────────────────────────────────────────────

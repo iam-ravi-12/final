@@ -85,7 +85,7 @@ public class AuthService {
         User user = userRepository.findByUsername(userDetails.getUsername())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        return new AuthResponse(
+        AuthResponse response = new AuthResponse(
                 jwt,
                 user.getId(),
                 user.getUsername(),
@@ -93,6 +93,12 @@ public class AuthService {
                 user.getProfileCompleted(),
                 user.getEmailVerified()
         );
+        response.setName(user.getName());
+        response.setProfession(user.getProfession());
+        response.setOrganization(user.getOrganization());
+        response.setLocation(user.getLocation());
+        response.setProfilePicture(user.getProfilePicture());
+        return response;
     }
 
     public void sendOTP(String email) {
@@ -133,7 +139,7 @@ public class AuthService {
         SecurityContextHolder.getContext().setAuthentication(auth);
         String jwt = jwtTokenProvider.generateToken(auth);
 
-        return new AuthResponse(
+        AuthResponse response = new AuthResponse(
                 jwt,
                 user.getId(),
                 user.getUsername(),
@@ -141,6 +147,12 @@ public class AuthService {
                 user.getProfileCompleted(),
                 user.getEmailVerified()
         );
+        response.setName(user.getName());
+        response.setProfession(user.getProfession());
+        response.setOrganization(user.getOrganization());
+        response.setLocation(user.getLocation());
+        response.setProfilePicture(user.getProfilePicture());
+        return response;
     }
 
     public void updateProfile(String username, ProfileRequest profileRequest) {

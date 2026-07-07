@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import authService, { AuthResponse } from '../services/authService';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface AuthContextType {
   user: AuthResponse | null;
@@ -26,6 +27,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const currentUser = await authService.getCurrentUser();
       setUser(currentUser);
+      if (currentUser) {
+        // Fetch fresh profile details from server on startup and update state/storage
+        authService.getProfile().then(async (profile) => {
+          const updated = {
+            ...currentUser,
+            name: profile.name,
+            profession: profile.profession,
+            organization: profile.organization,
+            location: profile.location,
+            profilePicture: profile.profilePicture,
+            profileCompleted: profile.profileCompleted,
+          };
+          setUser(updated);
+          await AsyncStorage.setItem('user', JSON.stringify(updated));
+        }).catch(err => {
+          console.error('Failed to sync profile on app open:', err);
+        });
+      }
     } catch (error) {
       console.error('Auth check failed:', error);
     } finally {
@@ -62,10 +81,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const profile = await authService.getProfile();
       const currentUser = await authService.getCurrentUser();
       if (currentUser) {
-        setUser({
+        const updated = {
           ...currentUser,
           ...profile,
-        });
+        };
+        setUser(updated);
+        await AsyncStorage.setItem('user', JSON.stringify(updated));
       }
     } catch (error) {
       console.error('Failed to refresh user:', error);

@@ -15,6 +15,11 @@ public class AuthResponse {
     private String email;
     private Boolean profileCompleted;
     private Boolean emailVerified;
+    private String name;
+    private String profession;
+    private String organization;
+    private String location;
+    private String profilePicture;
 
     public AuthResponse(String token, Long id, String username, String email, Boolean profileCompleted, Boolean emailVerified) {
         this.token = token;

@@ -2,6 +2,7 @@ import { Tabs } from 'expo-router';
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, AppState, Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { HapticTab } from '@/components/haptic-tab';
 import { IconSymbol } from '@/components/ui/icon-symbol';
@@ -13,6 +14,8 @@ import { useChat } from '@/contexts/ChatContext';
 
 export default function TabLayout() {
   const { colors, isDark } = useAppTheme();
+  const insets = useSafeAreaInsets();
+  const bottomOffset = Math.max(insets.bottom, Platform.OS === 'ios' ? 24 : 16);
   const { totalUnreadCount } = useChat();
   const [sosUnreadCount, setSosUnreadCount] = useState(0);
   const appState = useRef(AppState.currentState);
@@ -117,6 +120,7 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
+        safeAreaInsets: { bottom: 0, top: 0, left: 0, right: 0 },
         tabBarActiveTintColor: '#7BBDE8',
         tabBarInactiveTintColor: '#BDD8E9',
         headerShown: false,
@@ -134,7 +138,7 @@ export default function TabLayout() {
         },
         tabBarStyle: {
           position: 'absolute',
-          bottom: Platform.OS === 'ios' ? 24 : 16,
+          bottom: bottomOffset,
           left: 20,
           right: 20,
           height: 62,
