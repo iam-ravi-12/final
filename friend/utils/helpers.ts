@@ -12,12 +12,28 @@ export const formatMemberCount = (count: number): string => {
 };
 
 /**
+ * Parse UTC timestamp from backend
+ * Backend returns LocalDateTime in UTC, we need to append 'Z' to treat it as UTC
+ * @param dateString - ISO date string from backend
+ * @returns Date object
+ */
+export const parseUTCDate = (dateString: string): Date => {
+  // If the timestamp doesn't have timezone info (no 'Z' or '+'/'-' offset), 
+  // append 'Z' to treat it as UTC
+  if (dateString && dateString.includes('T') && !dateString.endsWith('Z') && 
+      !dateString.match(/[+-]\d{2}:\d{2}$/)) {
+    return new Date(dateString + 'Z');
+  }
+  return new Date(dateString);
+};
+
+/**
  * Format date relative to now
- * @param dateString - ISO date string
+ * @param dateString - ISO date string from backend (UTC)
  * @returns Formatted string like "Just now", "5m ago", etc.
  */
 export const formatRelativeDate = (dateString: string): string => {
-  const date = new Date(dateString);
+  const date = parseUTCDate(dateString);
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
   const diffMins = Math.floor(diffMs / 60000);

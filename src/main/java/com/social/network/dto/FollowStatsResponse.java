@@ -10,7 +10,9 @@ import lombok.NoArgsConstructor;
 public class FollowStatsResponse {
     private long followerCount;
     private long followingCount;
+    private long followersCount;  // Alias for mobile app compatibility
     private Boolean isFollowing;
     private Boolean hasPendingRequest;
     private Boolean hasRequestedYou;
+    private String followStatus;  // For mobile app compatibility
 }

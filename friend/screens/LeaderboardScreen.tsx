@@ -7,13 +7,18 @@ import {
   RefreshControl,
   ActivityIndicator,
   Alert,
+  Modal,
+  TouchableOpacity,
+  ScrollView,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import sosService, { LeaderboardResponse } from '../services/sosService';
 
 const LeaderboardScreen = () => {
   const [leaderboard, setLeaderboard] = useState<LeaderboardResponse[]>([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [infoModalVisible, setInfoModalVisible] = useState(false);
 
   useEffect(() => {
     loadLeaderboard();
@@ -101,6 +106,12 @@ const LeaderboardScreen = () => {
       <View style={styles.header}>
         <Text style={styles.headerTitle}>🏆 Leaderboard</Text>
         <Text style={styles.headerSubtitle}>Community Heroes</Text>
+        <TouchableOpacity 
+          style={styles.infoButton}
+          onPress={() => setInfoModalVisible(true)}
+        >
+          <Ionicons name="information-circle" size={28} color="white" />
+        </TouchableOpacity>
       </View>
 
       {loading && !refreshing ? (
@@ -141,33 +152,51 @@ const LeaderboardScreen = () => {
               <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
             }
           />
-
-          <View style={styles.infoSection}>
-            <Text style={styles.infoTitle}>How to Earn Points</Text>
-            <View style={styles.pointsBreakdown}>
-              <View style={styles.pointItem}>
-                <Text style={styles.pointAction}>On My Way</Text>
-                <Text style={styles.pointValue}>+10 pts</Text>
-              </View>
-              <View style={styles.pointItem}>
-                <Text style={styles.pointAction}>Contacted Authorities</Text>
-                <Text style={styles.pointValue}>+15 pts</Text>
-              </View>
-              <View style={styles.pointItem}>
-                <Text style={styles.pointAction}>Reached Location</Text>
-                <Text style={styles.pointValue}>+25 pts</Text>
-              </View>
-              <View style={styles.pointItem}>
-                <Text style={styles.pointAction}>Situation Resolved</Text>
-                <Text style={styles.pointValue}>+50 pts</Text>
-              </View>
-            </View>
-            <Text style={styles.infoNote}>
-              * Points awarded when help is confirmed by the alert owner
-            </Text>
-          </View>
         </>
       )}
+
+      {/* Info Modal */}
+      <Modal
+        visible={infoModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setInfoModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>How to Earn Points</Text>
+              <TouchableOpacity onPress={() => setInfoModalVisible(false)}>
+                <Ionicons name="close" size={28} color="#333" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={styles.modalBody}>
+              <View style={styles.pointsBreakdown}>
+                <View style={styles.pointItem}>
+                  <Text style={styles.pointAction}>On My Way</Text>
+                  <Text style={styles.pointValue}>+10 pts</Text>
+                </View>
+                <View style={styles.pointItem}>
+                  <Text style={styles.pointAction}>Contacted Authorities</Text>
+                  <Text style={styles.pointValue}>+15 pts</Text>
+                </View>
+                <View style={styles.pointItem}>
+                  <Text style={styles.pointAction}>Reached Location</Text>
+                  <Text style={styles.pointValue}>+25 pts</Text>
+                </View>
+                <View style={styles.pointItem}>
+                  <Text style={styles.pointAction}>Situation Resolved</Text>
+                  <Text style={styles.pointValue}>+50 pts</Text>
+                </View>
+              </View>
+              <Text style={styles.infoNote}>
+                * Points awarded when help is confirmed by the alert owner
+              </Text>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -182,6 +211,12 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingTop: 60,
     alignItems: 'center',
+    position: 'relative',
+  },
+  infoButton: {
+    position: 'absolute',
+    right: 20,
+    top: 60,
   },
   headerTitle: {
     fontSize: 28,
@@ -324,6 +359,41 @@ const styles = StyleSheet.create({
   pointsLabel: {
     fontSize: 11,
     color: '#999',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    borderRadius: 20,
+    width: '100%',
+    maxWidth: 400,
+    maxHeight: '80%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  modalBody: {
+    padding: 20,
   },
   infoSection: {
     backgroundColor: 'white',

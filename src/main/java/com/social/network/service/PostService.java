@@ -20,13 +20,16 @@ public class PostService {
     private final UserRepository userRepository;
     private final LikeRepository likeRepository;
     private final CommentRepository commentRepository;
+    private final CloudinaryService cloudinaryService;
 
     public PostService(PostRepository postRepository, UserRepository userRepository,
-                       LikeRepository likeRepository, CommentRepository commentRepository) {
+                       LikeRepository likeRepository, CommentRepository commentRepository,
+                       CloudinaryService cloudinaryService) {
         this.postRepository = postRepository;
         this.userRepository = userRepository;
         this.likeRepository = likeRepository;
         this.commentRepository = commentRepository;
+        this.cloudinaryService = cloudinaryService;
     }
 
     public PostResponse createPost(String username, PostRequest postRequest) {
@@ -44,10 +47,19 @@ public class PostService {
         post.setUser(user);
         post.setUserProfession(user.getProfession());
         
-        // Handle media URLs
+        // Handle media URLs - upload to Cloudinary
         if (postRequest.getMediaUrls() != null && !postRequest.getMediaUrls().isEmpty()) {
-            // Use a delimiter that won't appear in base64 data
-            post.setMediaUrls(String.join("|||MEDIA_SEPARATOR|||", postRequest.getMediaUrls()));
+            java.util.List<String> uploadedUrls = new java.util.ArrayList<>();
+            
+            for (String mediaUrl : postRequest.getMediaUrls()) {
+                String uploadedUrl = isDataUri(mediaUrl)
+                        ? cloudinaryService.uploadImage(mediaUrl, "posts")
+                        : mediaUrl;
+                uploadedUrls.add(uploadedUrl);
+            }
+            
+            // Use a delimiter that won't appear in URLs
+            post.setMediaUrls(String.join("|||MEDIA_SEPARATOR|||", uploadedUrls));
         }
 
         Post savedPost = postRepository.save(post);
@@ -174,8 +186,32 @@ public class PostService {
         
         // Handle media URLs
         if (postRequest.getMediaUrls() != null && !postRequest.getMediaUrls().isEmpty()) {
-            post.setMediaUrls(String.join("|||MEDIA_SEPARATOR|||", postRequest.getMediaUrls()));
+            // Delete old media from Cloudinary if it exists
+            if (post.getMediaUrls() != null && !post.getMediaUrls().isEmpty()) {
+                String[] oldUrls = post.getMediaUrls().split("\\|\\|\\|MEDIA_SEPARATOR\\|\\|\\|");
+                for (String oldUrl : oldUrls) {
+                    cloudinaryService.deleteMedia(oldUrl);
+                }
+            }
+            
+            // Upload new media to Cloudinary
+            java.util.List<String> uploadedUrls = new java.util.ArrayList<>();
+            for (String mediaUrl : postRequest.getMediaUrls()) {
+                String uploadedUrl = isDataUri(mediaUrl)
+                        ? cloudinaryService.uploadImage(mediaUrl, "posts")
+                        : mediaUrl;
+                uploadedUrls.add(uploadedUrl);
+            }
+            
+            post.setMediaUrls(String.join("|||MEDIA_SEPARATOR|||", uploadedUrls));
         } else {
+            // If no new media provided, delete old media
+            if (post.getMediaUrls() != null && !post.getMediaUrls().isEmpty()) {
+                String[] oldUrls = post.getMediaUrls().split("\\|\\|\\|MEDIA_SEPARATOR\\|\\|\\|");
+                for (String oldUrl : oldUrls) {
+                    cloudinaryService.deleteMedia(oldUrl);
+                }
+            }
             post.setMediaUrls(null);
         }
 
@@ -192,6 +228,14 @@ public class PostService {
         // Only the post author can delete
         if (!post.getUser().getId().equals(user.getId())) {
             throw new RuntimeException("You can only delete your own posts");
+        }
+
+        // Delete media from Cloudinary if it exists
+        if (post.getMediaUrls() != null && !post.getMediaUrls().isEmpty()) {
+            String[] mediaUrls = post.getMediaUrls().split("\\|\\|\\|MEDIA_SEPARATOR\\|\\|\\|");
+            for (String mediaUrl : mediaUrls) {
+                cloudinaryService.deleteMedia(mediaUrl);
+            }
         }
 
         postRepository.delete(post);
@@ -217,8 +261,11 @@ public class PostService {
         response.setCreatedAt(post.getCreatedAt());
         response.setLikeCount(likeRepository.countByPost(post));
         response.setCommentCount(commentRepository.countByPost(post));
-        response.setLikedByCurrentUser(currentUser != null && likeRepository.existsByPostAndUser(post, currentUser));
+        response.setLiked(currentUser != null && likeRepository.existsByPostAndUser(post, currentUser));
         return response;
     }
-}
 
+    private boolean isDataUri(String value) {
+        return value != null && value.startsWith("data:");
+    }
+}

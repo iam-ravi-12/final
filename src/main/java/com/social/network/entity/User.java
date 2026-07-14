@@ -44,6 +44,9 @@ public class User {
     @Column(name = "profile_completed")
     private Boolean profileCompleted = false;
 
+    @Column(name = "email_verified")
+    private Boolean emailVerified = false;
+
     @Column(name = "profile_picture", columnDefinition = "TEXT")
     private String profilePicture;
 
@@ -52,6 +55,9 @@ public class User {
 
     @Column(name = "last_sos_check_at")
     private LocalDateTime lastSosCheckAt;
+
+    @Column(name = "fcm_token", columnDefinition = "TEXT")
+    private String fcmToken;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)

@@ -3,10 +3,7 @@ import api from './api';
 export const authService = {
   signup: async (username, name, email, password) => {
     const response = await api.post('/auth/signup', { username, name, email, password });
-    if (response.data.token) {
-      localStorage.setItem('token', response.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data));
-    }
+    // Signup no longer returns token - only confirmation
     return response.data;
   },
 
@@ -53,5 +50,20 @@ export const authService = {
 
   isAuthenticated: () => {
     return !!localStorage.getItem('token');
+  },
+
+  sendOTP: async (email) => {
+    const response = await api.post('/auth/send-otp', { email });
+    return response.data;
+  },
+
+  verifyOTP: async (email, otp) => {
+    const response = await api.post('/auth/verify-otp', { email, otp });
+    // Now returns AuthResponse with token after successful OTP verification
+    if (response.data.token) {
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('user', JSON.stringify(response.data));
+    }
+    return response.data;
   },
 };

@@ -3,6 +3,7 @@ import api from './api';
 export interface PostData {
   content: string;
   isHelpSection: boolean;
+  showInHome?: boolean;
   mediaUrls?: string[];
 }
 
@@ -14,6 +15,8 @@ export interface PostResponse {
   id: number;
   content: string;
   isHelpSection: boolean;
+  isSolved: boolean;
+  showInHome?: boolean;
   mediaUrls?: string[];
   userId: number;
   username: string;

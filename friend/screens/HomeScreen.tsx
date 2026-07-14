@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -11,14 +11,20 @@ import {
   Image,
   Modal,
   Pressable,
+  ViewStyle,
+  StyleProp,
+  TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { MaterialIcons, Ionicons } from '@expo/vector-icons';
+import { parseUTCDate } from '@/utils/helpers';
 import postService, { PostResponse } from '../services/postService';
 import SosButton from '../components/SosButton';
 import { useAuth } from '../contexts/AuthContext';
 import { router } from 'expo-router';
+import PostMediaAttachment from '../components/PostMediaAttachment';
+import { inferMediaType } from '../utils/media';
 
 type PostSection = 'all' | 'professional' | 'help';
 
@@ -29,6 +35,8 @@ export default function HomeScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [menuVisible, setMenuVisible] = useState<number | null>(null);
   const [showSosModal, setShowSosModal] = useState(false);
+  const [showSearchBar, setShowSearchBar] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const { user } = useAuth();
 
   useEffect(() => {
@@ -91,7 +99,7 @@ export default function HomeScreen() {
 
   const formatTimeAgo = (dateString: string): string => {
     const now = new Date();
-    const postDate = new Date(dateString);
+    const postDate = parseUTCDate(dateString);
     const diffInMs = now.getTime() - postDate.getTime();
     const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
     const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
@@ -129,32 +137,98 @@ export default function HomeScreen() {
     );
   };
 
+  const handleMarkAsSolved = async (postId: number) => {
+    try {
+      await postService.markAsSolved(postId);
+      // Update the post in the local state
+      setPosts(prevPosts =>
+        prevPosts.map(post =>
+          post.id === postId ? { ...post, isSolved: true } : post
+        )
+      );
+      Alert.alert('Success', 'Post marked as solved!');
+    } catch (error) {
+      Alert.alert('Error', 'Failed to mark post as solved');
+    }
+  };
+
   const handleEditPost = (postId: number) => {
     setMenuVisible(null);
-    // Navigate to edit post screen (you can implement this later)
-    Alert.alert('Edit Post', 'Edit functionality will be implemented');
+    router.push(`/edit-post/${postId}`);
   };
 
   const getUserInitial = () => {
     return (user?.name?.charAt(0) || user?.username?.charAt(0) || 'U').toUpperCase();
   };
 
-  const renderPost = ({ item }: { item: PostResponse }) => (
-    <View style={styles.postCard}>
+  const handleSearchToggle = () => {
+    setShowSearchBar(!showSearchBar);
+    if (showSearchBar) {
+      setSearchQuery('');
+    }
+  };
+
+  const filteredPosts = useMemo(() => {
+    if (!searchQuery.trim()) return posts;
+    const query = searchQuery.toLowerCase();
+    return posts.filter(post =>
+      post.content.toLowerCase().includes(query) ||
+      post.username.toLowerCase().includes(query) ||
+      post.userProfession?.toLowerCase().includes(query)
+    );
+  }, [posts, searchQuery]);
+
+  const getMediaStyle = (uri: string): StyleProp<ViewStyle> => {
+    return inferMediaType(uri) === 'audio' ? styles.postAudio : styles.postImage;
+  };
+
+  const getPostCardStyle = (item: PostResponse): StyleProp<ViewStyle> => {
+    if (item.isHelpSection) {
+      return item.isSolved 
+        ? [styles.postCard, styles.postCardSolved]
+        : [styles.postCard, styles.postCardHelp];
+    }
+    return styles.postCard;
+  };
+
+  const shouldShowMarkSolvedButton = (item: PostResponse): boolean => {
+    const result = item.isHelpSection === true && item.isSolved !== true && user?.id === item.userId;
+    // Debug: Log button visibility conditions
+    if (item.isHelpSection) {
+      console.log('Help post debug:', {
+        postId: item.id,
+        isHelpSection: item.isHelpSection,
+        isSolved: item.isSolved,
+        currentUserId: user?.id,
+        postUserId: item.userId,
+        shouldShow: result
+      });
+    }
+    return result;
+  };
+
+  const renderPost = ({ item }: { item: PostResponse }): React.ReactElement => {
+    return (
+      <View style={getPostCardStyle(item)}>
       <View style={styles.postHeader}>
         <View style={styles.userInfo}>
-          {item.userProfilePicture ? (
-            <Image
-              source={{ uri: item.userProfilePicture }}
-              style={styles.avatar}
-            />
-          ) : (
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>
-                {item.username.charAt(0).toUpperCase()}
-              </Text>
-            </View>
-          )}
+          <TouchableOpacity
+            onPress={() => router.push(`/user/${item.userId}`)}
+            activeOpacity={0.7}
+          >
+            {item.userProfilePicture ? (
+              <Image
+                source={{ uri: item.userProfilePicture }}
+                style={styles.avatar}
+              />
+            ) : (
+              <View style={styles.avatar}>
+                <Text style={styles.avatarText}>
+                  {item.username.charAt(0).toUpperCase()}
+                </Text>
+              </View>
+            )}
+          </TouchableOpacity>
           <View style={styles.userInfoText}>
             <Text style={styles.username}>{item.username}</Text>
             <Text style={styles.profession}>{item.userProfession}</Text>
@@ -163,26 +237,29 @@ export default function HomeScreen() {
         
         <View style={styles.postHeaderRight}>
           <Text style={styles.timestamp}>{formatTimeAgo(item.createdAt)}</Text>
-          {user?.userId === item.userId && (
-            <TouchableOpacity
-              onPress={() => setMenuVisible(menuVisible === item.id ? null : item.id)}
-              style={styles.menuButton}
-              activeOpacity={0.6}
-            >
-              <View style={styles.dotsContainer}>
-                <View style={styles.dot} />
-                <View style={styles.dot} />
-                <View style={styles.dot} />
-              </View>
-            </TouchableOpacity>
-          )}
+
+            {item.isHelpSection && (
+                <View style={styles.helpBadge}>
+                    <Text style={styles.helpBadgeText}>
+                        {item.isSolved ? 'Solved' : 'Help'}
+                    </Text>
+                </View>
+            )}
         </View>
 
-        {item.isHelpSection && (
-          <View style={styles.helpBadge}>
-            <Text style={styles.helpBadgeText}>Help</Text>
-          </View>
-        )}
+          {user?.id === item.userId && (
+              <TouchableOpacity
+                  onPress={() => setMenuVisible(menuVisible === item.id ? null : item.id)}
+                  style={styles.menuButton}
+                  activeOpacity={0.6}
+              >
+                  <View style={styles.dotsContainer}>
+                      <View style={styles.dot} />
+                      <View style={styles.dot} />
+                      <View style={styles.dot} />
+                  </View>
+              </TouchableOpacity>
+          )}
       </View>
 
       {/* Menu Modal */}
@@ -229,10 +306,9 @@ export default function HomeScreen() {
         </Text>
         
         {item.mediaUrls && item.mediaUrls.length > 0 && (
-          <Image
-            source={{ uri: item.mediaUrls[0] }}
-            style={styles.postImage}
-            resizeMode="cover"
+          <PostMediaAttachment
+            uri={item.mediaUrls[0]}
+            mediaStyle={getMediaStyle(item.mediaUrls[0])}
           />
         )}
       </TouchableOpacity>
@@ -258,8 +334,21 @@ export default function HomeScreen() {
           <Text style={styles.actionText}>{item.commentCount}</Text>
         </TouchableOpacity>
       </View>
+
+      {/* Mark as Solved button for help posts */}
+      {shouldShowMarkSolvedButton(item) && (
+        <TouchableOpacity
+          style={styles.markSolvedButton}
+          onPress={() => handleMarkAsSolved(item.id)}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="checkmark-circle" size={20} color="#fff" />
+          <Text style={styles.markSolvedButtonText}>Mark as Solved</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
+};
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -286,7 +375,7 @@ export default function HomeScreen() {
               {user?.name || user?.username || 'User'}
             </Text>
             <Text style={styles.profileProfession} numberOfLines={1}>
-              {user?.profession || 'Professional'}
+              {user?.profession || 'Add your profession'}
             </Text>
           </View>
         </TouchableOpacity>
@@ -302,10 +391,10 @@ export default function HomeScreen() {
           
           <TouchableOpacity
             style={styles.headerActionButton}
+            onPress={handleSearchToggle}
             activeOpacity={0.6}
-            disabled
           >
-            <Ionicons name="search" size={24} color="#999" />
+            <Ionicons name="search" size={24} color="#007AFF" />
           </TouchableOpacity>
           
           <TouchableOpacity
@@ -317,6 +406,27 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
       </View>
+
+      {showSearchBar && (
+        <View style={styles.searchBarContainer}>
+          <Ionicons name="search" size={20} color="#666" style={styles.searchIcon} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search posts, users, professions..."
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            autoFocus
+            placeholderTextColor="#999"
+          />
+          <TouchableOpacity
+            onPress={handleSearchToggle}
+            style={styles.closeSearchButton}
+            activeOpacity={0.6}
+          >
+            <Ionicons name="close" size={24} color="#666" />
+          </TouchableOpacity>
+        </View>
+      )}
 
       <View style={styles.tabs}>
         <TouchableOpacity
@@ -371,7 +481,7 @@ export default function HomeScreen() {
         </View>
       ) : (
         <FlatList
-          data={posts}
+          data={filteredPosts}
           renderItem={renderPost}
           keyExtractor={(item) => item.id.toString()}
           refreshControl={
@@ -380,7 +490,9 @@ export default function HomeScreen() {
           contentContainerStyle={styles.listContainer}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>No posts yet</Text>
+              <Text style={styles.emptyText}>
+                {searchQuery ? 'No posts found' : 'No posts yet'}
+              </Text>
             </View>
           }
         />
@@ -460,13 +572,13 @@ const styles = StyleSheet.create({
   },
   headerActionButton: {
     padding: 8,
-    borderRadius: 8,
+    borderRadius: 50,
     backgroundColor: '#f0f0f0',
   },
   sosCircleButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
     backgroundColor: '#FF0000',
     justifyContent: 'center',
     alignItems: 'center',
@@ -478,7 +590,7 @@ const styles = StyleSheet.create({
   },
   sosButtonText: {
     color: '#FFFFFF',
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: 'bold',
   },
   tabs: {
@@ -520,6 +632,12 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
+  postCardHelp: {
+    backgroundColor: '#ffe6e6', // Light red for help posts
+  },
+  postCardSolved: {
+    backgroundColor: '#e6ffe6', // Light green for solved posts
+  },
   postHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -541,19 +659,22 @@ const styles = StyleSheet.create({
   timestamp: {
     fontSize: 12,
     color: '#999',
+      marginRight:4,
     marginBottom: 4,
   },
   menuButton: {
-    padding: 8,
+      // marginLeft:4,
+      paddingLeft:12,
+    // padding: 8,
     borderRadius: 16,
-    backgroundColor: '#f0f0f0',
-    minWidth: 32,
-    minHeight: 32,
+    // backgroundColor: '#000',
+    minWidth: 10,
+    minHeight: 10,
     justifyContent: 'center',
     alignItems: 'center',
   },
   dotsContainer: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     gap: 3,
     alignItems: 'center',
   },
@@ -598,6 +719,22 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '600',
   },
+  markSolvedButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#4CAF50',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    marginTop: 12,
+  },
+  markSolvedButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
   postContent: {
     fontSize: 15,
     color: '#333',
@@ -608,6 +745,12 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 250,
     borderRadius: 8,
+    marginTop: 8,
+    marginBottom: 12,
+  },
+  postAudio: {
+    width: '100%',
+    borderRadius: 12,
     marginTop: 8,
     marginBottom: 12,
   },
@@ -682,5 +825,27 @@ const styles = StyleSheet.create({
   menuDivider: {
     height: 1,
     backgroundColor: '#e0e0e0',
+  },
+  searchBarContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+  },
+  searchIcon: {
+    marginRight: 8,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    color: '#333',
+    paddingVertical: 0,
+  },
+  closeSearchButton: {
+    padding: 4,
+    marginLeft: 8,
   },
 });

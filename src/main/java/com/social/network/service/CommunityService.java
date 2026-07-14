@@ -1,5 +1,6 @@
 package com.social.network.service;
 
+import com.social.network.dto.CommunityMemberResponse;
 import com.social.network.dto.CommunityPostRequest;
 import com.social.network.dto.CommunityPostResponse;
 import com.social.network.dto.CommunityRequest;
@@ -25,15 +26,18 @@ public class CommunityService {
     private final CommunityMemberRepository communityMemberRepository;
     private final CommunityPostRepository communityPostRepository;
     private final UserRepository userRepository;
+    private final CloudinaryService cloudinaryService;
 
     public CommunityService(CommunityRepository communityRepository,
                           CommunityMemberRepository communityMemberRepository,
                           CommunityPostRepository communityPostRepository,
-                          UserRepository userRepository) {
+                          UserRepository userRepository,
+                          CloudinaryService cloudinaryService) {
         this.communityRepository = communityRepository;
         this.communityMemberRepository = communityMemberRepository;
         this.communityPostRepository = communityPostRepository;
         this.userRepository = userRepository;
+        this.cloudinaryService = cloudinaryService;
     }
 
     @Transactional
@@ -45,7 +49,16 @@ public class CommunityService {
         community.setName(request.getName());
         community.setDescription(request.getDescription());
         community.setIsPrivate(request.getIsPrivate() != null ? request.getIsPrivate() : false);
-        community.setProfilePicture(request.getProfilePicture());
+        
+        // Upload profile picture to Cloudinary if provided
+        if (request.getProfilePicture() != null && !request.getProfilePicture().isEmpty()) {
+            String imageUrl = cloudinaryService.uploadImage(
+                request.getProfilePicture(),
+                "communities"
+            );
+            community.setProfilePicture(imageUrl);
+        }
+        
         community.setAdmin(admin);
 
         community = communityRepository.save(community);
@@ -134,7 +147,19 @@ public class CommunityService {
         post.setCommunity(community);
         post.setUser(user);
         post.setContent(request.getContent());
-        post.setMediaUrls(request.getMediaUrls());
+        
+        // Upload media to Cloudinary if provided
+        if (request.getMediaUrls() != null && !request.getMediaUrls().isEmpty()) {
+            List<String> uploadedUrls = new java.util.ArrayList<>();
+            for (String mediaUrl : request.getMediaUrls()) {
+                String uploadedUrl = mediaUrl != null && mediaUrl.startsWith("data:")
+                        ? cloudinaryService.uploadImage(mediaUrl, "community-posts")
+                        : mediaUrl;
+                uploadedUrls.add(uploadedUrl);
+            }
+            post.setMediaUrls(uploadedUrls);
+        }
+        
         post.setIsApproved(false); // Requires admin approval
 
         post = communityPostRepository.save(post);
@@ -203,6 +228,42 @@ public class CommunityService {
         communityPostRepository.delete(post);
     }
 
+    public List<CommunityMemberResponse> getCommunityMembers(Long communityId, Long userId) {
+        Community community = communityRepository.findById(communityId)
+                .orElseThrow(() -> new RuntimeException("Community not found"));
+
+        // Only admin can view all members
+        if (!community.getAdmin().getId().equals(userId)) {
+            throw new RuntimeException("Only admin can view all members");
+        }
+
+        List<CommunityMember> members = communityMemberRepository.findByCommunityId(communityId);
+        return members.stream()
+                .map(m -> toCommunityMemberResponse(m, community.getAdmin().getId()))
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void removeMember(Long communityId, Long memberUserId, Long adminUserId) {
+        Community community = communityRepository.findById(communityId)
+                .orElseThrow(() -> new RuntimeException("Community not found"));
+
+        // Only admin can remove members
+        if (!community.getAdmin().getId().equals(adminUserId)) {
+            throw new RuntimeException("Only admin can remove members");
+        }
+
+        // Cannot remove the admin
+        if (memberUserId.equals(adminUserId)) {
+            throw new RuntimeException("Admin cannot be removed from the community");
+        }
+
+        CommunityMember member = communityMemberRepository.findByCommunityIdAndUserId(communityId, memberUserId)
+                .orElseThrow(() -> new RuntimeException("User is not a member of this community"));
+
+        communityMemberRepository.delete(member);
+    }
+
     private CommunityResponse toCommunityResponse(Community community, Long userId) {
         long memberCount = communityMemberRepository.countByCommunityId(community.getId());
         boolean isMember = communityMemberRepository.findByCommunityIdAndUserId(community.getId(), userId).isPresent();
@@ -235,6 +296,20 @@ public class CommunityService {
                 post.getUser().getProfilePicture(),
                 post.getIsApproved(),
                 post.getCreatedAt()
+        );
+    }
+
+    private CommunityMemberResponse toCommunityMemberResponse(CommunityMember member, Long adminId) {
+        User user = member.getUser();
+        return new CommunityMemberResponse(
+                member.getId(),
+                user.getId(),
+                user.getUsername(),
+                user.getName(),
+                user.getProfilePicture(),
+                user.getProfession(),
+                member.getJoinedAt(),
+                user.getId().equals(adminId)
         );
     }
 }

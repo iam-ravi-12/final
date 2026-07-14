@@ -1,5 +1,6 @@
 package com.social.network.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -24,5 +25,6 @@ public class PostResponse {
     private LocalDateTime createdAt;
     private long likeCount;
     private long commentCount;
-    private boolean likedByCurrentUser;
+    @JsonProperty("isLiked")
+    private boolean liked;
 }

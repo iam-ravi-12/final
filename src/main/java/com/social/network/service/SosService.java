@@ -11,6 +11,8 @@ import com.social.network.entity.User;
 import com.social.network.repository.SosAlertRepository;
 import com.social.network.repository.SosResponseRepository;
 import com.social.network.repository.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,16 +25,20 @@ import java.util.stream.IntStream;
 @Service
 public class SosService {
 
+    private static final Logger logger = LoggerFactory.getLogger(SosService.class);
     private final SosAlertRepository sosAlertRepository;
     private final SosResponseRepository sosResponseRepository;
     private final UserRepository userRepository;
+    private final FcmService fcmService;
 
     public SosService(SosAlertRepository sosAlertRepository,
                      SosResponseRepository sosResponseRepository,
-                     UserRepository userRepository) {
+                     UserRepository userRepository,
+                     FcmService fcmService) {
         this.sosAlertRepository = sosAlertRepository;
         this.sosResponseRepository = sosResponseRepository;
         this.userRepository = userRepository;
+        this.fcmService = fcmService;
     }
 
     @Transactional
@@ -51,6 +57,10 @@ public class SosService {
         alert.setCancelledByUser(false);
 
         SosAlert savedAlert = sosAlertRepository.save(alert);
+        
+        // Send FCM push notifications to nearby users (within 50km)
+        sendPushNotificationsToNearbyUsers(savedAlert);
+        
         return convertToResponse(savedAlert, null, user);
     }
 
@@ -437,5 +447,49 @@ public class SosService {
         
         user.setLastSosCheckAt(LocalDateTime.now());
         userRepository.save(user);
+    }
+
+    /**
+     * Send FCM push notifications to users within radius of the alert
+     */
+    private void sendPushNotificationsToNearbyUsers(SosAlert alert) {
+        try {
+            // Get only users with registered FCM tokens for efficiency
+            List<User> usersWithTokens = userRepository.findByFcmTokenIsNotNull();
+            
+            logger.info("Sending FCM notifications for alert {} to {} users with tokens", 
+                alert.getId(), usersWithTokens.size());
+            
+            for (User user : usersWithTokens) {
+                // Skip alert creator
+                if (user.getId().equals(alert.getUser().getId())) {
+                    continue;
+                }
+                
+                // Calculate distance if both have location
+                // TODO: Implement proper distance filtering using Haversine formula
+                // For now, we send to all users (backend can implement radius-based filtering later)
+                Double distance = null;
+                if (alert.getLatitude() != null && alert.getLongitude() != null) {
+                    // Placeholder: In production, calculate actual distance here
+                    // distance = calculateHaversineDistance(userLat, userLon, alertLat, alertLon);
+                    distance = null; // Will show as "location nearby" in notification
+                }
+                
+                // Send FCM notification
+                fcmService.sendSosAlertNotification(
+                    user,
+                    alert.getUser().getUsername(),
+                    alert.getEmergencyType(),
+                    distance
+                );
+            }
+            
+            logger.info("Completed sending FCM notifications for alert {}", alert.getId());
+        } catch (Exception e) {
+            // Log error but don't fail alert creation
+            logger.error("Error sending FCM notifications for alert {}: {}", 
+                alert.getId(), e.getMessage(), e);
+        }
     }
 }

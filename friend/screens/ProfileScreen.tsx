@@ -168,6 +168,15 @@ export default function ProfileScreen() {
           <IconSymbol name="chevron.right" size={20} color="#ccc" />
         </TouchableOpacity>
 
+        <TouchableOpacity
+          style={styles.menuItem}
+          onPress={() => router.push('/follow-requests')}
+        >
+          <Ionicons name="people-outline" size={20} color="#666" />
+          <Text style={styles.menuItemText}>Follow Requests</Text>
+          <IconSymbol name="chevron.right" size={20} color="#ccc" />
+        </TouchableOpacity>
+
         <TouchableOpacity style={styles.menuItem} onPress={handleLogout}>
           <Ionicons name="log-out-outline" size={20} color="#FF3B30" />
           <Text style={[styles.menuItemText, styles.logoutText]}>Logout</Text>

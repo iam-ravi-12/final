@@ -3,8 +3,15 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export interface SignupData {
   username: string;
+  name: string;
   email: string;
   password: string;
+}
+
+export interface SignupResponse {
+  message: string;
+  email: string;
+  otpSent: boolean;
 }
 
 export interface LoginData {
@@ -13,6 +20,7 @@ export interface LoginData {
 }
 
 export interface ProfileData {
+  name?: string;
   profession: string;
   organization: string;
   location: string;
@@ -26,6 +34,7 @@ export interface AuthResponse {
   username: string;
   email: string;
   profileCompleted: boolean;
+  emailVerified: boolean;
   name?: string;
   profession?: string;
   organization?: string;
@@ -46,12 +55,9 @@ export interface ProfileResponse {
 }
 
 const authService = {
-  signup: async (data: SignupData): Promise<AuthResponse> => {
+  signup: async (data: SignupData): Promise<SignupResponse> => {
     const response = await api.post('/api/auth/signup', data);
-    if (response.data.token) {
-      await AsyncStorage.setItem('token', response.data.token);
-      await AsyncStorage.setItem('user', JSON.stringify(response.data));
-    }
+    // Signup no longer returns token - only confirmation
     return response.data;
   },
 
@@ -70,6 +76,9 @@ const authService = {
     const userStr = await AsyncStorage.getItem('user');
     if (userStr) {
       const user = JSON.parse(userStr);
+      if (data.name) {
+        user.name = data.name;
+      }
       user.profession = data.profession;
       user.organization = data.organization;
       user.location = data.location;
@@ -105,6 +114,25 @@ const authService = {
   isAuthenticated: async (): Promise<boolean> => {
     const token = await AsyncStorage.getItem('token');
     return !!token;
+  },
+
+  sendOTP: async (email: string): Promise<string> => {
+    const response = await api.post('/api/auth/send-otp', { email });
+    return response.data;
+  },
+
+  verifyOTP: async (email: string, otp: string): Promise<string> => {
+    const response = await api.post('/api/auth/verify-otp', { email, otp });
+    // Now returns AuthResponse with token after successful OTP verification
+    if (response.data.token) {
+      await AsyncStorage.setItem('token', response.data.token);
+      await AsyncStorage.setItem('user', JSON.stringify(response.data));
+    }
+    return response.data;
+  },
+
+  registerFcmToken: async (fcmToken: string): Promise<void> => {
+    await api.post('/api/auth/fcm-token', { fcmToken });
   },
 };
 

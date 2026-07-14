@@ -11,12 +11,17 @@ import {
   KeyboardAvoidingView,
   Platform,
   Image,
+  Modal,
+  Pressable,
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Ionicons } from '@expo/vector-icons';
 import postService, { PostResponse, CommentResponse } from '../services/postService';
 import { useAuth } from '../contexts/AuthContext';
+import { parseUTCDate } from '../utils/helpers';
+import PostMediaAttachment from '../components/PostMediaAttachment';
+import { inferMediaType } from '../utils/media';
 
 export default function PostDetailScreen() {
   const { postId } = useLocalSearchParams<{ postId: string }>();
@@ -25,6 +30,7 @@ export default function PostDetailScreen() {
   const [newComment, setNewComment] = useState('');
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [menuVisible, setMenuVisible] = useState(false);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -91,8 +97,40 @@ export default function PostDetailScreen() {
     }
   };
 
+  const handleDeletePost = async () => {
+    if (!post) return;
+    
+    Alert.alert(
+      'Delete Post',
+      'Are you sure you want to delete this post?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await postService.deletePost(post.id);
+              setMenuVisible(false);
+              Alert.alert('Success', 'Post deleted successfully');
+              router.back();
+            } catch (error) {
+              Alert.alert('Error', 'Failed to delete post');
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleEditPost = () => {
+    if (!post) return;
+    setMenuVisible(false);
+    router.push(`/edit-post/${post.id}`);
+  };
+
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
+    const date = parseUTCDate(dateString);
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
     const diffMins = Math.floor(diffMs / 60000);
@@ -133,38 +171,102 @@ export default function PostDetailScreen() {
         <View style={styles.postCard}>
           <View style={styles.postHeader}>
             <View style={styles.userInfo}>
-              {post.userProfilePicture ? (
-                <Image
-                  source={{ uri: post.userProfilePicture }}
-                  style={styles.avatar}
-                />
-              ) : (
-                <View style={[styles.avatar, styles.avatarPlaceholder]}>
-                  <Text style={styles.avatarText}>
-                    {post.username.charAt(0).toUpperCase()}
-                  </Text>
-                </View>
-              )}
+              <TouchableOpacity
+                onPress={() => router.push(`/user/${post.userId}`)}
+                activeOpacity={0.7}
+              >
+                {post.userProfilePicture ? (
+                  <Image
+                    source={{ uri: post.userProfilePicture }}
+                    style={styles.avatar}
+                  />
+                ) : (
+                  <View style={[styles.avatar, styles.avatarPlaceholder]}>
+                    <Text style={styles.avatarText}>
+                      {post.username.charAt(0).toUpperCase()}
+                    </Text>
+                  </View>
+                )}
+              </TouchableOpacity>
               <View>
                 <Text style={styles.username}>{post.username}</Text>
                 <Text style={styles.profession}>{post.userProfession}</Text>
               </View>
             </View>
-            {post.isHelpSection && (
-              <View style={styles.helpBadge}>
-                <Text style={styles.helpBadgeText}>Help</Text>
-              </View>
-            )}
+            
+            <View style={styles.postHeaderRight}>
+              <Text style={styles.timestamp}>{formatDate(post.createdAt)}</Text>
+
+                {post.isHelpSection && (
+                    <View style={styles.helpBadge}>
+                        <Text style={styles.helpBadgeText}>Help</Text>
+                        {/*<Text style={styles.helpBadgeText}>*/}
+                        {/*    {item.isSolved ? 'Solved' : 'Help'}*/}
+                        {/*</Text>*/}
+                    </View>
+                )}
+            </View>
+
+              {user?.id === post.userId && (
+                  <TouchableOpacity
+                      onPress={() => setMenuVisible(!menuVisible)}
+                      style={styles.menuButton}
+                      activeOpacity={0.6}
+                  >
+                      <View style={styles.dotsContainer}>
+                          <View style={styles.dot} />
+                          <View style={styles.dot} />
+                          <View style={styles.dot} />
+                      </View>
+                  </TouchableOpacity>
+              )}
           </View>
 
-          <Text style={styles.timestamp}>{formatDate(post.createdAt)}</Text>
+          {/* Menu Modal */}
+          {menuVisible && (
+            <Modal
+              transparent
+              visible={menuVisible}
+              animationType="fade"
+              onRequestClose={() => setMenuVisible(false)}
+            >
+              <Pressable
+                style={styles.menuOverlay}
+                onPress={() => setMenuVisible(false)}
+              >
+                <View style={styles.menuContainer}>
+                  <TouchableOpacity
+                    style={styles.menuItem}
+                    onPress={handleEditPost}
+                  >
+                    <Ionicons name="create-outline" size={20} color="#007AFF" />
+                    <Text style={styles.menuItemText}>Edit Post</Text>
+                  </TouchableOpacity>
+                  <View style={styles.menuDivider} />
+                  <TouchableOpacity
+                    style={styles.menuItem}
+                    onPress={handleDeletePost}
+                  >
+                    <Ionicons name="trash-outline" size={20} color="#FF3B30" />
+                    <Text style={[styles.menuItemText, { color: '#FF3B30' }]}>
+                      Delete Post
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </Pressable>
+            </Modal>
+          )}
+
           <Text style={styles.postContent}>{post.content}</Text>
-          
+           
           {post.mediaUrls && post.mediaUrls.length > 0 && (
-            <Image
-              source={{ uri: post.mediaUrls[0] }}
-              style={styles.postImage}
-              resizeMode="cover"
+            <PostMediaAttachment
+              uri={post.mediaUrls[0]}
+              mediaStyle={
+                inferMediaType(post.mediaUrls[0]) === 'audio'
+                  ? styles.postAudio
+                  : styles.postImage
+              }
             />
           )}
 
@@ -206,18 +308,23 @@ export default function PostDetailScreen() {
             comments.map((comment) => (
               <View key={comment.id} style={styles.commentCard}>
                 <View style={styles.commentHeader}>
-                  {comment.userProfilePicture ? (
-                    <Image
-                      source={{ uri: comment.userProfilePicture }}
-                      style={styles.commentAvatar}
-                    />
-                  ) : (
-                    <View style={[styles.commentAvatar, styles.avatarPlaceholder]}>
-                      <Text style={styles.commentAvatarText}>
-                        {comment.username.charAt(0).toUpperCase()}
-                      </Text>
-                    </View>
-                  )}
+                  <TouchableOpacity
+                    onPress={() => router.push(`/user/${comment.userId}`)}
+                    activeOpacity={0.7}
+                  >
+                    {comment.userProfilePicture ? (
+                      <Image
+                        source={{ uri: comment.userProfilePicture }}
+                        style={styles.commentAvatar}
+                      />
+                    ) : (
+                      <View style={[styles.commentAvatar, styles.avatarPlaceholder]}>
+                        <Text style={styles.commentAvatarText}>
+                          {comment.username.charAt(0).toUpperCase()}
+                        </Text>
+                      </View>
+                    )}
+                  </TouchableOpacity>
                   <View style={styles.commentInfo}>
                     <Text style={styles.commentUsername}>{comment.username}</Text>
                     <Text style={styles.commentTime}>
@@ -345,7 +452,8 @@ const styles = StyleSheet.create({
   timestamp: {
     fontSize: 12,
     color: '#999',
-    marginBottom: 12,
+      marginTop:6,
+    marginBottom: 6,
   },
   postContent: {
     fontSize: 15,
@@ -357,6 +465,11 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 250,
     borderRadius: 8,
+    marginBottom: 16,
+  },
+  postAudio: {
+    width: '100%',
+    borderRadius: 12,
     marginBottom: 16,
   },
   postActions: {
@@ -476,5 +589,60 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  postHeaderRight: {
+    alignItems: 'flex-end',
+    gap: 4,
+  },
+  menuButton: {
+      marginLeft: 4,
+    padding: 8,
+    borderRadius: 16,
+    backgroundColor: '#f0f0f0',
+    minWidth: 10,
+    minHeight: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  dotsContainer: {
+    flexDirection: 'column',
+    gap: 3,
+    alignItems: 'center',
+  },
+  dot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#666',
+  },
+  menuOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  menuContainer: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    width: 200,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    gap: 12,
+  },
+  menuItemText: {
+    fontSize: 16,
+    color: '#333',
+  },
+  menuDivider: {
+    height: 1,
+    backgroundColor: '#e0e0e0',
   },
 });

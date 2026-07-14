@@ -1,10 +1,14 @@
 package com.social.network.controller;
 
 import com.social.network.dto.AuthResponse;
+import com.social.network.dto.FcmTokenRequest;
 import com.social.network.dto.LoginRequest;
 import com.social.network.dto.ProfileRequest;
 import com.social.network.dto.ProfileResponse;
+import com.social.network.dto.SendOtpRequest;
 import com.social.network.dto.SignupRequest;
+import com.social.network.dto.SignupResponse;
+import com.social.network.dto.VerifyOtpRequest;
 import com.social.network.service.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -25,7 +29,7 @@ public class AuthController {
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@Valid @RequestBody SignupRequest signupRequest) {
         try {
-            AuthResponse response = authService.signup(signupRequest);
+            SignupResponse response = authService.signup(signupRequest);
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -71,6 +75,39 @@ public class AuthController {
         try {
             ProfileResponse profile = authService.getUserProfileById(userId);
             return ResponseEntity.ok(profile);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/fcm-token")
+    public ResponseEntity<?> registerFcmToken(
+            Authentication authentication,
+            @Valid @RequestBody FcmTokenRequest request) {
+        try {
+            String username = authentication.getName();
+            authService.registerFcmToken(username, request.getFcmToken());
+            return ResponseEntity.ok("FCM token registered successfully");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/send-otp")
+    public ResponseEntity<?> sendOTP(@Valid @RequestBody SendOtpRequest request) {
+        try {
+            authService.sendOTP(request.getEmail());
+            return ResponseEntity.ok("OTP sent successfully");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/verify-otp")
+    public ResponseEntity<?> verifyOTP(@Valid @RequestBody VerifyOtpRequest request) {
+        try {
+            AuthResponse response = authService.verifyEmailOTP(request.getEmail(), request.getOtp());
+            return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }

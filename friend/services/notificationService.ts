@@ -1,6 +1,7 @@
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import * as Device from 'expo-device';
+import authService from './authService';
 
 // Configure notification behavior (how notifications look when app is open)
 Notifications.setNotificationHandler({
@@ -23,8 +24,8 @@ export interface NotificationService {
 class NotificationServiceImpl implements NotificationService {
 
     /**
-     * NEW: Register for Push Notifications and get the FCM Token
-     * Call this from your TabLayout or Login screen
+     * Register for Push Notifications and get the FCM Token
+     * Also sends the token to the backend
      */
     async registerForPushNotificationsAsync(): Promise<string | null> {
         if (!Device.isDevice) {
@@ -51,11 +52,20 @@ class NotificationServiceImpl implements NotificationService {
 
         // 3. Get the Device Token (FCM Token)
         try {
-            // We use getDevicePushTokenAsync to get the raw token for Spring Boot/Firebase
+            // getDevicePushTokenAsync returns the raw FCM token for Android or APNs token for iOS
             const tokenData = await Notifications.getDevicePushTokenAsync();
             const fcmToken = tokenData.data;
 
             console.log("✅ FCM DEVICE TOKEN:", fcmToken);
+            
+            // 4. Send token to backend
+            try {
+                await authService.registerFcmToken(fcmToken);
+                console.log("✅ FCM token registered with backend");
+            } catch (error) {
+                console.error("❌ Failed to register FCM token with backend:", error);
+            }
+            
             return fcmToken;
         } catch (error) {
             console.error("❌ Error fetching push token:", error);
@@ -72,9 +82,9 @@ class NotificationServiceImpl implements NotificationService {
             await Notifications.setNotificationChannelAsync('sos-alerts', {
                 name: 'SOS Alerts',
                 importance: Notifications.AndroidImportance.MAX, // Heads-up notification
-                vibrationPattern: [0, 250, 250, 250],
+                vibrationPattern: [0, 250, 250, 250, 250, 250, 250, 250, 250, 250],
                 lightColor: '#FF0000',
-                sound: 'default', // Ensure your backend sends "default" or matches a custom sound file
+                sound: 'default',
                 enableLights: true,
                 enableVibrate: true,
                 showBadge: true,

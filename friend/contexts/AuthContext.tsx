@@ -5,10 +5,11 @@ interface AuthContextType {
   user: AuthResponse | null;
   loading: boolean;
   login: (username: string, password: string) => Promise<void>;
-  signup: (username: string, email: string, password: string) => Promise<void>;
+  signup: (username: string, name: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   updateUserProfile: (profession: string, organization: string, location: string) => Promise<void>;
   refreshUser: () => Promise<void>;
+  setUserFromStorage: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -37,9 +38,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(response);
   };
 
-  const signup = async (username: string, email: string, password: string) => {
-    const response = await authService.signup({ username, email, password });
-    setUser(response);
+  const signup = async (username: string, name: string, email: string, password: string) => {
+    // Signup now only returns confirmation, not token
+    // Token will be set after OTP verification
+    await authService.signup({ username, name, email, password });
+    // Don't set user here - will be set after OTP verification
   };
 
   const logout = async () => {
@@ -69,6 +72,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const setUserFromStorage = async () => {
+    try {
+      const currentUser = await authService.getCurrentUser();
+      setUser(currentUser);
+    } catch (error) {
+      console.error('Failed to load user from storage:', error);
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -79,6 +91,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         logout,
         updateUserProfile,
         refreshUser,
+        setUserFromStorage,
       }}
     >
       {children}
