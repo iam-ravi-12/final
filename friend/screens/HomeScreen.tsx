@@ -14,8 +14,10 @@ import {
   ViewStyle,
   StyleProp,
   TextInput,
+  Platform,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 import { parseUTCDate } from '@/utils/helpers';
@@ -31,6 +33,9 @@ type PostSection = 'all' | 'professional' | 'help';
 
 export default function HomeScreen() {
   const { colors, isDark } = useAppTheme();
+  const insets = useSafeAreaInsets();
+  const bottomOffset = Math.max(insets.bottom, Platform.OS === 'ios' ? 24 : 16);
+  const fabBottom = bottomOffset + 62 + 16;
   const [activeSection, setActiveSection] = useState<PostSection>('all');
   const [posts, setPosts] = useState<PostResponse[]>([]);
   const [loading, setLoading] = useState(true);
@@ -185,15 +190,12 @@ export default function HomeScreen() {
   };
 
   const getPostCardStyle = (item: PostResponse): StyleProp<ViewStyle> => {
-    const glassBg = isDark ? 'rgba(10, 37, 66, 0.68)' : 'rgba(255, 255, 255, 0.78)';
-    const glassBorder = isDark ? 'rgba(123, 189, 232, 0.22)' : 'rgba(189, 216, 233, 0.6)';
-
     if (item.isHelpSection) {
-      return item.isSolved 
-        ? [styles.postCard, { backgroundColor: isDark ? 'rgba(20, 42, 25, 0.75)' : 'rgba(232, 248, 235, 0.85)', borderColor: isDark ? 'rgba(63, 185, 80, 0.35)' : 'rgba(63, 185, 80, 0.5)', borderWidth: 1 }]
-        : [styles.postCard, { backgroundColor: isDark ? 'rgba(48, 22, 25, 0.75)' : 'rgba(253, 235, 236, 0.85)', borderColor: isDark ? 'rgba(229, 83, 75, 0.35)' : 'rgba(229, 83, 75, 0.5)', borderWidth: 1 }];
+      return item.isSolved
+        ? [styles.postCard, { backgroundColor: isDark ? 'rgba(18, 40, 22, 0.88)' : 'rgba(232, 248, 235, 0.85)', borderColor: isDark ? 'rgba(74, 222, 128, 0.30)' : 'rgba(63, 185, 80, 0.5)', borderWidth: 1 }]
+        : [styles.postCard, { backgroundColor: isDark ? 'rgba(36, 18, 20, 0.88)' : 'rgba(253, 235, 236, 0.85)', borderColor: isDark ? 'rgba(248, 113, 113, 0.30)' : 'rgba(229, 83, 75, 0.5)', borderWidth: 1 }];
     }
-    return [styles.postCard, { backgroundColor: glassBg, borderColor: glassBorder, borderWidth: 1, shadowColor: colors.shadow }];
+    return [styles.postCard, { backgroundColor: colors.cardGlassBg, borderColor: colors.cardGlassBorder, borderWidth: 1, shadowColor: isDark ? 'rgba(56, 189, 248, 0.08)' : colors.shadow }];
   };
 
   const shouldShowMarkSolvedButton = (item: PostResponse): boolean => {
@@ -355,9 +357,28 @@ export default function HomeScreen() {
   );
 };
 
+
+  // ── Light mode: rich gradient header; Dark mode: deep-space overlay
+  const HeaderWrapper = isDark
+    ? ({ children }: { children: React.ReactNode }) => (
+        <View style={[styles.topHeaderContainer, { backgroundColor: 'rgba(8, 12, 22, 0.97)' }]}>
+          {children}
+        </View>
+      )
+    : ({ children }: { children: React.ReactNode }) => (
+        <LinearGradient
+          colors={['#0A4174', '#1A6B8A', '#4E8EA2', 'rgba(244, 248, 250, 0)']
+          }
+          locations={[0, 0.38, 0.72, 1]}
+          style={styles.topHeaderContainer}
+        >
+          {children}
+        </LinearGradient>
+      );
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
-      <View style={[styles.topHeaderContainer, { backgroundColor: isDark ? 'rgba(0, 29, 57, 0.95)' : 'rgba(235, 244, 249, 0.92)' }]}>
+      <HeaderWrapper>
         <View style={styles.header}>
           <TouchableOpacity
             style={styles.profileInfo}
@@ -367,20 +388,20 @@ export default function HomeScreen() {
             {user?.profilePicture ? (
               <Image
                 source={{ uri: user.profilePicture }}
-                style={styles.headerAvatar}
+                style={[styles.headerAvatar, !isDark && { borderWidth: 2, borderColor: 'rgba(255,255,255,0.6)' }]}
               />
             ) : (
-              <View style={[styles.headerAvatar, { backgroundColor: colors.accent }]}>
-                <Text style={[styles.headerAvatarText, { color: colors.textInverse }]}>
+              <View style={[styles.headerAvatar, { backgroundColor: isDark ? colors.accent : 'rgba(255,255,255,0.22)' }]}>
+                <Text style={[styles.headerAvatarText, { color: '#FFFFFF' }]}>
                   {getUserInitial()}
                 </Text>
               </View>
             )}
             <View style={styles.profileTextContainer}>
-              <Text style={[styles.profileName, { color: colors.textPrimary }]} numberOfLines={1}>
+              <Text style={[styles.profileName, { color: '#FFFFFF' }]} numberOfLines={1}>
                 {user?.name || user?.username || 'User'}
               </Text>
-              <Text style={[styles.profileProfession, { color: colors.textSecondary }]} numberOfLines={1}>
+              <Text style={[styles.profileProfession, { color: isDark ? colors.textSecondary : 'rgba(255,255,255,0.75)' }]} numberOfLines={1}>
                 {user?.profession || 'Add your profession'}
               </Text>
             </View>
@@ -388,19 +409,19 @@ export default function HomeScreen() {
           
           <View style={styles.headerActions}>
             <TouchableOpacity
-              style={[styles.headerActionButton, { backgroundColor: colors.accentLight }]}
+              style={[styles.headerActionButton, { backgroundColor: isDark ? colors.accentLight : 'rgba(255,255,255,0.20)' }]}
               onPress={() => router.push('/(tabs)/leaderboard')}
               activeOpacity={0.6}
             >
-              <Ionicons name="trophy" size={22} color={colors.accent} />
+              <Ionicons name="trophy" size={22} color={isDark ? colors.accent : '#FFFFFF'} />
             </TouchableOpacity>
             
             <TouchableOpacity
-              style={[styles.headerActionButton, { backgroundColor: colors.accentLight }]}
+              style={[styles.headerActionButton, { backgroundColor: isDark ? colors.accentLight : 'rgba(255,255,255,0.20)' }]}
               onPress={handleSearchToggle}
               activeOpacity={0.6}
             >
-              <Ionicons name="search" size={22} color={colors.accent} />
+              <Ionicons name="search" size={22} color={isDark ? colors.accent : '#FFFFFF'} />
             </TouchableOpacity>
             
             <TouchableOpacity
@@ -414,7 +435,7 @@ export default function HomeScreen() {
         </View>
 
         {showSearchBar && (
-          <View style={[styles.searchBarContainer, { backgroundColor: colors.surface }]}>
+          <View style={[styles.searchBarContainer, { backgroundColor: isDark ? colors.surface : 'rgba(255,255,255,0.92)' }]}>
             <Ionicons name="search" size={20} color={colors.textTertiary} style={styles.searchIcon} />
             <TextInput
               style={[styles.searchInput, { color: colors.inputText }]}
@@ -439,7 +460,7 @@ export default function HomeScreen() {
             style={[
               styles.tab,
               activeSection === 'all' && {
-                backgroundColor: isDark ? 'rgba(123, 189, 232, 0.18)' : 'rgba(10, 65, 116, 0.12)',
+              backgroundColor: isDark ? 'rgba(56, 189, 248, 0.14)' : 'rgba(255, 255, 255, 0.22)',
               },
             ]}
             onPress={() => setActiveSection('all')}
@@ -447,7 +468,7 @@ export default function HomeScreen() {
             <Text
               style={[
                 styles.tabText,
-                { color: activeSection === 'all' ? colors.accent : colors.textSecondary },
+                { color: activeSection === 'all' ? (isDark ? colors.accent : '#FFFFFF') : (isDark ? colors.textSecondary : 'rgba(255,255,255,0.65)') },
                 activeSection === 'all' && { fontWeight: '700' },
               ]}
             >
@@ -459,7 +480,7 @@ export default function HomeScreen() {
             style={[
               styles.tab,
               activeSection === 'professional' && {
-                backgroundColor: isDark ? 'rgba(123, 189, 232, 0.18)' : 'rgba(10, 65, 116, 0.12)',
+              backgroundColor: isDark ? 'rgba(56, 189, 248, 0.14)' : 'rgba(255, 255, 255, 0.22)',
               },
             ]}
             onPress={() => setActiveSection('professional')}
@@ -467,7 +488,7 @@ export default function HomeScreen() {
             <Text
               style={[
                 styles.tabText,
-                { color: activeSection === 'professional' ? colors.accent : colors.textSecondary },
+                { color: activeSection === 'professional' ? (isDark ? colors.accent : '#FFFFFF') : (isDark ? colors.textSecondary : 'rgba(255,255,255,0.65)') },
                 activeSection === 'professional' && { fontWeight: '700' },
               ]}
             >
@@ -479,7 +500,7 @@ export default function HomeScreen() {
             style={[
               styles.tab,
               activeSection === 'help' && {
-                backgroundColor: isDark ? 'rgba(123, 189, 232, 0.18)' : 'rgba(10, 65, 116, 0.12)',
+              backgroundColor: isDark ? 'rgba(56, 189, 248, 0.14)' : 'rgba(255, 255, 255, 0.22)',
               },
             ]}
             onPress={() => setActiveSection('help')}
@@ -487,7 +508,7 @@ export default function HomeScreen() {
             <Text
               style={[
                 styles.tabText,
-                { color: activeSection === 'help' ? colors.accent : colors.textSecondary },
+                { color: activeSection === 'help' ? (isDark ? colors.accent : '#FFFFFF') : (isDark ? colors.textSecondary : 'rgba(255,255,255,0.65)') },
                 activeSection === 'help' && { fontWeight: '700' },
               ]}
             >
@@ -495,7 +516,7 @@ export default function HomeScreen() {
             </Text>
           </TouchableOpacity>
         </View>
-      </View>
+      </HeaderWrapper>
 
       {loading ? (
         <View style={styles.centerContainer}>
@@ -525,16 +546,17 @@ export default function HomeScreen() {
         style={[
           styles.fab,
           {
-            backgroundColor: 'rgba(0, 29, 57, 0.94)',
-            borderColor: 'rgba(123, 189, 232, 0.35)',
+            backgroundColor: isDark ? 'rgba(8, 12, 22, 0.96)' : 'rgba(0, 29, 57, 0.94)',
+            borderColor: isDark ? 'rgba(56, 189, 248, 0.30)' : 'rgba(123, 189, 232, 0.35)',
             borderWidth: 1.5,
-            shadowColor: '#000000',
+            shadowColor: isDark ? '#38BDF8' : '#000000',
+            bottom: fabBottom,
           },
         ]}
         onPress={() => router.push('/create-post')}
         activeOpacity={0.8}
       >
-        <Ionicons name="add" size={28} color="#7BBDE8" />
+        <Ionicons name="add" size={28} color={isDark ? '#38BDF8' : '#7BBDE8'} />
       </TouchableOpacity>
 
       {/* SOS Modal controlled by header button */}
@@ -785,7 +807,6 @@ const styles = StyleSheet.create({
   },
   fab: {
     position: 'absolute',
-    bottom: 90,
     right: 20,
     width: 56,
     height: 56,

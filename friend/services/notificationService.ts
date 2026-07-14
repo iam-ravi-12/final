@@ -57,7 +57,7 @@ class NotificationServiceImpl implements NotificationService {
             const fcmToken = tokenData.data;
 
             console.log("✅ FCM DEVICE TOKEN:", fcmToken);
-            
+
             // 4. Send token to backend
             try {
                 await authService.registerFcmToken(fcmToken);
@@ -65,7 +65,7 @@ class NotificationServiceImpl implements NotificationService {
             } catch (error) {
                 console.error("❌ Failed to register FCM token with backend:", error);
             }
-            
+
             return fcmToken;
         } catch (error) {
             console.error("❌ Error fetching push token:", error);
@@ -131,7 +131,7 @@ class NotificationServiceImpl implements NotificationService {
      */
     async cancelAllNotifications(): Promise<void> {
         await Notifications.cancelAllScheduledNotificationsAsync();
-  }
+    }
 
 
     /**
@@ -169,29 +169,20 @@ export async function showSosAlertNotification(
         FIRE: '🔥 Fire',
     };
 
-// <<<<<<< HEAD
-//     const title = emergencyLabels[emergencyType] || '🚨 SOS Alert';
-//     const distanceText = distance
-//         ? distance < 1
-//             ? `${(distance * 1000).toFixed(0)} meters away`
-//             : `${distance.toFixed(1)} km away`
-//         : 'nearby';
-// =======
-  const title = emergencyLabels[emergencyType] || '🚨 SOS Alert';
-  
-  // Always show distance in meters if available, otherwise show "location unknown"
-  let distanceText = 'location nearby';
-  if (distance !== null && distance !== undefined) {
-    if (distance < 1) {
-      // Less than 1 km - show in meters
-      const meters = Math.round(distance * 1000);
-      distanceText = `${meters} meter${meters === 1 ? '' : 's'} away`;
-    } else {
-      // 1 km or more - show in km with one decimal
-      distanceText = `${distance.toFixed(1)} km away`;
+    const title = emergencyLabels[emergencyType] || '🚨 SOS Alert';
+
+    // Always show distance in meters if available, otherwise show "location unknown"
+    let distanceText = 'location nearby';
+    if (distance !== null && distance !== undefined) {
+        if (distance < 1) {
+            // Less than 1 km - show in meters
+            const meters = Math.round(distance * 1000);
+            distanceText = `${meters} meter${meters === 1 ? '' : 's'} away`;
+        } else {
+            // 1 km or more - show in km with one decimal
+            distanceText = `${distance.toFixed(1)} km away`;
+        }
     }
-  }
-// >>>>>>> ee39bfd31fbb914f5fd7ed985e75cea1eba37d01
 
     const body = `${username} needs help - ${distanceText}`;
 

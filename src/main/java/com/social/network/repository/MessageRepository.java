@@ -62,4 +62,8 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
       WHERE m.sender.id = :userId OR m.receiver.id = :userId
     """)
     List<Long> findConversationPartnerIds(@Param("userId") Long userId);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @Query("DELETE FROM Message m WHERE m.sender = :user OR m.receiver = :user")
+    void deleteMessagesByUser(@Param("user") User user);
 }

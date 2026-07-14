@@ -46,11 +46,16 @@ function RootNavigator() {
   useEffect(() => {
     if (!navigationState?.key || loading) return;
 
+    const inAdminGroup = segments[0] === 'admin';
     const inAuthGroup = segments[0] === 'login' || segments[0] === 'signup' || segments[0] === 'verify-otp' || segments[0] === 'profile-setup';
     const inAppGroup = segments[0] === '(tabs)' || segments[0] === 'create-post' || segments[0] === 'chat' || segments[0] === 'post' || segments[0] === 'edit-profile' || segments[0] === 'follows' || segments[0] === 'follow-requests' || segments[0] === 'community' || segments[0] === 'user';
 
     if (!user && !inAuthGroup) {
       router.replace('/login');
+    } else if (user && user.role === 'ADMIN') {
+      if (!inAdminGroup) {
+        router.replace('/admin' as any);
+      }
     } else if (user && !user.emailVerified && segments[0] !== 'verify-otp') {
       router.replace('/verify-otp');
     } else if (user && user.emailVerified && !user.profileCompleted && segments[0] !== 'profile-setup') {
@@ -77,6 +82,7 @@ function RootNavigator() {
           <Stack.Screen name="verify-otp" options={{ title: 'Verify Email' }} />
           <Stack.Screen name="profile-setup" options={{ headerShown: false }} />
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="admin" options={{ headerShown: false }} />
           <Stack.Screen name="create-post" options={{ presentation: 'modal', headerShown: false }} />
           <Stack.Screen name="chat/[userId]" options={{ title: 'Chat' }} />
           <Stack.Screen name="user/[userId]" options={{ title: 'Profile', headerShown: false }} />

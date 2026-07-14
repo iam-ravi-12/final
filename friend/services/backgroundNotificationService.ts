@@ -174,15 +174,17 @@ if (TaskManager?.defineTask) {
             let userLocation: { latitude: number; longitude: number } | null = null;
 
             try {
-                const { status } = await Location.getBackgroundPermissionsAsync();
-                if (status === 'granted') {
-                    const location = await Location.getCurrentPositionAsync({
-                        accuracy: Location.Accuracy.Balanced,
-                    });
-                    userLocation = {
-                        latitude: location.coords.latitude,
-                        longitude: location.coords.longitude,
-                    };
+                if (Location) {
+                    const { status } = await Location.getBackgroundPermissionsAsync();
+                    if (status === 'granted') {
+                        const location = await Location.getCurrentPositionAsync({
+                            accuracy: Location.Accuracy.Balanced,
+                        });
+                        userLocation = {
+                            latitude: location.coords.latitude,
+                            longitude: location.coords.longitude,
+                        };
+                    }
                 }
             } catch (e) {
                 console.warn('[Background] Location error:', e);
@@ -216,10 +218,10 @@ if (TaskManager?.defineTask) {
                 JSON.stringify(alerts.map(a => a.id))
             );
 
-            return BackgroundFetch.BackgroundFetchResult.NewData;
+            return BackgroundFetch ? BackgroundFetch.BackgroundFetchResult.NewData : 2;
         } catch (error) {
             console.error('[Background] Task failed:', error);
-            return BackgroundFetch.BackgroundFetchResult.Failed;
+            return BackgroundFetch ? BackgroundFetch.BackgroundFetchResult.Failed : 1;
         }
     });
 }

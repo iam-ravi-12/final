@@ -4,6 +4,7 @@ import com.social.network.entity.Follow;
 import com.social.network.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -30,4 +31,8 @@ public interface FollowRepository extends JpaRepository<Follow, Long> {
     long countFollowingByUserId(Long userId);
     
     boolean existsByFollowerAndFollowing(User follower, User following);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @Query("DELETE FROM Follow f WHERE f.follower = :user OR f.following = :user")
+    void deleteFollowsByUser(@Param("user") User user);
 }

@@ -35,14 +35,24 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             if (StringUtils.hasText(jwt) && tokenProvider.validateToken(jwt)) {
                 String username = tokenProvider.getUsernameFromJWT(jwt);
+                String role = tokenProvider.getRoleFromJWT(jwt);
 
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                
+                // Extract role from JWT and construct authorities list
+                java.util.List<org.springframework.security.core.GrantedAuthority> authorities = 
+                    java.util.Collections.singletonList(
+                        new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_" + (role != null ? role : "USER"))
+                    );
+
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                        userDetails, null, userDetails.getAuthorities());
+                        userDetails, null, authorities);
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
+        } catch (org.springframework.security.authentication.LockedException | org.springframework.security.authentication.DisabledException ex) {
+            logger.warn("Authentication failed: {}", ex.getMessage());
         } catch (Exception ex) {
             logger.error("Could not set user authentication in security context", ex);
         }

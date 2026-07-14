@@ -90,3 +90,46 @@ export const copyToClipboard = async (text: string): Promise<void> => {
     throw new Error('Clipboard not available on this platform');
   }
 };
+
+/**
+ * Decode JWT token payload without external libraries
+ * @param token - JWT token string
+ * @returns Decoded payload object or null
+ */
+export const decodeJwt = (token: string): any => {
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return null;
+    
+    const payload = parts[1];
+    // Replace characters for standard base64
+    const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+    
+    // Polyfill atob for react-native
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+    const atobPolyfill = (input: string) => {
+      const str = input.replace(/=+$/, '');
+      let output = '';
+      if (str.length % 4 === 1) {
+        throw new Error("'atob' failed: The string to be decoded is not correctly encoded.");
+      }
+      for (
+        let bc = 0, bs = 0, buffer, idx = 0;
+        (buffer = str.charAt(idx++));
+        ~buffer && ((bs = bc % 4 ? bs * 64 + buffer : buffer),
+        bc++ % 4)
+          ? (output += String.fromCharCode(255 & (bs >> ((-2 * bc) & 6))))
+          : 0
+      ) {
+        buffer = chars.indexOf(buffer);
+      }
+      return output;
+    };
+    
+    const decoded = atobPolyfill(base64);
+    return JSON.parse(decoded);
+  } catch (error) {
+    console.error('Failed to decode JWT:', error);
+    return null;
+  }
+};

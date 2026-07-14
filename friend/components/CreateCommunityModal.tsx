@@ -14,6 +14,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import communityService from '../services/communityService';
 import { MAX_COMMUNITY_NAME_LENGTH, MAX_COMMUNITY_DESCRIPTION_LENGTH } from '../constants/config';
+import { useAppTheme } from '../constants/AppTheme';
 
 interface CreateCommunityModalProps {
   visible: boolean;
@@ -30,6 +31,7 @@ export default function CreateCommunityModal({
   const [description, setDescription] = useState('');
   const [isPrivate, setIsPrivate] = useState(false);
   const [loading, setLoading] = useState(false);
+  const { colors, isDark, typography } = useAppTheme();
 
   const handleSubmit = async () => {
     if (!name.trim()) {
@@ -76,34 +78,38 @@ export default function CreateCommunityModal({
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.container}
       >
-        <View style={styles.backdrop}>
-          <View style={styles.modalContent}>
-            <View style={styles.header}>
-              <Text style={styles.title}>Create Community</Text>
+        <View style={[styles.backdrop, { backgroundColor: colors.overlay }]}>
+          <View style={[styles.modalContent, { backgroundColor: colors.surface }]}>
+            <View style={[styles.header, { borderBottomColor: colors.surfaceBorder }]}>
+              <Text style={[styles.title, { color: colors.textPrimary, fontFamily: typography.fontFamilyRounded }]}>
+                Create Community
+              </Text>
               <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
-                <Ionicons name="close" size={24} color="#333" />
+                <Ionicons name="close" size={24} color={colors.textPrimary} />
               </TouchableOpacity>
             </View>
 
             <ScrollView style={styles.form}>
               <View style={styles.formGroup}>
-                <Text style={styles.label}>Community Name *</Text>
+                <Text style={[styles.label, { color: colors.textPrimary }]}>Community Name *</Text>
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, { backgroundColor: colors.inputBg, borderColor: colors.inputBorder, color: colors.inputText }]}
                   value={name}
                   onChangeText={setName}
                   placeholder="Enter community name"
+                  placeholderTextColor={colors.inputPlaceholder}
                   maxLength={MAX_COMMUNITY_NAME_LENGTH}
                 />
               </View>
 
               <View style={styles.formGroup}>
-                <Text style={styles.label}>Description</Text>
+                <Text style={[styles.label, { color: colors.textPrimary }]}>Description</Text>
                 <TextInput
-                  style={[styles.input, styles.textArea]}
+                  style={[styles.input, styles.textArea, { backgroundColor: colors.inputBg, borderColor: colors.inputBorder, color: colors.inputText }]}
                   value={description}
                   onChangeText={setDescription}
                   placeholder="Describe your community"
+                  placeholderTextColor={colors.inputPlaceholder}
                   multiline
                   numberOfLines={4}
                   maxLength={MAX_COMMUNITY_DESCRIPTION_LENGTH}
@@ -113,33 +119,40 @@ export default function CreateCommunityModal({
               <TouchableOpacity
                 style={styles.checkboxContainer}
                 onPress={() => setIsPrivate(!isPrivate)}
+                activeOpacity={0.7}
               >
-                <View style={styles.checkbox}>
-                  {isPrivate && <Ionicons name="checkmark" size={18} color="#007AFF" />}
+                <View style={[
+                  styles.checkbox,
+                  {
+                    borderColor: isPrivate ? colors.accent : colors.inputBorder,
+                    backgroundColor: isPrivate ? colors.accent : 'transparent',
+                  }
+                ]}>
+                  {isPrivate && <Ionicons name="checkmark" size={18} color={colors.textInverse} />}
                 </View>
                 <View style={styles.checkboxLabel}>
-                  <Text style={styles.checkboxText}>Private Community</Text>
-                  <Text style={styles.checkboxSubtext}>
+                  <Text style={[styles.checkboxText, { color: colors.textPrimary }]}>Private Community</Text>
+                  <Text style={[styles.checkboxSubtext, { color: colors.textSecondary }]}>
                     Only invited members can join
                   </Text>
                 </View>
               </TouchableOpacity>
             </ScrollView>
 
-            <View style={styles.footer}>
+            <View style={[styles.footer, { borderTopColor: colors.surfaceBorder }]}>
               <TouchableOpacity
-                style={[styles.button, styles.cancelButton]}
+                style={[styles.button, styles.cancelButton, { backgroundColor: colors.inputBg }]}
                 onPress={handleClose}
                 disabled={loading}
               >
-                <Text style={styles.cancelButtonText}>Cancel</Text>
+                <Text style={[styles.cancelButtonText, { color: colors.textSecondary }]}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.button, styles.submitButton, loading && styles.disabledButton]}
+                style={[styles.button, styles.submitButton, { backgroundColor: colors.accent }, loading && styles.disabledButton]}
                 onPress={handleSubmit}
                 disabled={loading}
               >
-                <Text style={styles.submitButtonText}>
+                <Text style={[styles.submitButtonText, { color: colors.textInverse }]}>
                   {loading ? 'Creating...' : 'Create'}
                 </Text>
               </TouchableOpacity>
@@ -157,14 +170,16 @@ const styles = StyleSheet.create({
   },
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
     maxHeight: '90%',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 24,
   },
   header: {
     flexDirection: 'row',
@@ -172,12 +187,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
   },
   title: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#333',
   },
   closeButton: {
     padding: 4,
@@ -191,17 +204,13 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#333',
     marginBottom: 8,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#e0e0e0',
-    borderRadius: 8,
+    borderRadius: 10,
     padding: 12,
     fontSize: 16,
-    color: '#333',
-    backgroundColor: '#f9f9f9',
   },
   textArea: {
     height: 100,
@@ -216,7 +225,6 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderWidth: 2,
-    borderColor: '#007AFF',
     borderRadius: 6,
     justifyContent: 'center',
     alignItems: 'center',
@@ -228,44 +236,38 @@ const styles = StyleSheet.create({
   checkboxText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
   },
   checkboxSubtext: {
     fontSize: 13,
-    color: '#666',
     marginTop: 2,
   },
   footer: {
     flexDirection: 'row',
     padding: 20,
     paddingTop: 16,
+    paddingBottom: Platform.OS === 'ios' ? 34 : 20,
     borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
     gap: 12,
   },
   button: {
     flex: 1,
     paddingVertical: 14,
-    borderRadius: 8,
+    borderRadius: 12,
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  cancelButton: {
-    backgroundColor: '#f5f5f5',
-  },
+  cancelButton: {},
   cancelButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#666',
   },
-  submitButton: {
-    backgroundColor: '#007AFF',
-  },
+  submitButton: {},
   submitButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#fff',
   },
   disabledButton: {
-    opacity: 0.6,
+    opacity: 0.5,
   },
 });
+

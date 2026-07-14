@@ -254,7 +254,7 @@ const SosAlertsScreen = () => {
         </View>
 
         {item.description && (
-          <View style={[styles.descriptionContainer, { backgroundColor: isDark ? 'rgba(0, 29, 57, 0.6)' : 'rgba(235, 244, 249, 0.7)' }]}>
+          <View style={[styles.descriptionContainer, { backgroundColor: isDark ? 'rgba(14, 22, 38, 0.80)' : 'rgba(235, 244, 249, 0.7)' }]}>
             <Text style={[styles.description, { color: colors.textPrimary }]}>{item.description}</Text>
           </View>
         )}

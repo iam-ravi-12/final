@@ -39,11 +39,15 @@
         "POST_NOTIFICATIONS",
         "WAKE_LOCK",
         "FOREGROUND_SERVICE",
+        "FOREGROUND_SERVICE_LOCATION",
         "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION",
         "ACCESS_BACKGROUND_LOCATION",
         "CAMERA",
         "RECORD_AUDIO",
+        "READ_MEDIA_IMAGES",
+        "READ_MEDIA_VIDEO",
+        "READ_MEDIA_AUDIO",
         "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO"
       ],
@@ -55,6 +59,13 @@
     },
     "plugins": [
       "expo-router",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "This app needs background location access to show nearby SOS alerts.",
+          "isAndroidBackgroundLocationEnabled": true
+        }
+      ],
       [
         "expo-notifications",
         {

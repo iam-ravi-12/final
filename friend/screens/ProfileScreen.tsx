@@ -81,6 +81,7 @@ export default function ProfileScreen() {
   return (
     <ScrollView
       style={[styles.container, { backgroundColor: colors.background }]}
+      contentContainerStyle={styles.scrollContent}
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
       }
@@ -281,5 +282,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginLeft: 16,
     flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 110,
   },
 });

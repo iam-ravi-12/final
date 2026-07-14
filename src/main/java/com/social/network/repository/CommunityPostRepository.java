@@ -18,4 +18,7 @@ public interface CommunityPostRepository extends JpaRepository<CommunityPost, Lo
     
     @Query("SELECT cp FROM CommunityPost cp WHERE cp.user.id = :userId ORDER BY cp.createdAt DESC")
     List<CommunityPost> findByUserId(Long userId);
+    List<CommunityPost> findByCommunityId(Long communityId);
+    void deleteByCommunity(com.social.network.entity.Community community);
+    void deleteByUser(com.social.network.entity.User user);
 }

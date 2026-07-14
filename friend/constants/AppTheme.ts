@@ -6,8 +6,9 @@
  * Palette philosophy
  * ──────────────────
  * Light mode  — clean white/grey with blue (#0A66C2) accent.
- * Dark mode   — deep charcoal (#0D1117) with soft blue (#58A6FF) accent.
- * Both modes share a monochrome feel with minimal saturated colour.
+ * Dark mode   — rich deep-space dark (#0A0E1A) with electric cyan-blue accents.
+ *               Premium feel with warm midnight navy surfaces, vivid accents,
+ *               and elevated contrast for maximum readability.
  */
 
 import { useColorScheme } from 'react-native';
@@ -28,10 +29,31 @@ const palette = {
   darkSurface: '#051B33',
   darkCard: '#0A2542',
 
+  // Premium dark mode palette
+  darkBg: '#080C16',         // Near-black deep space
+  darkBg2: '#0D1220',        // Slightly lighter base
+  darkSurface2: '#121828',   // Card surface — warm midnight
+  darkSurface3: '#1A2235',   // Elevated card / modal
+  darkSurface4: '#1E2A40',   // Hover / pressed state
+  darkBorder: '#1E2D45',     // Subtle border
+  darkBorderBright: '#243350', // Visible border
+
+  // Electric accent palette for dark mode
+  accentCyan: '#38BDF8',     // Vivid sky blue (main accent)
+  accentCyanGlow: '#7DD3FC', // Lighter glow variant
+  accentCyanDim: '#0EA5E9',  // Deeper saturated cyan
+  accentPurple: '#A78BFA',   // Soft violet accent
+  accentTeal: '#2DD4BF',     // Teal highlight
+
   // Semantic
   red: '#E5534B',
   green: '#3FB950',
   orange: '#D29922',
+
+  // Premium semantic overrides for dark
+  dangerDark: '#F87171',     // Softer red on dark
+  successDark: '#4ADE80',    // Vivid green on dark
+  warningDark: '#FCD34D',    // Gold on dark
 };
 
 // ── Theme tokens ────────────────────────────────────────────────────────────
@@ -41,6 +63,12 @@ export interface AppThemeColors {
   surface: string;          // card / elevated surface
   surfaceHover: string;     // subtle hover / pressed state
   surfaceBorder: string;    // card border / separator
+
+  // Cards (elevated above surface)
+  cardBg: string;           // solid card background
+  cardBorder: string;       // card border
+  cardGlassBg: string;      // glass/frosted card background
+  cardGlassBorder: string;  // glass card border
 
   // Text
   textPrimary: string;      // headings, body text
@@ -83,6 +111,11 @@ const lightColors: AppThemeColors = {
   surfaceHover: '#E8F2F8',
   surfaceBorder: palette.cBDD8E9,
 
+  cardBg: palette.white,
+  cardBorder: palette.cBDD8E9,
+  cardGlassBg: 'rgba(255, 255, 255, 0.78)',
+  cardGlassBorder: 'rgba(189, 216, 233, 0.6)',
+
   textPrimary: palette.c001D39,
   textSecondary: palette.c49769F,
   textTertiary: palette.c6EA2B3,
@@ -113,38 +146,50 @@ const lightColors: AppThemeColors = {
 };
 
 const darkColors: AppThemeColors = {
-  background: palette.c001D39,
-  surface: palette.darkCard,
-  surfaceHover: palette.c0A4174,
-  surfaceBorder: '#0E345A',
+  // Rich deep-space backgrounds
+  background: palette.darkBg,
+  surface: palette.darkSurface2,
+  surfaceHover: palette.darkSurface4,
+  surfaceBorder: palette.darkBorder,
 
-  textPrimary: palette.cBDD8E9,
-  textSecondary: palette.c7BBDE8,
-  textTertiary: palette.c6EA2B3,
-  textInverse: palette.c001D39,
+  // Cards — elevated, glowing, premium
+  cardBg: '#16202E',                          // Rich navy-slate card
+  cardBorder: '#253347',                      // Visible but subtle border
+  cardGlassBg: 'rgba(20, 30, 50, 0.82)',      // Deep glass with navy tint
+  cardGlassBorder: 'rgba(56, 189, 248, 0.18)',// Faint cyan glow border
 
-  accent: palette.c7BBDE8,
-  accentLight: 'rgba(123, 189, 232, 0.15)',
-  accentText: palette.c7BBDE8,
+  // High-contrast text on deep dark backgrounds
+  textPrimary: '#E8F4FF',        // Crisp near-white with blue tint
+  textSecondary: '#8BAFC8',      // Muted blue-grey
+  textTertiary: '#4A6480',       // Dim placeholder / disabled
+  textInverse: palette.darkBg,
 
-  inputBg: palette.darkSurface,
-  inputBorder: palette.c49769F,
-  inputText: palette.cBDD8E9,
-  inputPlaceholder: palette.c49769F,
+  // Electric cyan accent
+  accent: palette.accentCyan,
+  accentLight: 'rgba(56, 189, 248, 0.12)',
+  accentText: palette.accentCyan,
 
-  tabBar: palette.darkSurface,
-  tabBarBorder: '#0E345A',
-  tabActive: palette.c7BBDE8,
-  tabInactive: palette.c49769F,
+  // Input fields — subtle elevated surface
+  inputBg: palette.darkSurface3,
+  inputBorder: palette.darkBorderBright,
+  inputText: '#E8F4FF',
+  inputPlaceholder: '#4A6480',
 
-  danger: palette.red,
-  success: palette.green,
-  warning: palette.orange,
+  // Tab bar — glassy deep midnight
+  tabBar: palette.darkBg2,
+  tabBarBorder: 'rgba(56, 189, 248, 0.25)',
+  tabActive: palette.accentCyan,
+  tabInactive: '#4A6480',
 
-  shadow: 'rgba(0, 0, 0, 0.4)',
-  overlay: 'rgba(0, 15, 30, 0.8)',
-  skeleton: '#0E345A',
-  icon: palette.c6EA2B3,
+  // Status — vivid on dark
+  danger: palette.dangerDark,
+  success: palette.successDark,
+  warning: palette.warningDark,
+
+  shadow: 'rgba(0, 0, 0, 0.6)',
+  overlay: 'rgba(5, 8, 18, 0.85)',
+  skeleton: palette.darkSurface3,
+  icon: '#8BAFC8',
 };
 
 // ── Typography ──────────────────────────────────────────────────────────────

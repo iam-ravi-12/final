@@ -1,5 +1,6 @@
 import api from './api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { decodeJwt } from '../utils/helpers';
 
 export interface SignupData {
   username: string;
@@ -40,6 +41,7 @@ export interface AuthResponse {
   organization?: string;
   location?: string;
   profilePicture?: string;
+  role?: 'USER' | 'ADMIN';
 }
 
 export interface ProfileResponse {
@@ -64,8 +66,15 @@ const authService = {
   login: async (data: LoginData): Promise<AuthResponse> => {
     const response = await api.post('/api/auth/login', data);
     if (response.data.token) {
+      const decoded = decodeJwt(response.data.token);
+      const role = decoded?.role || 'USER';
+      const userData = {
+        ...response.data,
+        role: role
+      };
       await AsyncStorage.setItem('token', response.data.token);
-      await AsyncStorage.setItem('user', JSON.stringify(response.data));
+      await AsyncStorage.setItem('user', JSON.stringify(userData));
+      return userData;
     }
     return response.data;
   },
@@ -127,12 +136,19 @@ const authService = {
     return response.data;
   },
 
-  verifyOTP: async (email: string, otp: string): Promise<string> => {
+  verifyOTP: async (email: string, otp: string): Promise<any> => {
     const response = await api.post('/api/auth/verify-otp', { email, otp });
     // Now returns AuthResponse with token after successful OTP verification
     if (response.data.token) {
+      const decoded = decodeJwt(response.data.token);
+      const role = decoded?.role || 'USER';
+      const userData = {
+        ...response.data,
+        role: role
+      };
       await AsyncStorage.setItem('token', response.data.token);
-      await AsyncStorage.setItem('user', JSON.stringify(response.data));
+      await AsyncStorage.setItem('user', JSON.stringify(userData));
+      return userData;
     }
     return response.data;
   },

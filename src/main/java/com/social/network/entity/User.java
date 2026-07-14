@@ -59,6 +59,20 @@ public class User {
     @Column(name = "fcm_token", columnDefinition = "TEXT")
     private String fcmToken;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role", nullable = false, length = 20, columnDefinition = "VARCHAR(20) DEFAULT 'USER'")
+    private Role role = Role.USER;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 20, columnDefinition = "VARCHAR(20) DEFAULT 'ACTIVE'")
+    private AccountStatus status = AccountStatus.ACTIVE;
+
+    @Column(name = "ban_reason")
+    private String banReason;
+
+    @Column(name = "banned_at")
+    private LocalDateTime bannedAt;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

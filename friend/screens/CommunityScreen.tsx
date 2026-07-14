@@ -13,7 +13,7 @@ import {
   Platform,
   TextInput,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import communityService, { CommunityResponse } from '../services/communityService';
@@ -27,6 +27,9 @@ type TabType = 'my' | 'public';
 export default function CommunityScreen() {
   const router = useRouter();
   const { colors, isDark } = useAppTheme();
+  const insets = useSafeAreaInsets();
+  const bottomOffset = Math.max(insets.bottom, Platform.OS === 'ios' ? 24 : 16);
+  const fabBottom = bottomOffset + 62 + 16;
   const [activeTab, setActiveTab] = useState<TabType>('my');
   const [myCommunities, setMyCommunities] = useState<CommunityResponse[]>([]);
   const [publicCommunities, setPublicCommunities] = useState<CommunityResponse[]>([]);
@@ -114,12 +117,9 @@ export default function CommunityScreen() {
   const renderCommunity = ({ item }: { item: CommunityResponse }) => {
     const initial = item.name.charAt(0).toUpperCase();
 
-    const glassBg = isDark ? 'rgba(10, 37, 66, 0.68)' : 'rgba(255, 255, 255, 0.78)';
-    const glassBorder = isDark ? 'rgba(123, 189, 232, 0.22)' : 'rgba(189, 216, 233, 0.6)';
-
     return (
       <TouchableOpacity
-        style={[styles.communityCard, { backgroundColor: glassBg, borderColor: glassBorder, borderWidth: 1, shadowColor: colors.shadow }]}
+        style={[styles.communityCard, { backgroundColor: colors.cardGlassBg, borderColor: colors.cardGlassBorder, borderWidth: 1, shadowColor: isDark ? 'rgba(56, 189, 248, 0.06)' : colors.shadow }]}
         onPress={() => handleCommunityPress(item.id, item.name)}
       >
         <View style={styles.communityHeader}>
@@ -219,12 +219,12 @@ export default function CommunityScreen() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
       {/* Tab Selector */}
-      <View style={[styles.tabContainer, { backgroundColor: isDark ? 'rgba(0, 29, 57, 0.95)' : 'rgba(235, 244, 249, 0.92)' }]}>
+      <View style={[styles.tabContainer, { backgroundColor: isDark ? 'rgba(8, 12, 22, 0.97)' : 'rgba(235, 244, 249, 0.92)' }]}>
         <TouchableOpacity
           style={[
             styles.tab,
             activeTab === 'my' && {
-              backgroundColor: isDark ? 'rgba(123, 189, 232, 0.18)' : 'rgba(10, 65, 116, 0.12)',
+            backgroundColor: isDark ? 'rgba(56, 189, 248, 0.14)' : 'rgba(10, 65, 116, 0.12)',
             },
           ]}
           onPress={() => setActiveTab('my')}
@@ -237,7 +237,7 @@ export default function CommunityScreen() {
           style={[
             styles.tab,
             activeTab === 'public' && {
-              backgroundColor: isDark ? 'rgba(123, 189, 232, 0.18)' : 'rgba(10, 65, 116, 0.12)',
+            backgroundColor: isDark ? 'rgba(56, 189, 248, 0.14)' : 'rgba(10, 65, 116, 0.12)',
             },
           ]}
           onPress={() => setActiveTab('public')}
@@ -297,16 +297,17 @@ export default function CommunityScreen() {
         style={[
           styles.fab,
           {
-            backgroundColor: 'rgba(0, 29, 57, 0.94)',
-            borderColor: 'rgba(123, 189, 232, 0.35)',
+            backgroundColor: isDark ? 'rgba(8, 12, 22, 0.96)' : 'rgba(0, 29, 57, 0.94)',
+            borderColor: isDark ? 'rgba(56, 189, 248, 0.30)' : 'rgba(123, 189, 232, 0.35)',
             borderWidth: 1.5,
-            shadowColor: '#000000',
+            shadowColor: isDark ? '#38BDF8' : '#000000',
+            bottom: fabBottom,
           },
         ]}
         onPress={() => setShowCreateModal(true)}
         activeOpacity={0.8}
       >
-        <Ionicons name="add" size={28} color="#7BBDE8" />
+        <Ionicons name="add" size={28} color={isDark ? '#38BDF8' : '#7BBDE8'} />
       </TouchableOpacity>
 
       {/* Create Community Modal */}
@@ -496,7 +497,6 @@ const styles = StyleSheet.create({
   fab: {
     position: 'absolute',
     right: 20,
-    bottom: 90,
     width: 56,
     height: 56,
     borderRadius: 28,

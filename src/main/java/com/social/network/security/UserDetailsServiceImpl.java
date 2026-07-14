@@ -23,6 +23,13 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
 
+        if (user.getStatus() == com.social.network.entity.AccountStatus.BANNED) {
+            throw new org.springframework.security.authentication.LockedException("Your account has been banned");
+        }
+        if (user.getStatus() == com.social.network.entity.AccountStatus.DELETED) {
+            throw new org.springframework.security.authentication.DisabledException("Your account has been deleted");
+        }
+
         return UserDetailsImpl.build(user);
     }
 }

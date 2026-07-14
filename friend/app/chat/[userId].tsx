@@ -60,6 +60,7 @@ export default function ChatScreen() {
   const { onNewMessage, markConversationRead } = useChat();
   const flatListRef = useRef<FlatList>(null);
   const { colors, isDark } = useAppTheme();
+  const isInitialLoad = useRef(true);
 
   // ── Load messages on mount ──────────────────────────────────────────
   const loadMessages = useCallback(async () => {
@@ -67,13 +68,14 @@ export default function ChatScreen() {
       const data = await messageService.getMessagesWithUser(otherUserId);
       setMessages(data);
     } catch (error) {
-      if (loading) {
+      if (isInitialLoad.current) {
         Alert.alert('Error', 'Failed to load messages');
       }
     } finally {
       setLoading(false);
+      isInitialLoad.current = false;
     }
-  }, [otherUserId, loading]);
+  }, [otherUserId]);
 
   useFocusEffect(
     useCallback(() => {

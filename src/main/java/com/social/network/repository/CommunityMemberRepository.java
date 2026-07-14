@@ -22,4 +22,7 @@ public interface CommunityMemberRepository extends JpaRepository<CommunityMember
     
     @Query("SELECT COUNT(cm) FROM CommunityMember cm WHERE cm.community.id = :communityId")
     long countByCommunityId(Long communityId);
+    
+    void deleteByUser(com.social.network.entity.User user);
+    void deleteByCommunity(com.social.network.entity.Community community);
 }

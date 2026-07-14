@@ -64,13 +64,21 @@ public class JwtTokenProvider {
     }
 
     public String generateToken(Authentication authentication) {
-        // If your principal class name is different, adjust the cast or obtain username differently.
-        String username = authentication.getName(); // simpler and less coupled
+        String username = authentication.getName();
         Date now = new Date();
         Date expiry = new Date(now.getTime() + jwtExpirationMs);
 
+        String role = "USER";
+        if (authentication.getPrincipal() instanceof UserDetailsImpl) {
+            UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+            if (userDetails.getRole() != null) {
+                role = userDetails.getRole().name();
+            }
+        }
+
         return Jwts.builder()
                 .setSubject(username)
+                .claim("role", role)
                 .setIssuedAt(now)
                 .setExpiration(expiry)
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
@@ -85,6 +93,16 @@ public class JwtTokenProvider {
                 .getBody();
 
         return claims.getSubject();
+    }
+
+    public String getRoleFromJWT(String token) {
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(getSigningKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+
+        return claims.get("role", String.class);
     }
 
     public boolean validateToken(String authToken) {

@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { View, Text, StyleSheet, AppState, Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -12,6 +12,17 @@ import sosService from '@/services/sosService';
 import notificationService from '@/services/notificationService';
 import { useChat } from '@/contexts/ChatContext';
 
+// ── Glow palette ─────────────────────────────────────────────────────────────
+// Light mode navbar: rich dark navy pill with vivid blue-cyan glow on active
+const NAV_BG_LIGHT       = '#0D1829';   // Deep navy — consistent in both modes
+const NAV_BORDER_LIGHT   = 'rgba(56, 189, 248, 0.28)';
+const NAV_GLOW_LIGHT     = '#38BDF8';   // Electric cyan glow
+
+// Inactive icon/label colors in the dark pill
+const INACTIVE_COLOR     = 'rgba(189, 216, 233, 0.50)';
+const ACTIVE_COLOR_LIGHT = '#38BDF8';   // Electric cyan
+const ACTIVE_COLOR_DARK  = '#38BDF8';   // Same cyan in dark mode
+
 export default function TabLayout() {
   const { colors, isDark } = useAppTheme();
   const insets = useSafeAreaInsets();
@@ -23,19 +34,15 @@ export default function TabLayout() {
   const responseListener = useRef<Notifications.Subscription | null>(null);
 
   useEffect(() => {
-    // Initialize FCM push notifications
     initializeFcmNotifications();
 
-    // Setup notification listeners
     notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
       console.log('FCM Notification received:', notification);
-      // Refresh unread count when notification arrives
       loadSosUnreadCount();
     });
 
     responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
       console.log('Notification tapped:', response);
-      // The tab navigation will handle switching to SOS tab
     });
 
     return () => {
@@ -49,86 +56,96 @@ export default function TabLayout() {
   }, []);
 
   const initializeFcmNotifications = async () => {
-    // Register for push notifications and send FCM token to backend
     const fcmToken = await notificationService.registerForPushNotificationsAsync();
     if (fcmToken) {
       console.log('FCM initialized successfully');
     }
   };
 
-  const loadSosUnreadCount = async () => {
+  const loadSosUnreadCount = useCallback(async () => {
     try {
       const count = await sosService.getUnreadCount();
       setSosUnreadCount(count);
-      
-      // Update badge count on app icon
       await notificationService.setBadgeCount(count);
     } catch (err) {
       console.error('Error loading SOS unread count:', err);
     }
-  };
+  }, []);
 
   useEffect(() => {
     loadSosUnreadCount();
-    
-    // Poll for unread count updates every 30 seconds (for badge only)
     const interval = setInterval(loadSosUnreadCount, 30000);
     return () => clearInterval(interval);
-  }, []);
+  }, [loadSosUnreadCount]);
 
-  // Handle app state changes
   useEffect(() => {
     const subscription = AppState.addEventListener('change', nextAppState => {
       if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
-        // App came to foreground - refresh counts
         loadSosUnreadCount();
       }
       appState.current = nextAppState;
     });
-
-    return () => {
-      subscription.remove();
-    };
+    return () => { subscription.remove(); };
   }, []);
 
+  // Active glow colour — cyan in both modes
+  const activeColor = isDark ? ACTIVE_COLOR_DARK : ACTIVE_COLOR_LIGHT;
+
+  /**
+   * Renders a tab icon with:
+   * - A glowing radial halo behind it when focused
+   * - A small dot indicator below
+   * - Light icon when unfocused (visible against the dark pill)
+   */
   const renderTabIcon = (icon: React.ReactNode, focused: boolean) => {
     return (
-      <View
-        style={{
-          alignItems: 'center',
-          justifyContent: 'center',
-          height: 30,
-          minWidth: 40,
-        }}
-      >
-        {icon}
+      <View style={styles.tabIconWrapper}>
         {focused && (
-          <View
-            style={{
-              width: 4,
-              height: 4,
-              borderRadius: 2,
-              backgroundColor: '#7BBDE8',
-              marginTop: 2,
-            }}
-          />
+          <>
+            {/* Outermost ring — very faint, wide spread */}
+            <View style={[
+              styles.glowRing,
+              { width: 64, height: 64, borderRadius: 32, backgroundColor: 'rgba(56, 189, 248, 0.05)' },
+            ]} />
+            {/* Mid ring */}
+            <View style={[
+              styles.glowRing,
+              { width: 48, height: 48, borderRadius: 24, backgroundColor: 'rgba(56, 189, 248, 0.11)' },
+            ]} />
+            {/* Inner bright core */}
+            <View style={[
+              styles.glowRing,
+              { width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(56, 189, 248, 0.22)' },
+            ]} />
+          </>
         )}
+        {icon}
       </View>
     );
   };
 
   return (
     <Tabs
+      safeAreaInsets={{ bottom: 0, top: 0, left: 0, right: 0 }}
       screenOptions={{
-        safeAreaInsets: { bottom: 0, top: 0, left: 0, right: 0 },
-        tabBarActiveTintColor: '#7BBDE8',
-        tabBarInactiveTintColor: '#BDD8E9',
+        tabBarActiveTintColor: activeColor,
+        tabBarInactiveTintColor: INACTIVE_COLOR,
         headerShown: false,
+        tabBarShowLabel: false,
         tabBarButton: HapticTab,
         tabBarItemStyle: {
-          paddingVertical: 4,
           justifyContent: 'center',
           alignItems: 'center',
+          overflow: 'visible',
+          height: '100%',
+          paddingTop: 0,
+          paddingBottom: 0,
+        },
+        tabBarIconStyle: {
+          justifyContent: 'center',
+          alignItems: 'center',
+          marginTop: 0,
+          marginBottom: 0,
         },
         tabBarLabelStyle: {
           fontSize: 10,
@@ -143,16 +160,19 @@ export default function TabLayout() {
           right: 20,
           height: 62,
           borderRadius: 31,
-          backgroundColor: 'rgba(0, 29, 57, 0.94)',
+          // Always dark pill — matches branding in both light + dark mode
+          backgroundColor: NAV_BG_LIGHT,
           borderTopWidth: 0,
           borderWidth: 1.5,
-          borderColor: 'rgba(123, 189, 232, 0.35)',
-          shadowColor: '#000000',
-          shadowOffset: { width: 0, height: 8 },
-          shadowOpacity: 0.35,
-          shadowRadius: 16,
-          elevation: 12,
+          borderColor: NAV_BORDER_LIGHT,
+          shadowColor: NAV_GLOW_LIGHT,
+          shadowOffset: { width: 0, height: 6 },
+          shadowOpacity: 0.20,
+          shadowRadius: 18,
+          elevation: 16,
           paddingHorizontal: 8,
+          paddingBottom: 0,
+          paddingTop: 0,
           alignItems: 'center',
           justifyContent: 'center',
         },
@@ -183,7 +203,7 @@ export default function TabLayout() {
                 <Ionicons name="chatbubbles" size={24} color={color} />
                 {totalUnreadCount > 0 && (
                   <View style={[styles.badge, { backgroundColor: colors.danger }]}>
-                    <Text style={[styles.badgeText, { color: colors.textInverse }]}>
+                    <Text style={[styles.badgeText, { color: '#FFFFFF' }]}>
                       {totalUnreadCount > 99 ? '99+' : totalUnreadCount}
                     </Text>
                   </View>
@@ -203,7 +223,7 @@ export default function TabLayout() {
                 <Ionicons name="warning" size={24} color={color} />
                 {sosUnreadCount > 0 && (
                   <View style={[styles.badge, { backgroundColor: colors.danger }]}>
-                    <Text style={[styles.badgeText, { color: colors.textInverse }]}>{sosUnreadCount > 99 ? '99+' : sosUnreadCount}</Text>
+                    <Text style={[styles.badgeText, { color: '#FFFFFF' }]}>{sosUnreadCount > 99 ? '99+' : sosUnreadCount}</Text>
                   </View>
                 )}
               </View>,
@@ -228,6 +248,16 @@ export default function TabLayout() {
 }
 
 const styles = StyleSheet.create({
+  tabIconWrapper: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 34,
+    minWidth: 40,
+    overflow: 'visible',
+  },
+  glowRing: {
+    position: 'absolute',
+  },
   badge: {
     position: 'absolute',
     top: -6,

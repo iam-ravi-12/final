@@ -1,6 +1,7 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import authService, { AuthResponse } from '../services/authService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { decodeJwt } from '../utils/helpers';
 
 interface AuthContextType {
   user: AuthResponse | null;
@@ -30,6 +31,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (currentUser) {
         // Fetch fresh profile details from server on startup and update state/storage
         authService.getProfile().then(async (profile) => {
+          const decoded = currentUser.token ? decodeJwt(currentUser.token) : null;
+          const role = decoded?.role || currentUser.role || 'USER';
+
           const updated = {
             ...currentUser,
             name: profile.name,
@@ -38,6 +42,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             location: profile.location,
             profilePicture: profile.profilePicture,
             profileCompleted: profile.profileCompleted,
+            role: role,
           };
           setUser(updated);
           await AsyncStorage.setItem('user', JSON.stringify(updated));

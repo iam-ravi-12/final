@@ -34,8 +34,8 @@ const getWsUrl = (): string => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 const INITIAL_RECONNECT_DELAY = 2_000;    // 2 seconds
-const MAX_RECONNECT_DELAY     = 30_000;   // 30 seconds
-const RECONNECT_MULTIPLIER    = 2;
+const MAX_RECONNECT_DELAY = 30_000;   // 30 seconds
+const RECONNECT_MULTIPLIER = 2;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Singleton

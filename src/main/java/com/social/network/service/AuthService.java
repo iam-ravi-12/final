@@ -57,6 +57,8 @@ public class AuthService {
         user.setPassword(passwordEncoder.encode(signupRequest.getPassword()));
         user.setProfileCompleted(false);
         user.setEmailVerified(false);
+        user.setRole(com.social.network.entity.Role.USER);
+        user.setStatus(com.social.network.entity.AccountStatus.ACTIVE);
 
         User savedUser = userRepository.save(user);
 
@@ -123,12 +125,7 @@ public class AuthService {
         userRepository.save(user);
 
         // Create authentication token manually since user has verified via OTP
-        UserDetailsImpl userDetails = new UserDetailsImpl(
-                user.getId(),
-                user.getUsername(),
-                user.getEmail(),
-                user.getPassword()
-        );
+        UserDetailsImpl userDetails = UserDetailsImpl.build(user);
         
         Authentication auth = new UsernamePasswordAuthenticationToken(
                 userDetails,

@@ -164,9 +164,9 @@ export default function AppSplashScreen({ onFinish, ready }: AppSplashScreenProp
   );
 }
 
-const BLUE_DARK  = '#0a2d8f';
-const BLUE_MID   = '#1a55e0';
-const BLUE_LIGHT = '#3b82f6';
+const BLUE_DARK  = '#070B14';
+const BLUE_MID   = '#0D1829';
+const BLUE_LIGHT = '#38BDF8';
 
 const styles = StyleSheet.create({
   container: {
@@ -180,25 +180,25 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 0, left: 0, right: 0,
     height: height * 0.55,
-    backgroundColor: BLUE_MID,
+    backgroundColor: '#0F1E38',
     borderBottomLeftRadius: width,
     borderBottomRightRadius: width,
-    opacity: 0.5,
+    opacity: 0.6,
   },
   gradientBottom: {
     position: 'absolute',
     bottom: 0, left: 0, right: 0,
     height: height * 0.3,
-    backgroundColor: '#061a5e',
+    backgroundColor: '#030508',
     borderTopLeftRadius: width * 0.8,
     borderTopRightRadius: width * 0.8,
-    opacity: 0.6,
+    opacity: 0.8,
   },
   circle: {
     position: 'absolute',
     borderRadius: 9999,
     backgroundColor: BLUE_LIGHT,
-    opacity: 0.08,
+    opacity: 0.06,
   },
   circleLarge:  { width: 420, height: 420, top: -100, right: -120 },
   circleMedium: { width: 260, height: 260, bottom: 60, left: -80 },

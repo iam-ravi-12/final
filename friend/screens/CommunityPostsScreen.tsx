@@ -263,11 +263,8 @@ export default function CommunityPostsScreen() {
   const renderPost = ({ item, isPending = false }: { item: CommunityPostResponse; isPending?: boolean }) => {
     const initial = item.username.charAt(0).toUpperCase();
 
-    const glassBg = isDark ? 'rgba(10, 37, 66, 0.68)' : 'rgba(255, 255, 255, 0.78)';
-    const glassBorder = isDark ? 'rgba(123, 189, 232, 0.22)' : 'rgba(189, 216, 233, 0.6)';
-
     return (
-      <View style={[styles.postCard, { backgroundColor: glassBg, borderColor: glassBorder, borderWidth: 1, shadowColor: colors.shadow }]}>
+      <View style={[styles.postCard, { backgroundColor: colors.cardGlassBg, borderColor: colors.cardGlassBorder, borderWidth: 1, shadowColor: isDark ? 'rgba(56, 189, 248, 0.06)' : colors.shadow }]}>
         <View style={styles.postHeader}>
           <TouchableOpacity
             onPress={() => router.push(`/user/${item.userId}`)}
@@ -329,11 +326,8 @@ export default function CommunityPostsScreen() {
   };
 
   const renderMember = ({ item }: { item: CommunityMemberResponse }) => {
-    const glassBg = isDark ? 'rgba(10, 37, 66, 0.68)' : 'rgba(255, 255, 255, 0.78)';
-    const glassBorder = isDark ? 'rgba(123, 189, 232, 0.22)' : 'rgba(189, 216, 233, 0.6)';
-
     return (
-      <View style={[styles.memberCard, { backgroundColor: glassBg, borderColor: glassBorder, borderWidth: 1, shadowColor: colors.shadow }]}>
+      <View style={[styles.memberCard, { backgroundColor: colors.cardGlassBg, borderColor: colors.cardGlassBorder, borderWidth: 1, shadowColor: isDark ? 'rgba(56, 189, 248, 0.06)' : colors.shadow }]}>
         <TouchableOpacity
           style={styles.memberInfo}
           onPress={() => router.push(`/user/${item.userId}`)}
@@ -399,7 +393,7 @@ export default function CommunityPostsScreen() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
       {/* Top Gradient Header Container */}
-      <View style={{ backgroundColor: isDark ? 'rgba(0, 29, 57, 0.95)' : 'rgba(235, 244, 249, 0.92)' }}>
+      <View style={{ backgroundColor: isDark ? 'rgba(8, 12, 22, 0.97)' : 'rgba(235, 244, 249, 0.92)' }}>
         {/* Community Details Banner & Inline Back Button */}
         <View style={styles.communityBanner}>
           <TouchableOpacity 
