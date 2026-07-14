@@ -58,10 +58,16 @@ export default function AdminLayout() {
           alignItems: 'center',
           overflow: 'visible',
           height: '100%',
+          paddingTop: 0,
+          paddingBottom: 0,
         },
         tabBarIconStyle: {
+          flex: 1,
           justifyContent: 'center',
           alignItems: 'center',
+          marginTop: 0,
+          marginBottom: 0,
+          width: '100%',
         },
         tabBarStyle: {
           position: 'absolute',
@@ -138,9 +144,10 @@ export default function AdminLayout() {
 
 const styles = StyleSheet.create({
   tabIconWrapper: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    height: 34,
+    width: '100%',
     minWidth: 40,
     overflow: 'visible',
   },

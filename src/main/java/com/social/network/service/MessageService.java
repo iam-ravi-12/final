@@ -43,6 +43,7 @@ public class MessageService {
         message.setContent(request.getContent() != null ? request.getContent() : "");
         message.setMediaUrl(request.getMediaUrl());
         message.setMediaType(request.getMediaType());
+        message.setFileName(request.getFileName());
         message.setIsRead(false);
 
         Message savedMessage = messageRepository.save(message);
@@ -191,6 +192,7 @@ public class MessageService {
         response.setContent(message.getContent());
         response.setMediaUrl(message.getMediaUrl());
         response.setMediaType(message.getMediaType());
+        response.setFileName(message.getFileName());
         response.setIsRead(message.getIsRead());
         response.setCreatedAt(message.getCreatedAt());
         return response;

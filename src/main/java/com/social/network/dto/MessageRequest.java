@@ -18,4 +18,6 @@ public class MessageRequest {
     private String mediaUrl;
 
     private String mediaType;
+
+    private String fileName;
 }

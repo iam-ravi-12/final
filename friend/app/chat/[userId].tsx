@@ -19,6 +19,8 @@ import { useLocalSearchParams, Stack, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
+import * as FileSystem from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
 import { Audio, Video, ResizeMode } from 'expo-av';
 import messageService, { MessageResponse } from '../../services/messageService';
 import { uploadMedia } from '../../services/mediaUploadService';
@@ -37,7 +39,7 @@ const MEDIA_MAX_WIDTH = SCREEN_WIDTH * 0.65;
 interface PendingAttachment {
   uri: string;
   mimeType: string;
-  mediaType: 'image' | 'video' | 'audio';
+  mediaType: 'image' | 'video' | 'audio' | 'document';
   fileName?: string;
 }
 
@@ -197,6 +199,27 @@ export default function ChatScreen() {
     }
   };
 
+  const pickDocument = async () => {
+    setShowAttachMenu(false);
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: 'application/pdf',
+        copyToCacheDirectory: true,
+      });
+      if (!result.canceled && result.assets[0]) {
+        const asset = result.assets[0];
+        setAttachment({
+          uri: asset.uri,
+          mimeType: asset.mimeType || 'application/pdf',
+          mediaType: 'document',
+          fileName: asset.name || 'document.pdf',
+        });
+      }
+    } catch (e) {
+      console.warn('Document picker error:', e);
+    }
+  };
+
   const removeAttachment = () => {
     setAttachment(null);
   };
@@ -235,6 +258,7 @@ export default function ChatScreen() {
         content: messageContent || (mediaType ? `📎 ${mediaType}` : ''),
         mediaUrl,
         mediaType,
+        fileName: currentAttachment?.fileName,
       });
 
       // Optimistic update
@@ -270,6 +294,33 @@ export default function ChatScreen() {
       : first.senderUsername;
   };
 
+  // ── PDF download handler ──────────────────────────────────────────
+  const handleDownloadPdf = async (url: string, fileName: string) => {
+    try {
+      Alert.alert('Downloading', `Downloading ${fileName}...`);
+      const fileUri = `${FileSystem.documentDirectory}${fileName}`;
+      const downloadResult = await FileSystem.downloadAsync(url, fileUri);
+
+      if (downloadResult.status !== 200) {
+        Alert.alert('Error', 'Failed to download file.');
+        return;
+      }
+
+      const canShare = await Sharing.isAvailableAsync();
+      if (canShare) {
+        await Sharing.shareAsync(downloadResult.uri, {
+          mimeType: 'application/pdf',
+          dialogTitle: `Open ${fileName}`,
+        });
+      } else {
+        Alert.alert('Downloaded', `File saved to ${downloadResult.uri}`);
+      }
+    } catch (error) {
+      console.error('PDF download error:', error);
+      Alert.alert('Error', 'Failed to download the PDF file.');
+    }
+  };
+
   // ── Render media inside a message bubble ────────────────────────────
   const renderMediaContent = (item: MessageResponse, isOwnMessage: boolean) => {
     if (!item.mediaUrl) return null;
@@ -303,6 +354,38 @@ export default function ChatScreen() {
 
     if (item.mediaType === 'audio') {
       return <AudioPlayer uri={item.mediaUrl} colors={colors} />;
+    }
+
+    if (item.mediaType === 'document') {
+      return (
+        <TouchableOpacity
+          onPress={() => handleDownloadPdf(item.mediaUrl!, item.fileName || 'document.pdf')}
+          activeOpacity={0.7}
+          style={[styles.pdfCard, { backgroundColor: isOwnMessage ? 'rgba(255,255,255,0.15)' : colors.inputBg }]}
+        >
+          <View style={[styles.pdfIconBox, { backgroundColor: isOwnMessage ? 'rgba(255,255,255,0.2)' : 'rgba(239,68,68,0.1)' }]}>
+            <Ionicons name="document-text" size={28} color={isOwnMessage ? '#fff' : '#EF4444'} />
+          </View>
+          <View style={styles.pdfInfo}>
+            <Text
+              style={[styles.pdfFileName, { color: isOwnMessage ? '#fff' : colors.textPrimary }]}
+              numberOfLines={1}
+              ellipsizeMode="middle"
+            >
+              {item.fileName || 'document.pdf'}
+            </Text>
+            <Text style={[styles.pdfHint, { color: isOwnMessage ? 'rgba(255,255,255,0.7)' : colors.textTertiary }]}>
+              PDF • Tap to download
+            </Text>
+          </View>
+          <Ionicons
+            name="download-outline"
+            size={22}
+            color={isOwnMessage ? 'rgba(255,255,255,0.8)' : colors.accent}
+            style={{ marginLeft: 8 }}
+          />
+        </TouchableOpacity>
+      );
     }
 
     // Fallback: generic file link
@@ -425,6 +508,13 @@ export default function ChatScreen() {
                   <Ionicons name="videocam" size={24} color={colors.accent} />
                   <Text style={[styles.attachmentLabel, { color: colors.textSecondary }]}>Video</Text>
                 </View>
+              ) : attachment.mediaType === 'document' ? (
+                <View style={[styles.attachmentIconBox, { backgroundColor: isDark ? 'rgba(239,68,68,0.15)' : '#fef2f2' }]}>
+                  <Ionicons name="document-text" size={24} color="#EF4444" />
+                  <Text style={[styles.attachmentLabel, { color: colors.textSecondary }]} numberOfLines={1}>
+                    {attachment.fileName || 'PDF'}
+                  </Text>
+                </View>
               ) : (
                 <View style={[styles.attachmentIconBox, { backgroundColor: colors.inputBg }]}>
                   <Ionicons name="musical-notes" size={24} color={colors.accent} />
@@ -515,6 +605,12 @@ export default function ChatScreen() {
                   <Ionicons name="musical-notes" size={28} color="#FF9800" />
                 </View>
                 <Text style={[styles.attachMenuLabel, { color: colors.textSecondary }]}>Audio</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.attachMenuOption} onPress={pickDocument}>
+                <View style={[styles.attachMenuIcon, { backgroundColor: isDark ? 'rgba(239,68,68,0.15)' : '#fef2f2' }]}>
+                  <Ionicons name="document-text" size={28} color="#EF4444" />
+                </View>
+                <Text style={[styles.attachMenuLabel, { color: colors.textSecondary }]}>PDF</Text>
               </TouchableOpacity>
             </View>
             <TouchableOpacity
@@ -727,6 +823,34 @@ const styles = StyleSheet.create({
   genericFileText: {
     fontSize: 14,
     fontWeight: '500',
+  },
+
+  // ── PDF card in bubbles ───────────────────────────────────────────
+  pdfCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderRadius: 12,
+    minWidth: 220,
+  },
+  pdfIconBox: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
+  },
+  pdfInfo: {
+    flex: 1,
+  },
+  pdfFileName: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  pdfHint: {
+    fontSize: 11,
+    marginTop: 2,
   },
 
   // ── Audio player ──────────────────────────────────────────────────

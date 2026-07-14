@@ -19,6 +19,7 @@ public class MessageResponse {
     private String content;
     private String mediaUrl;
     private String mediaType;
+    private String fileName;
     private Boolean isRead;
     private LocalDateTime createdAt;
 }

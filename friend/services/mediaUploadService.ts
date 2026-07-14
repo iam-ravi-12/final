@@ -25,6 +25,7 @@ function getExtension(mimeType: string): string {
     'audio/x-wav': 'wav',
     'audio/aac': 'aac',
     'audio/ogg': 'ogg',
+    'application/pdf': 'pdf',
   };
   return map[mimeType] ?? mimeType.split('/')[1]?.split(';')[0] ?? 'bin';
 }

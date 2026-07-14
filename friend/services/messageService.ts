@@ -5,6 +5,7 @@ export interface MessageData {
   content: string;
   mediaUrl?: string;
   mediaType?: string;
+  fileName?: string;
 }
 
 export interface MessageResponse {
@@ -14,6 +15,7 @@ export interface MessageResponse {
   content: string;
   mediaUrl?: string;
   mediaType?: string;
+  fileName?: string;
   isRead: boolean;
   createdAt: string;
   senderUsername: string;

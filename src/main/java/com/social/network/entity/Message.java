@@ -36,6 +36,9 @@ public class Message {
     @Column(name = "media_type", length = 20)
     private String mediaType;
 
+    @Column(name = "file_name")
+    private String fileName;
+
     @Column(name = "is_read")
     private Boolean isRead = false;
 

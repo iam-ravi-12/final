@@ -145,6 +145,8 @@ public class MediaUploadController {
                 case "wav"         -> "audio/wav";
                 case "ogg"         -> "audio/ogg";
                 case "flac"        -> "audio/flac";
+                // ── Documents ─────────────────────────────────────────────────
+                case "pdf"         -> "application/pdf";
                 default            -> "application/octet-stream";
             };
         }

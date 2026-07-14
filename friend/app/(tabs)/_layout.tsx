@@ -142,16 +142,12 @@ export default function TabLayout() {
           paddingBottom: 0,
         },
         tabBarIconStyle: {
+          flex: 1,
           justifyContent: 'center',
           alignItems: 'center',
           marginTop: 0,
           marginBottom: 0,
-        },
-        tabBarLabelStyle: {
-          fontSize: 10,
-          fontWeight: '600',
-          marginTop: 0,
-          paddingBottom: 2,
+          width: '100%',
         },
         tabBarStyle: {
           position: 'absolute',
@@ -249,9 +245,10 @@ export default function TabLayout() {
 
 const styles = StyleSheet.create({
   tabIconWrapper: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    height: 34,
+    width: '100%',
     minWidth: 40,
     overflow: 'visible',
   },

@@ -276,6 +276,8 @@ public class CloudinaryService {
             case "audio/flac"       -> "flac";
             case "audio/3gpp"       -> "3gp";
             case "audio/amr"        -> "amr";
+            // ── Documents ──────────────────────────────────────────────────
+            case "application/pdf"  -> "pdf";
             default                 -> null;
         };
     }
