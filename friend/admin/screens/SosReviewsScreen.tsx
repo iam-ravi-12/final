@@ -144,14 +144,23 @@ export default function SosReviewsScreen() {
                 <View style={styles.detailItem}>
                   <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>Raised By / For:</Text>
                   <Text style={[styles.detailValue, { color: colors.textPrimary }]}>
-                    @{item.alertOwnerUsername} (Self)
+                    @{item.alertOwnerUsername} ({item.alertOwnerEmail})
                   </Text>
                 </View>
 
+                {(item.alertLatitude !== undefined && item.alertLongitude !== undefined) && (
+                  <View style={styles.detailItem}>
+                    <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>Coordinates:</Text>
+                    <Text style={[styles.detailValue, { color: colors.textPrimary }]}>
+                      🌐 Lat: {item.alertLatitude}, Lon: {item.alertLongitude}
+                    </Text>
+                  </View>
+                )}
+
                 {item.alertLocationAddress && (
                   <View style={styles.detailItem}>
-                    <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>Location:</Text>
-                    <Text style={[styles.detailValue, { color: colors.textPrimary }]} numberOfLines={1}>
+                    <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>Address:</Text>
+                    <Text style={[styles.detailValue, { color: colors.textPrimary }]} numberOfLines={2}>
                       📍 {item.alertLocationAddress}
                     </Text>
                   </View>
@@ -172,7 +181,7 @@ export default function SosReviewsScreen() {
                 <View style={styles.responderHeader}>
                   <Ionicons name="people-circle" size={24} color={colors.accent} />
                   <Text style={[styles.responderName, { color: colors.textPrimary }]}>
-                    Responder: @{item.responderUsername}
+                    Responder: @{item.responderUsername} ({item.responderEmail})
                   </Text>
                 </View>
 

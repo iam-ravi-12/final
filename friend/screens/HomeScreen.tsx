@@ -223,7 +223,12 @@ export default function HomeScreen() {
       <View style={styles.postHeader}>
         <View style={styles.userInfo}>
           <TouchableOpacity
-            onPress={() => router.push(`/user/${item.userId}`)}
+            onPress={() => {
+              if (item.userId) {
+                router.push(`/user/${item.userId}`);
+              }
+            }}
+            disabled={!item.userId}
             activeOpacity={0.7}
           >
             {item.userProfilePicture ? (
@@ -240,13 +245,26 @@ export default function HomeScreen() {
             )}
           </TouchableOpacity>
           <View style={styles.userInfoText}>
-            <Text style={[styles.username, { color: colors.textPrimary }]}>{item.username}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+              <Text style={[styles.username, { color: colors.textPrimary }]}>{item.username}</Text>
+              {item.isAnonymous && (
+                <Text style={{ fontSize: 10, fontStyle: 'italic', color: colors.textSecondary }}>
+                  {item.userId === user?.id ? '(You - Anon)' : '(Anon)'}
+                </Text>
+              )}
+            </View>
             <Text style={[styles.profession, { color: colors.textSecondary }]}>{item.userProfession}</Text>
           </View>
         </View>
         
         <View style={styles.postHeaderRight}>
           <Text style={[styles.timestamp, { color: colors.textTertiary }]}>{formatTimeAgo(item.createdAt)}</Text>
+
+            {item.isAnonymous && (
+              <View style={[styles.helpBadge, { backgroundColor: '#6B7280', marginRight: 4 }]}>
+                <Text style={[styles.helpBadgeText, { color: '#fff' }]}>Anonymous</Text>
+              </View>
+            )}
 
             {item.isHelpSection && (
                 <View style={[styles.helpBadge, { backgroundColor: colors.warning }]}>

@@ -96,7 +96,7 @@ const PostDetail = () => {
   };
 
   const handleProfileClick = (userId, username, profession) => {
-    if (userId === currentUser?.id) return;
+    if (!userId || userId === currentUser?.id) return;
     
     navigate('/messages', {
       state: {
@@ -137,13 +137,24 @@ const PostDetail = () => {
             <div className="post-user-info">
               <div 
                 className="post-avatar"
-                onClick={() => handleProfileClick(post.userId, post.username, post.userProfession)}
-                style={{ cursor: post.userId !== currentUser?.id ? 'pointer' : 'default' }}
+                onClick={() => {
+                  if (post.userId) {
+                    handleProfileClick(post.userId, post.username, post.userProfession);
+                  }
+                }}
+                style={{ cursor: post.userId && post.userId !== currentUser?.id ? 'pointer' : 'default' }}
               >
                 {post.username.charAt(0).toUpperCase()}
               </div>
               <div className="post-details">
-                <h4 className="post-username">{post.username}</h4>
+                <h4 className="post-username">
+                  {post.username}
+                  {post.isAnonymous && (
+                    <span className="anon-label" style={{ fontSize: '0.8rem', fontStyle: 'italic', marginLeft: '6px', color: '#6B7280' }}>
+                      {post.userId === currentUser?.id ? '(You - Anon)' : '(Anon)'}
+                    </span>
+                  )}
+                </h4>
                 <p className="post-profession">{post.userProfession}</p>
               </div>
             </div>
@@ -151,7 +162,7 @@ const PostDetail = () => {
               <div className="post-time">
                 {formatDate(post.createdAt)}
               </div>
-              {currentUser?.id !== post.userId && (
+              {post.userId && currentUser?.id !== post.userId && (
                 <div className="post-menu-container" style={{ position: 'relative' }}>
                   <button className="post-menu-btn" onClick={() => setShowMenu(!showMenu)}>
                     ⋮
@@ -195,8 +206,14 @@ const PostDetail = () => {
             </div>
           )}
 
+          {post.isAnonymous && (
+            <div className="post-badge" style={{ display: 'inline-block', marginRight: '6px' }}>
+              <span className="help-badge" style={{ backgroundColor: '#6B7280', color: '#fff' }}>🔒 Anonymous</span>
+            </div>
+          )}
+
           {post.isHelpSection && (
-            <div className="post-badge">
+            <div className="post-badge" style={{ display: 'inline-block' }}>
               <span className="help-badge">Help Request</span>
             </div>
           )}

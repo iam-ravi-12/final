@@ -44,6 +44,7 @@ public class PostService {
         post.setContent(postRequest.getContent());
         post.setIsHelpSection(postRequest.getIsHelpSection());
         post.setShowInHome(postRequest.getShowInHome());
+        post.setIsAnonymous(postRequest.getIsAnonymous() != null ? postRequest.getIsAnonymous() : false);
         post.setUser(user);
         post.setUserProfession(user.getProfession());
         
@@ -143,8 +144,12 @@ public class PostService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
         User currentUser = currentUsername != null ? userRepository.findByUsername(currentUsername).orElse(null) : null;
         
+        boolean canSeeAll = currentUser != null && 
+                (currentUser.getRole() == com.social.network.entity.Role.ADMIN || currentUser.getId().equals(userId));
+
         return postRepository.findByUserOrderByCreatedAtDesc(user)
                 .stream()
+                .filter(post -> post.getIsAnonymous() == null || !post.getIsAnonymous() || canSeeAll)
                 .map(post -> convertToResponse(post, currentUser))
                 .collect(Collectors.toList());
     }
@@ -183,6 +188,7 @@ public class PostService {
         post.setContent(postRequest.getContent());
         post.setIsHelpSection(postRequest.getIsHelpSection());
         post.setShowInHome(postRequest.getShowInHome());
+        post.setIsAnonymous(postRequest.getIsAnonymous() != null ? postRequest.getIsAnonymous() : false);
         
         // Handle media URLs
         if (postRequest.getMediaUrls() != null && !postRequest.getMediaUrls().isEmpty()) {
@@ -254,10 +260,22 @@ public class PostService {
             response.setMediaUrls(List.of(post.getMediaUrls().split("\\|\\|\\|MEDIA_SEPARATOR\\|\\|\\|")));
         }
         
-        response.setUserId(post.getUser().getId());
-        response.setUsername(post.getUser().getUsername());
-        response.setUserProfession(post.getUserProfession());
-        response.setUserProfilePicture(post.getUser().getProfilePicture());
+        boolean canSeeAuthor = currentUser != null && 
+                (currentUser.getRole() == com.social.network.entity.Role.ADMIN || post.getUser().getId().equals(currentUser.getId()));
+        
+        if (Boolean.TRUE.equals(post.getIsAnonymous()) && !canSeeAuthor) {
+            response.setUserId(null);
+            response.setUsername("Anonymous");
+            response.setUserProfession("Anonymous User");
+            response.setUserProfilePicture(null);
+        } else {
+            response.setUserId(post.getUser().getId());
+            response.setUsername(post.getUser().getUsername());
+            response.setUserProfession(post.getUserProfession());
+            response.setUserProfilePicture(post.getUser().getProfilePicture());
+        }
+        
+        response.setIsAnonymous(post.getIsAnonymous() != null ? post.getIsAnonymous() : false);
         response.setCreatedAt(post.getCreatedAt());
         response.setLikeCount(likeRepository.countByPost(post));
         response.setCommentCount(commentRepository.countByPost(post));

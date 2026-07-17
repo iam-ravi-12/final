@@ -7,6 +7,7 @@ const CreatePost = ({ onPostCreated, onCancel, isHelpSection }) => {
   const [content, setContent] = useState('');
   const [isHelp, setIsHelp] = useState(isHelpSection || false);
   const [showInHome, setShowInHome] = useState(true);
+  const [isAnonymous, setIsAnonymous] = useState(false);
   const [mediaFiles, setMediaFiles] = useState([]);
   const [mediaPreview, setMediaPreview] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -81,10 +82,11 @@ const CreatePost = ({ onPostCreated, onCancel, isHelpSection }) => {
     setError('');
 
     try {
-      await postService.createPost(content, isHelp, mediaFiles, showInHome);
+      await postService.createPost(content, isHelp, mediaFiles, showInHome, isHelp ? isAnonymous : false);
       setContent('');
       setMediaFiles([]);
       setMediaPreview([]);
+      setIsAnonymous(false);
       onPostCreated();
     } catch (err) {
       setError(err.response?.data || 'Failed to create post. Please try again.');
@@ -139,11 +141,26 @@ const CreatePost = ({ onPostCreated, onCancel, isHelpSection }) => {
               <input
                 type="checkbox"
                 checked={isHelp}
-                onChange={(e) => setIsHelp(e.target.checked)}
+                onChange={(e) => {
+                  setIsHelp(e.target.checked);
+                  if (!e.target.checked) setIsAnonymous(false);
+                }}
                 disabled={loading}
               />
               Mark as Help Request
             </label>
+
+            {isHelp && (
+              <label className="checkbox-label checkbox-anonymous" style={{ color: '#6B7280', fontWeight: 'bold' }}>
+                <input
+                  type="checkbox"
+                  checked={isAnonymous}
+                  onChange={(e) => setIsAnonymous(e.target.checked)}
+                  disabled={loading}
+                />
+                Post Anonymously 🔒
+              </label>
+            )}
             
             <label className="checkbox-label">
               <input

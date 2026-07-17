@@ -21,6 +21,10 @@ public class SosResponseResponse {
     private Boolean confirmedByAlertOwner;
     private String status;
     private String alertOwnerUsername;
+    private String alertOwnerEmail;
+    private String responderEmail;
+    private Double alertLatitude;
+    private Double alertLongitude;
     private String alertEmergencyType;
     private String alertDescription;
     private String alertLocationAddress;

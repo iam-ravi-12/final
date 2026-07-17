@@ -94,6 +94,10 @@ export interface AdminSosResponse {
   confirmedByAlertOwner: boolean;
   status: 'PENDING' | 'APPROVED' | 'REJECTED';
   alertOwnerUsername: string;
+  alertOwnerEmail: string;
+  responderEmail: string;
+  alertLatitude?: number;
+  alertLongitude?: number;
   alertEmergencyType: string;
   alertDescription?: string;
   alertLocationAddress?: string;

@@ -27,4 +27,5 @@ public class PostResponse {
     private long commentCount;
     @JsonProperty("isLiked")
     private boolean liked;
+    private Boolean isAnonymous;
 }

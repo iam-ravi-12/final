@@ -19,5 +19,7 @@ public class PostRequest {
     
     private Boolean showInHome = true;
     
+    private Boolean isAnonymous = false;
+    
     private List<String> mediaUrls;
 }

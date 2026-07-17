@@ -1,8 +1,30 @@
-# Walkthrough: Community, Reports, and SOS Admin Upgrades
+# Walkthrough: Community, Reports, SOS Admin, and Anonymous Help Upgrades
 
-We have successfully completed the implementation for SOS Admin Reviews, community editing & deletion capabilities, customizable user reports, and a premium admin dashboard panel across the Java Spring Boot backend, React Native mobile application, and React web application.
+We have successfully completed the implementation for SOS Admin Reviews, anonymous help requests, community editing & deletion capabilities, customizable user reports, and a premium admin dashboard panel across the Java Spring Boot backend, React Native mobile application, and React web application.
 
-## SOS Admin Review & Verification (New Feature)
+## Anonymous Help Requests (New Feature)
+
+- **Workflow Description:**
+  - Users can toggle a "Post Anonymously" option when submitting a post in the Help section.
+  - Useful for sensitive topics like **Mental Health**, **Career Advice**, and **Personal Issues**.
+  - **Identity Masking:** For regular users, the author's name shows as "Anonymous", their profile picture is hidden, user profession is genericized to "Anonymous User", and any profile navigation/actions are fully disabled.
+  - **Admin & Author visibility:** Post authors see a label `(You - Anon)`. Administrators see the original author's details alongside an `(Anon)` tag to retain auditing control, complying with: *"Admins can still see the original user."*
+  - **Profile Feed Protection:** Anonymous help posts are automatically filtered out from users' public profile lists unless viewed by the author themselves or an administrator.
+- **Database Migrations:**
+  - Created `ANONYMOUS_HELP_MIGRATION.sql` to add `is_anonymous` (BOOLEAN, default `FALSE`) to the `posts` table.
+- **Backend Service & Controllers:**
+  - Updated `Post.java` entity, `PostRequest.java` and `PostResponse.java` DTOs.
+  - Updated `PostService.java` to set `isAnonymous` upon creation/update, implement masking logic in response conversion, and filter user post lists based on permissions.
+- **Mobile Frontend (React Native / Expo):**
+  - Updated `CreatePostScreen.tsx` with a toggle switch to post anonymously.
+  - Updated `HomeScreen.tsx` and `PostDetailScreen.tsx` to conditionally block navigation and show appropriate tag labels.
+- **Web Frontend (React):**
+  - Updated `CreatePost.js` form with the anonymous request toggle checkbox.
+  - Updated `PostCard.js` and `PostDetail.js` to mask author avatar clicks and render appropriate badges.
+
+---
+
+## SOS Admin Review & Verification
 
 - **Workflow Description:**
   - When an SOS alert is raised and another user responds/reacts to it, the responder's points are held pending admin review.

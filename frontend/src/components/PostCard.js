@@ -25,6 +25,7 @@ const PostCard = ({ post, onPostUpdate }) => {
 
   const handleProfileClick = (e) => {
     e.stopPropagation();
+    if (!post.userId) return;
     // Don't allow messaging yourself
     if (post.userId === currentUser?.id) {
       return;
@@ -143,7 +144,8 @@ const PostCard = ({ post, onPostUpdate }) => {
         editContent,
         post.isHelpSection,
         post.mediaUrls || [],
-        post.showInHome
+        post.showInHome,
+        post.isAnonymous || false
       );
       setShowEditModal(false);
       if (onPostUpdate) onPostUpdate();
@@ -183,8 +185,8 @@ const PostCard = ({ post, onPostUpdate }) => {
           <div 
             className="post-avatar" 
             onClick={handleProfileClick}
-            style={{ cursor: post.userId !== currentUser?.id ? 'pointer' : 'default' }}
-            title={post.userId !== currentUser?.id ? 'Click to message' : ''}
+            style={{ cursor: post.userId && post.userId !== currentUser?.id ? 'pointer' : 'default' }}
+            title={post.userId && post.userId !== currentUser?.id ? 'Click to message' : ''}
           >
             {post.userProfilePicture ? (
               <img src={post.userProfilePicture} alt={post.username} className="post-avatar-img" />
@@ -193,7 +195,14 @@ const PostCard = ({ post, onPostUpdate }) => {
             )}
           </div>
           <div className="post-details">
-            <h4 className="post-username">{post.username}</h4>
+            <h4 className="post-username">
+              {post.username}
+              {post.isAnonymous && (
+                <span className="anon-label" style={{ fontSize: '0.8rem', fontStyle: 'italic', marginLeft: '6px', color: '#6B7280' }}>
+                  {post.userId === currentUser?.id ? '(You - Anon)' : '(Anon)'}
+                </span>
+              )}
+            </h4>
             <p className="post-profession">{post.userProfession}</p>
           </div>
         </div>
@@ -231,6 +240,11 @@ const PostCard = ({ post, onPostUpdate }) => {
               </div>
             )}
           </div>
+          {post.isAnonymous && (
+            <div className="help-status-badge anonymous-badge" style={{ backgroundColor: '#6B7280', color: '#fff', marginRight: '6px' }}>
+              🔒 Anonymous
+            </div>
+          )}
           {post.isHelpSection && (
             <div className="help-status-badge">
               {isSolved ? '✅ Solved' : '🆘 Help Request'}

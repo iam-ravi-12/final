@@ -35,6 +35,9 @@ public class Post {
     @Column(name = "show_in_home")
     private Boolean showInHome = true;
 
+    @Column(name = "is_anonymous")
+    private Boolean isAnonymous = false;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;

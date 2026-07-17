@@ -40,6 +40,7 @@ export default function CreatePostScreen() {
   const [uploadStatus, setUploadStatus] = useState('');
   const [cameraVisible, setCameraVisible] = useState(false);
   const [audioRecorderVisible, setAudioRecorderVisible] = useState(false);
+  const [isAnonymous, setIsAnonymous] = useState(false);
   const { colors, isDark } = useAppTheme();
 
   const pickImage = async () => {
@@ -214,6 +215,7 @@ export default function CreatePostScreen() {
         content,
         isHelpSection,
         showInHome,
+        isAnonymous: isHelpSection ? isAnonymous : false,
       };
       
       if (selectedMedia?.payload) {
@@ -225,6 +227,7 @@ export default function CreatePostScreen() {
       setContent('');
       setSelectedMedia(null);
       setIsHelpSection(false);
+      setIsAnonymous(false);
       setShowInHome(true);
       router.back();
     } catch (error: any) {
@@ -351,12 +354,33 @@ export default function CreatePostScreen() {
           </View>
           <Switch
             value={isHelpSection}
-            onValueChange={setIsHelpSection}
+            onValueChange={(val) => {
+              setIsHelpSection(val);
+              if (!val) setIsAnonymous(false);
+            }}
             disabled={loading}
             trackColor={{ false: colors.surfaceBorder, true: colors.accent }}
             thumbColor={colors.surface}
           />
         </View>
+
+        {isHelpSection && (
+          <View style={[styles.option, { backgroundColor: colors.surface }]}>
+            <View style={{ flex: 1, marginRight: 16 }}>
+              <Text style={[styles.optionLabel, { color: colors.textPrimary }]}>Post Anonymously</Text>
+              <Text style={[styles.optionDescription, { color: colors.textSecondary }]}>
+                Hide your identity. Useful for mental health, career advice, and personal issues. Admins can still see your identity.
+              </Text>
+            </View>
+            <Switch
+              value={isAnonymous}
+              onValueChange={setIsAnonymous}
+              disabled={loading}
+              trackColor={{ false: colors.surfaceBorder, true: colors.accent }}
+              thumbColor={colors.surface}
+            />
+          </View>
+        )}
 
         <View style={[styles.option, { backgroundColor: colors.surface }]}>
           <View>

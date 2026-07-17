@@ -5,6 +5,7 @@ export interface PostData {
   isHelpSection: boolean;
   showInHome?: boolean;
   mediaUrls?: string[];
+  isAnonymous?: boolean;
 }
 
 export interface CommentData {
@@ -27,6 +28,7 @@ export interface PostResponse {
   isLiked: boolean;
   createdAt: string;
   updatedAt: string;
+  isAnonymous?: boolean;
 }
 
 export interface CommentResponse {
