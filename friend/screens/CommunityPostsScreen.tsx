@@ -15,7 +15,9 @@ import {
   Platform,
   ScrollView,
   Share as RNShare,
+  Switch,
 } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -43,6 +45,13 @@ export default function CommunityPostsScreen() {
   const [pendingPosts, setPendingPosts] = useState<CommunityPostResponse[]>([]);
   const [members, setMembers] = useState<CommunityMemberResponse[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showEditCommunityModal, setShowEditCommunityModal] = useState(false);
+  const [editName, setEditName] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [editIsPrivate, setEditIsPrivate] = useState(false);
+  const [editProfilePic, setEditProfilePic] = useState<string | undefined>(undefined);
+  const [editProfilePicBase64, setEditProfilePicBase64] = useState<string | undefined>(undefined);
+  const [updatingCommunity, setUpdatingCommunity] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>('approved');
   const [showCreatePost, setShowCreatePost] = useState(false);
@@ -266,6 +275,92 @@ export default function CommunityPostsScreen() {
     return formatRelativeDate(dateString);
   };
 
+  const handleOpenEditCommunity = () => {
+    if (community) {
+      setEditName(community.name);
+      setEditDescription(community.description || '');
+      setEditIsPrivate(community.isPrivate);
+      setEditProfilePic(community.profilePicture);
+      setEditProfilePicBase64(undefined);
+      setShowEditCommunityModal(true);
+    }
+  };
+
+  const pickImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    
+    if (status !== 'granted') {
+      Alert.alert('Permission Denied', 'We need camera roll permissions to select a profile picture.');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+      base64: true,
+    });
+
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      const asset = result.assets[0];
+      setEditProfilePic(asset.uri);
+      
+      if (asset.base64) {
+        const mimeType = asset.uri.toLowerCase().endsWith('.png') ? 'image/png' : 'image/jpeg';
+        setEditProfilePicBase64(`data:${mimeType};base64,${asset.base64}`);
+      }
+    }
+  };
+
+  const handleSaveCommunity = async () => {
+    if (!editName.trim()) {
+      Alert.alert('Error', 'Community name cannot be empty');
+      return;
+    }
+
+    setUpdatingCommunity(true);
+    try {
+      const updated = await communityService.updateCommunity(communityId, {
+        name: editName.trim(),
+        description: editDescription.trim(),
+        isPrivate: editIsPrivate,
+        profilePicture: editProfilePicBase64 || editProfilePic,
+      });
+      setCommunity(updated);
+      Alert.alert('Success', 'Community updated successfully');
+      setShowEditCommunityModal(false);
+      loadCommunityData();
+    } catch (err: any) {
+      Alert.alert('Error', err.response?.data || err.message || 'Failed to update community');
+    } finally {
+      setUpdatingCommunity(false);
+    }
+  };
+
+  const handleDeletePost = (postId: number) => {
+    Alert.alert(
+      'Delete Post',
+      'Are you sure you want to delete this post? This action cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await communityService.deleteCommunityPost(postId);
+              Alert.alert('Success', 'Post deleted successfully');
+              loadCommunityData();
+            } catch (err: any) {
+              Alert.alert('Error', err.response?.data || err.message || 'Failed to delete post');
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const renderPost = ({ item, isPending = false }: { item: CommunityPostResponse; isPending?: boolean }) => {
     const initial = item.username.charAt(0).toUpperCase();
 
@@ -337,6 +432,18 @@ export default function CommunityPostsScreen() {
           >
             <Ionicons name="flag-outline" size={16} color={colors.danger} />
             <Text style={[styles.reportPostButtonText, { color: colors.danger }]}>Report</Text>
+          </TouchableOpacity>
+        )}
+
+        {/* Delete post button for admin or owner */}
+        {!isPending && (community?.isAdmin || user?.id === item.userId) && (
+          <TouchableOpacity
+            style={styles.deletePostBtn}
+            onPress={() => handleDeletePost(item.id)}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="trash-outline" size={16} color={colors.danger} />
+            <Text style={[styles.deletePostBtnText, { color: colors.danger }]}>Delete</Text>
           </TouchableOpacity>
         )}
 
@@ -474,6 +581,12 @@ export default function CommunityPostsScreen() {
           <TouchableOpacity onPress={handleShareCommunity} style={styles.shareIconButton}>
             <Ionicons name="share-outline" size={22} color={colors.accent} />
           </TouchableOpacity>
+
+          {community.isAdmin && (
+            <TouchableOpacity onPress={handleOpenEditCommunity} style={styles.shareIconButton}>
+              <Ionicons name="create-outline" size={22} color={colors.accent} />
+            </TouchableOpacity>
+          )}
 
           {!community.isAdmin && community.isMember && (
             <TouchableOpacity style={[styles.leaveButton, { backgroundColor: colors.surface, borderColor: colors.danger }]} onPress={handleLeaveCommunity}>
@@ -689,6 +802,113 @@ export default function CommunityPostsScreen() {
         onSubmit={(reason) => reportService.reportCommunity(communityId, reason)}
         entityType="community"
       />
+
+      {/* Edit Community Modal */}
+      <Modal
+        visible={showEditCommunityModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowEditCommunityModal(false)}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.modalContainer}
+        >
+          <View style={[styles.modalBackdrop, { backgroundColor: colors.overlay }]}>
+            <View style={[styles.modalContent, { backgroundColor: colors.surface }]}>
+              <View style={[styles.modalHeader, { borderBottomColor: colors.surfaceBorder }]}>
+                <Text style={[styles.modalTitle, { color: colors.textPrimary }]}>Edit Community</Text>
+                <TouchableOpacity onPress={() => setShowEditCommunityModal(false)}>
+                  <Ionicons name="close" size={24} color={colors.textPrimary} />
+                </TouchableOpacity>
+              </View>
+
+              <ScrollView style={styles.modalBody}>
+                {/* Pick Profile Picture */}
+                <View style={styles.profilePicPickerContainer}>
+                  <TouchableOpacity onPress={pickImage} style={styles.profilePicPicker}>
+                    {editProfilePic ? (
+                      <Image source={{ uri: editProfilePic }} style={styles.pickerImage} />
+                    ) : (
+                      <View style={[styles.pickerAvatarPlaceholder, { backgroundColor: colors.accent }]}>
+                        <Text style={[styles.pickerAvatarPlaceholderText, { color: colors.textInverse }]}>
+                          {editName ? editName.charAt(0).toUpperCase() : 'C'}
+                        </Text>
+                      </View>
+                    )}
+                    <View style={[styles.cameraIconContainer, { backgroundColor: colors.accent }]}>
+                      <Ionicons name="camera" size={16} color={colors.textInverse} />
+                    </View>
+                  </TouchableOpacity>
+                  <Text style={[styles.pickerLabel, { color: colors.textSecondary }]}>Tap to change picture</Text>
+                </View>
+
+                {/* Name Input */}
+                <View style={styles.inputGroup}>
+                  <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Name</Text>
+                  <TextInput
+                    style={[styles.modalInput, { color: colors.inputText, borderColor: colors.surfaceBorder, backgroundColor: colors.inputBg }]}
+                    value={editName}
+                    onChangeText={setEditName}
+                    placeholder="Community Name"
+                    placeholderTextColor={colors.inputPlaceholder}
+                    maxLength={50}
+                  />
+                </View>
+
+                {/* Description Input */}
+                <View style={styles.inputGroup}>
+                  <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Description</Text>
+                  <TextInput
+                    style={[styles.modalInput, styles.multilineInput, { color: colors.inputText, borderColor: colors.surfaceBorder, backgroundColor: colors.inputBg }]}
+                    value={editDescription}
+                    onChangeText={setEditDescription}
+                    placeholder="Describe your community"
+                    placeholderTextColor={colors.inputPlaceholder}
+                    multiline
+                    numberOfLines={4}
+                    maxLength={200}
+                    textAlignVertical="top"
+                  />
+                </View>
+
+                {/* Privacy Toggle */}
+                <View style={styles.toggleGroup}>
+                  <View style={styles.toggleLabelContainer}>
+                    <Text style={[styles.toggleLabel, { color: colors.textPrimary }]}>Private Community</Text>
+                    <Text style={[styles.toggleSublabel, { color: colors.textTertiary }]}>Only members can view content</Text>
+                  </View>
+                  <Switch
+                    value={editIsPrivate}
+                    onValueChange={setEditIsPrivate}
+                    trackColor={{ false: colors.inputBg, true: colors.accent }}
+                    thumbColor={Platform.OS === 'android' ? '#fff' : undefined}
+                  />
+                </View>
+              </ScrollView>
+
+              <View style={[styles.modalFooter, { borderTopColor: colors.surfaceBorder }]}>
+                <TouchableOpacity
+                  style={[styles.cancelButton, { backgroundColor: colors.inputBg }]}
+                  onPress={() => setShowEditCommunityModal(false)}
+                  disabled={updatingCommunity}
+                >
+                  <Text style={[styles.cancelButtonText, { color: colors.textSecondary }]}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.submitButton, { backgroundColor: colors.accent }, updatingCommunity && styles.disabledButton]}
+                  onPress={handleSaveCommunity}
+                  disabled={updatingCommunity}
+                >
+                  <Text style={[styles.submitButtonText, { color: colors.textInverse }]}>
+                    {updatingCommunity ? 'Saving...' : 'Save'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -1125,5 +1345,99 @@ const styles = StyleSheet.create({
   reportPostButtonText: {
     fontSize: 12,
     fontWeight: '600',
+  },
+  deletePostBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    alignSelf: 'flex-end',
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    marginTop: 8,
+  },
+  deletePostBtnText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  profilePicPickerContainer: {
+    alignItems: 'center',
+    marginVertical: 20,
+  },
+  profilePicPicker: {
+    position: 'relative',
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    overflow: 'visible',
+  },
+  pickerImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+  },
+  pickerAvatarPlaceholder: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  pickerAvatarPlaceholderText: {
+    fontSize: 36,
+    fontWeight: 'bold',
+  },
+  cameraIconContainer: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#fff',
+  },
+  pickerLabel: {
+    fontSize: 12,
+    marginTop: 8,
+    textAlign: 'center',
+  },
+  inputGroup: {
+    marginBottom: 16,
+  },
+  inputLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    marginBottom: 6,
+    textTransform: 'uppercase',
+  },
+  modalInput: {
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 15,
+  },
+  multilineInput: {
+    height: 100,
+  },
+  toggleGroup: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginVertical: 12,
+  },
+  toggleLabelContainer: {
+    flex: 1,
+    marginRight: 16,
+  },
+  toggleLabel: {
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  toggleSublabel: {
+    fontSize: 12,
+    marginTop: 2,
   },
 });

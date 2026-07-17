@@ -19,6 +19,13 @@ const CommunityDetail = () => {
   const [showReportCommunityModal, setShowReportCommunityModal] = useState(false);
   const [showReportPostModal, setShowReportPostModal] = useState(false);
   const [reportPostTarget, setReportPostTarget] = useState(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editName, setEditName] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [editIsPrivate, setEditIsPrivate] = useState(false);
+  const [editProfilePic, setEditProfilePic] = useState('');
+  const [editProfilePicBase64, setEditProfilePicBase64] = useState('');
+  const [submittingEdit, setSubmittingEdit] = useState(false);
   const currentUser = authService.getCurrentUser();
 
   useEffect(() => {
@@ -105,6 +112,68 @@ const CommunityDetail = () => {
       loadCommunityData();
     } catch (err) {
       setError(err.response?.data || 'Failed to join community.');
+    }
+  };
+
+  const handleOpenEditModal = () => {
+    if (community) {
+      setEditName(community.name);
+      setEditDescription(community.description || '');
+      setEditIsPrivate(community.isPrivate);
+      setEditProfilePic(community.profilePicture || '');
+      setEditProfilePicBase64('');
+      setShowEditModal(true);
+    }
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setEditProfilePic(reader.result);
+        setEditProfilePicBase64(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    if (!editName.trim()) {
+      alert('Community name cannot be empty');
+      return;
+    }
+
+    setSubmittingEdit(true);
+    try {
+      const updated = await communityService.updateCommunity(
+        communityId,
+        editName.trim(),
+        editDescription.trim(),
+        editIsPrivate,
+        editProfilePicBase64 || editProfilePic
+      );
+      setCommunity(updated);
+      alert('Community updated successfully!');
+      setShowEditModal(false);
+      loadCommunityData();
+    } catch (err) {
+      alert('Failed to update community: ' + (err.response?.data || err.message));
+    } finally {
+      setSubmittingEdit(false);
+    }
+  };
+
+  const handleDeletePost = async (postId) => {
+    if (window.confirm('Are you sure you want to delete this post?')) {
+      try {
+        await communityService.deletePost(postId);
+        alert('Post deleted successfully');
+        loadCommunityData();
+      } catch (err) {
+        alert('Failed to delete post: ' + (err.response?.data || err.message));
+      }
     }
   };
 
@@ -205,6 +274,11 @@ const CommunityDetail = () => {
             {!community.isAdmin && (
               <button className="btn-report" onClick={() => setShowReportCommunityModal(true)} style={{ backgroundColor: 'var(--danger-color)', color: 'white', border: 'none', padding: '10px 16px', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', transition: 'all 0.2s' }}>
                 🚩 Report
+              </button>
+            )}
+            {community.isAdmin && (
+              <button className="btn-edit-community" onClick={handleOpenEditModal} style={{ backgroundColor: 'var(--primary-color)', color: 'white', border: 'none', padding: '10px 16px', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', transition: 'all 0.2s' }}>
+                ✏️ Edit Community
               </button>
             )}
           </div>
@@ -319,6 +393,15 @@ const CommunityDetail = () => {
                               🚩 Report
                             </button>
                           )}
+                          {(community.isAdmin || post.userId === currentUser?.id) && (
+                            <button 
+                              className="delete-post-btn" 
+                              onClick={() => handleDeletePost(post.id)}
+                              style={{ background: 'none', border: 'none', color: 'var(--danger-color)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', fontWeight: '600', marginLeft: '10px' }}
+                            >
+                              🗑️ Delete
+                            </button>
+                          )}
                         </div>
                         <div className="post-content">
                           <p>{post.content}</p>
@@ -398,6 +481,64 @@ const CommunityDetail = () => {
         targetType="community post"
         targetIds={{ reportedCommunityPostId: reportPostTarget }}
       />
+
+      {showEditModal && (
+        <div className="edit-modal-overlay" onClick={() => setShowEditModal(false)}>
+          <div className="edit-modal" onClick={(e) => e.stopPropagation()} style={{ background: 'var(--bg-primary)', padding: '24px', borderRadius: '12px', width: '90%', maxWidth: '500px', boxShadow: 'var(--shadow-lg)', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }}>
+            <h3>Edit Community</h3>
+            <form onSubmit={handleEditSubmit}>
+              <div className="form-group" style={{ marginBottom: '15px' }}>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600', color: 'var(--text-secondary)' }}>Community Name</label>
+                <input
+                  type="text"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  required
+                  style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', color: 'var(--text-primary)', boxSizing: 'border-box' }}
+                />
+              </div>
+              <div className="form-group" style={{ marginBottom: '15px' }}>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600', color: 'var(--text-secondary)' }}>Description</label>
+                <textarea
+                  value={editDescription}
+                  onChange={(e) => setEditDescription(e.target.value)}
+                  rows="3"
+                  style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', color: 'var(--text-primary)', boxSizing: 'border-box' }}
+                />
+              </div>
+              <div className="form-group" style={{ marginBottom: '15px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <input
+                  type="checkbox"
+                  id="editIsPrivate"
+                  checked={editIsPrivate}
+                  onChange={(e) => setEditIsPrivate(e.target.checked)}
+                />
+                <label htmlFor="editIsPrivate" style={{ fontWeight: '600', cursor: 'pointer', color: 'var(--text-secondary)' }}>Private Community (Invite-only)</label>
+              </div>
+              <div className="form-group" style={{ marginBottom: '20px' }}>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600', color: 'var(--text-secondary)' }}>Profile Picture</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  style={{ display: 'block', width: '100%', marginBottom: '10px', color: 'var(--text-primary)' }}
+                />
+                {editProfilePic ? (
+                  <img src={editProfilePic} alt="Preview" style={{ width: '80px', height: '80px', borderRadius: '50%', objectFit: 'cover' }} />
+                ) : null}
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+                <button type="button" className="btn-secondary" onClick={() => setShowEditModal(false)} disabled={submittingEdit}>
+                  Cancel
+                </button>
+                <button type="submit" className="btn-primary" disabled={submittingEdit} style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', background: 'var(--primary-color)', color: 'white', fontWeight: '600', cursor: 'pointer' }}>
+                  {submittingEdit ? 'Saving...' : 'Save'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

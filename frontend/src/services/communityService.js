@@ -59,4 +59,18 @@ export const communityService = {
     const response = await api.post(`/communities/posts/${postId}/reject`);
     return response.data;
   },
+
+  updateCommunity: async (communityId, name, description, isPrivate, profilePicture = null) => {
+    const requestBody = { name, description, isPrivate };
+    if (profilePicture) {
+      requestBody.profilePicture = profilePicture;
+    }
+    const response = await api.put(`/communities/${communityId}`, requestBody);
+    return response.data;
+  },
+
+  deletePost: async (postId) => {
+    const response = await api.delete(`/communities/posts/${postId}`);
+    return response.data;
+  },
 };

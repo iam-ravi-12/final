@@ -191,4 +191,31 @@ public class CommunityController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+    @PutMapping("/{communityId}")
+    public ResponseEntity<?> updateCommunity(
+            @PathVariable Long communityId,
+            Authentication authentication,
+            @Valid @RequestBody CommunityRequest request) {
+        try {
+            UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+            CommunityResponse response = communityService.updateCommunity(communityId, userDetails.getId(), request);
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/posts/{postId}")
+    public ResponseEntity<?> deletePost(
+            @PathVariable Long postId,
+            Authentication authentication) {
+        try {
+            UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+            communityService.deletePost(postId, userDetails.getId());
+            return ResponseEntity.ok("Post deleted successfully");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 }

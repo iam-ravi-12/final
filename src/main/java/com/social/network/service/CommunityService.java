@@ -13,6 +13,7 @@ import com.social.network.repository.CommunityMemberRepository;
 import com.social.network.repository.CommunityPostRepository;
 import com.social.network.repository.CommunityRepository;
 import com.social.network.repository.UserRepository;
+import com.social.network.repository.ReportRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,17 +28,20 @@ public class CommunityService {
     private final CommunityPostRepository communityPostRepository;
     private final UserRepository userRepository;
     private final CloudinaryService cloudinaryService;
+    private final ReportRepository reportRepository;
 
     public CommunityService(CommunityRepository communityRepository,
                           CommunityMemberRepository communityMemberRepository,
                           CommunityPostRepository communityPostRepository,
                           UserRepository userRepository,
-                          CloudinaryService cloudinaryService) {
+                          CloudinaryService cloudinaryService,
+                          ReportRepository reportRepository) {
         this.communityRepository = communityRepository;
         this.communityMemberRepository = communityMemberRepository;
         this.communityPostRepository = communityPostRepository;
         this.userRepository = userRepository;
         this.cloudinaryService = cloudinaryService;
+        this.reportRepository = reportRepository;
     }
 
     @Transactional
@@ -226,6 +230,61 @@ public class CommunityService {
         }
 
         communityPostRepository.delete(post);
+    }
+
+    @Transactional
+    public void deletePost(Long postId, Long userId) {
+        CommunityPost post = communityPostRepository.findById(postId)
+                .orElseThrow(() -> new RuntimeException("Post not found"));
+
+        Community community = post.getCommunity();
+
+        if (!community.getAdmin().getId().equals(userId) && !post.getUser().getId().equals(userId)) {
+            throw new RuntimeException("Only the community admin or the post author can delete this post");
+        }
+
+        reportRepository.deleteByReportedCommunityPost(post);
+
+        if (post.getMediaUrls() != null && !post.getMediaUrls().isEmpty()) {
+            for (String url : post.getMediaUrls()) {
+                cloudinaryService.deleteMedia(url);
+            }
+        }
+
+        communityPostRepository.delete(post);
+    }
+
+    @Transactional
+    public CommunityResponse updateCommunity(Long communityId, Long userId, CommunityRequest request) {
+        Community community = communityRepository.findById(communityId)
+                .orElseThrow(() -> new RuntimeException("Community not found"));
+
+        if (!community.getAdmin().getId().equals(userId)) {
+            throw new RuntimeException("Only the admin of the community can update it");
+        }
+
+        if (request.getName() != null && !request.getName().isBlank()) {
+            community.setName(request.getName());
+        }
+        if (request.getDescription() != null) {
+            community.setDescription(request.getDescription());
+        }
+        if (request.getIsPrivate() != null) {
+            community.setIsPrivate(request.getIsPrivate());
+        }
+        if (request.getProfilePicture() != null && !request.getProfilePicture().isEmpty()) {
+            if (community.getProfilePicture() != null && !community.getProfilePicture().isEmpty()) {
+                cloudinaryService.deleteMedia(community.getProfilePicture());
+            }
+            String imageUrl = cloudinaryService.uploadImage(
+                request.getProfilePicture(),
+                "communities"
+            );
+            community.setProfilePicture(imageUrl);
+        }
+
+        community = communityRepository.save(community);
+        return toCommunityResponse(community, userId);
     }
 
     public List<CommunityMemberResponse> getCommunityMembers(Long communityId, Long userId) {

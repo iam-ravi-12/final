@@ -123,6 +123,17 @@ const communityService = {
   removeMember: async (communityId: number, userId: number): Promise<void> => {
     await api.delete(`/api/communities/${communityId}/members/${userId}`);
   },
+
+  // Update community details (admin only)
+  updateCommunity: async (communityId: number, data: CommunityRequest): Promise<CommunityResponse> => {
+    const response = await api.put<CommunityResponse>(`/api/communities/${communityId}`, data);
+    return response.data;
+  },
+
+  // Delete a post in community (admin or post author only)
+  deleteCommunityPost: async (postId: number): Promise<void> => {
+    await api.delete(`/api/communities/posts/${postId}`);
+  },
 };
 
 export default communityService;

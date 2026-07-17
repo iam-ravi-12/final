@@ -1,6 +1,6 @@
-# Walkthrough: Report Option for Posts, Community Posts, Communities, and Users
+# Walkthrough: Community & Report Upgrades
 
-We have successfully completed all parts of the implementation for reporting posts, community posts, communities, and user profiles across the backend, React Native mobile application, and React web application.
+We have successfully completed all parts of the implementation for reporting posts, community posts, communities, and user profiles across the backend, React Native mobile application, and React web application. Additionally, we implemented a premium admin dashboard, and full community administration options allowing community creators to edit their community settings and delete any posts inside their communities.
 
 ## Backend Changes
 
@@ -10,6 +10,10 @@ We have successfully completed all parts of the implementation for reporting pos
 - **Repository Enhancements:**
   - Added `deleteByReportedCommunityPost` cascades.
   - Added duplicate check flags `existsByReporterAndReportedPost`, `existsByReporterAndReportedUser`, etc., to avoid duplicate reports from the same user.
+- **Community Administration API Support:**
+  - Created `PUT /api/communities/{communityId}` endpoint in `CommunityController.java` enabling community admins to modify details (name, description, privacy toggle, and profile picture).
+  - Created `DELETE /api/communities/posts/{postId}` endpoint in `CommunityController.java` allowing community admins (or post authors) to delete community posts.
+  - Cascade-deleted community post reports upon deleting the post to prevent database key mismatch.
 - **DTO Layer:**
   - Created `ReportRequest` to safely receive user report reasons and target IDs.
   - Extended `ReportResponse` with community post details and admin notes.
@@ -24,6 +28,11 @@ We have successfully completed all parts of the implementation for reporting pos
 
 ## Mobile Application (React Native / Expo)
 
+- **Community Editing Options (`CommunityPostsScreen.tsx`):**
+  - Displays a settings pencil icon in the header for community admins.
+  - Tapping this icon presents a styled popup modal to pick and upload a new profile picture (via `ImagePicker`), edit the name and description, and toggle privacy (via `Switch`).
+- **Post Deletion Actions (`CommunityPostsScreen.tsx`):**
+  - Admins and authors can delete approved posts in the community view via a red "Delete" button.
 - **Reusable Report Component:**
   - Built `ReportModal.tsx` utilizing `useAppTheme()` to maintain high-quality theme consistency. Supports spam, harassment, inappropriate content, hate speech, violence/threats, and customizable "Other" text fields.
 - **Reporting Entrypoints:**
@@ -34,6 +43,11 @@ We have successfully completed all parts of the implementation for reporting pos
 
 ## React Web Frontend
 
+- **Community Editing Options (`CommunityDetail.js`):**
+  - Displays an "✏️ Edit Community" button in the header action banner for community admins.
+  - Opens a beautiful modal form allowing admins to change the community name, description, privacy checkbox, and upload a new picture (converts file to base64 for API upload).
+- **Post Deletion Actions (`CommunityDetail.js`):**
+  - Admins and authors can delete approved posts in the community feed via a "Delete" action button.
 - **Reusable Report Component:**
   - Built `ReportModal.js` and `ReportModal.css` for clean dialog popups.
 - **Service Integration:**
@@ -46,8 +60,14 @@ We have successfully completed all parts of the implementation for reporting pos
   - Added a header "Report" button for communities and inline report links on community posts in `CommunityDetail.js`.
   - Enabled profile navigation from both podium and list items on the `Leaderboard.js` screen so users can navigate to profile cards and submit reports there.
 
-## Admin Management Panel (Mobile)
+## Admin Management Panel & Dashboard Upgrade (Mobile)
 
+- **Awesome Dashboard Overhaul (`DashboardScreen.tsx`):**
+  - **Dynamic Greetings:** Custom time-of-day greetings ("Good Morning", "Good Evening", etc.) for a warm admin welcome.
+  - **Action Required Banners:** High-visibility banner highlighting pending reports with direct navigation routing (CTA "Moderate Queue").
+  - **Platform Health Meters:** Interactive progress bars tracking "Active User Rate" and "Report Resolution Rate".
+  - **Quick Actions Hub:** Responsive, modern shortcuts to jump directly to Moderate Users, Reports Queue, Communities, and Post Feed.
+  - **System Diagnostics Panel:** Real-time health gauges covering API latency, FCM Push Service connections, and Database stability indicators.
 - **API Extensions:**
   - Implemented `resolveReport` and `dismissReport` methods in `adminService.ts`.
 - **Card Actions:**
