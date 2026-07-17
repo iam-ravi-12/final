@@ -3,6 +3,7 @@ package com.social.network.service;
 import com.social.network.dto.AdminDashboardStats;
 import com.social.network.dto.AdminUserResponse;
 import com.social.network.dto.ReportResponse;
+import com.social.network.dto.SosResponseResponse;
 import com.social.network.entity.*;
 import com.social.network.repository.*;
 import org.slf4j.Logger;
@@ -74,6 +75,7 @@ public class AdminService {
         long totalReports = reportRepository.count();
         long pendingReports = reportRepository.countByStatus(ReportStatus.PENDING);
         long totalBannedUsers = userRepository.countByStatus(AccountStatus.BANNED);
+        long pendingSosResponses = sosResponseRepository.countByStatus("PENDING");
 
         return new AdminDashboardStats(
                 totalUsers,
@@ -84,7 +86,8 @@ public class AdminService {
                 totalSosAlerts,
                 totalReports,
                 pendingReports,
-                totalBannedUsers
+                totalBannedUsers,
+                pendingSosResponses
         );
     }
 
@@ -341,5 +344,69 @@ public class AdminService {
                 cloudinaryService.deleteMedia(url);
             }
         }
+    }
+
+    private SosResponseResponse convertSosResponseToDto(SosResponse response) {
+        return new SosResponseResponse(
+                response.getId(),
+                response.getSosAlert().getId(),
+                response.getResponder().getId(),
+                response.getResponder().getUsername(),
+                response.getResponder().getProfilePicture(),
+                response.getResponseType(),
+                response.getMessage(),
+                response.getPointsAwarded(),
+                response.getConfirmedByAlertOwner(),
+                response.getStatus(),
+                response.getSosAlert().getUser().getUsername(),
+                response.getSosAlert().getEmergencyType(),
+                response.getSosAlert().getDescription(),
+                response.getSosAlert().getLocationAddress(),
+                response.getCreatedAt()
+        );
+    }
+
+    public List<SosResponseResponse> getPendingSosResponses() {
+        List<SosResponse> pending = sosResponseRepository.findByStatusOrderByCreatedAtDesc("PENDING");
+        return pending.stream()
+                .map(this::convertSosResponseToDto)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void approveSosResponse(Long responseId, Long adminId) {
+        User admin = userRepository.findById(adminId)
+                .orElseThrow(() -> new RuntimeException("Admin not found"));
+
+        SosResponse response = sosResponseRepository.findById(responseId)
+                .orElseThrow(() -> new RuntimeException("SOS Response not found"));
+
+        if (!"PENDING".equals(response.getStatus())) {
+            throw new RuntimeException("This SOS response has already been reviewed");
+        }
+
+        response.setStatus("APPROVED");
+        sosResponseRepository.save(response);
+
+        User responder = response.getResponder();
+        int currentPoints = responder.getLeaderboardPoints() != null ? responder.getLeaderboardPoints() : 0;
+        responder.setLeaderboardPoints(currentPoints + response.getPointsAwarded());
+        userRepository.save(responder);
+    }
+
+    @Transactional
+    public void rejectSosResponse(Long responseId, Long adminId) {
+        User admin = userRepository.findById(adminId)
+                .orElseThrow(() -> new RuntimeException("Admin not found"));
+
+        SosResponse response = sosResponseRepository.findById(responseId)
+                .orElseThrow(() -> new RuntimeException("SOS Response not found"));
+
+        if (!"PENDING".equals(response.getStatus())) {
+            throw new RuntimeException("This SOS response has already been reviewed");
+        }
+
+        response.setStatus("REJECTED");
+        sosResponseRepository.save(response);
     }
 }

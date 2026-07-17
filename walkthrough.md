@@ -1,6 +1,27 @@
-# Walkthrough: Community & Report Upgrades
+# Walkthrough: Community, Reports, and SOS Admin Upgrades
 
-We have successfully completed all parts of the implementation for reporting posts, community posts, communities, and user profiles across the backend, React Native mobile application, and React web application. Additionally, we implemented a premium admin dashboard, and full community administration options allowing community creators to edit their community settings and delete any posts inside their communities.
+We have successfully completed the implementation for SOS Admin Reviews, community editing & deletion capabilities, customizable user reports, and a premium admin dashboard panel across the Java Spring Boot backend, React Native mobile application, and React web application.
+
+## SOS Admin Review & Verification (New Feature)
+
+- **Workflow Description:**
+  - When an SOS alert is raised and another user responds/reacts to it, the responder's points are held pending admin review.
+  - An entry is routed to the admin panel containing rich details: **who raised the alert** (the emergency owner), **for whom it was raised**, **who responded**, **the response type**, **the responder message**, and **the pending leaderboard points**.
+  - If the admin approves, the responder is awarded the points. If rejected, no points are given.
+- **Database Migrations:**
+  - Added `SOS_ADMIN_REVIEW_MIGRATION.sql` to alter `sos_responses` table adding the `status` column (defaults to `'PENDING'`).
+- **Backend API & Service Upgrades:**
+  - Modified `SosResponse.java` and extended `SosResponseResponse.java` DTO to track and return `status`, `alertOwnerUsername`, `alertEmergencyType`, `alertDescription`, and `alertLocationAddress`.
+  - Added repository queries to count and find SOS responses by status.
+  - Decoupled point allocation from `confirmHelpReceived` in `SosService.java` to prevent direct points updates.
+  - Implemented `getPendingSosResponses()`, `approveSosResponse()`, and `rejectSosResponse()` in `AdminService.java` and exposed endpoints under `AdminController.java`.
+- **Mobile Admin UI (React Native / Expo):**
+  - Updated `adminService.ts` to include SOS reviews API bindings.
+  - Created `SosReviewsScreen.tsx` displaying pending reviews with full alert context and action buttons (Approve & Reward / Reject).
+  - Registered `sos-reviews.tsx` route under `/admin` and updated layout.
+  - Added custom alert banners, "SOS Reviews" stat card counter, and shortcut links inside `DashboardScreen.tsx`.
+
+---
 
 ## Backend Changes
 
@@ -64,9 +85,9 @@ We have successfully completed all parts of the implementation for reporting pos
 
 - **Awesome Dashboard Overhaul (`DashboardScreen.tsx`):**
   - **Dynamic Greetings:** Custom time-of-day greetings ("Good Morning", "Good Evening", etc.) for a warm admin welcome.
-  - **Action Required Banners:** High-visibility banner highlighting pending reports with direct navigation routing (CTA "Moderate Queue").
+  - **Action Required Banners:** High-visibility banner highlighting pending reports and pending SOS reviews with direct navigation routing.
   - **Platform Health Meters:** Interactive progress bars tracking "Active User Rate" and "Report Resolution Rate".
-  - **Quick Actions Hub:** Responsive, modern shortcuts to jump directly to Moderate Users, Reports Queue, Communities, and Post Feed.
+  - **Quick Actions Hub:** Responsive, modern shortcuts to jump directly to Moderate Users, Reports Queue, Communities, Post Feed, and SOS Reviews.
   - **System Diagnostics Panel:** Real-time health gauges covering API latency, FCM Push Service connections, and Database stability indicators.
 - **API Extensions:**
   - Implemented `resolveReport` and `dismissReport` methods in `adminService.ts`.

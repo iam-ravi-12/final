@@ -19,4 +19,8 @@ public interface SosResponseRepository extends JpaRepository<SosResponse, Long> 
     boolean existsBySosAlertAndResponder(SosAlert sosAlert, User responder);
     
     SosResponse findBySosAlertAndResponder(SosAlert sosAlert, User responder);
+
+    List<SosResponse> findByStatusOrderByCreatedAtDesc(String status);
+
+    long countByStatus(String status);
 }

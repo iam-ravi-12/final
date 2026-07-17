@@ -230,12 +230,6 @@ public class SosService {
         response.setConfirmedByAlertOwner(true);
         sosResponseRepository.save(response);
 
-        // Award points to the responder
-        User responder = response.getResponder();
-        int currentPoints = responder.getLeaderboardPoints() != null ? responder.getLeaderboardPoints() : 0;
-        responder.setLeaderboardPoints(currentPoints + response.getPointsAwarded());
-        userRepository.save(responder);
-
         return convertToResponseResponse(response);
     }
 
@@ -370,6 +364,11 @@ public class SosService {
                 response.getMessage(),
                 response.getPointsAwarded(),
                 response.getConfirmedByAlertOwner(),
+                response.getStatus(),
+                response.getSosAlert().getUser().getUsername(),
+                response.getSosAlert().getEmergencyType(),
+                response.getSosAlert().getDescription(),
+                response.getSosAlert().getLocationAddress(),
                 response.getCreatedAt()
         );
     }

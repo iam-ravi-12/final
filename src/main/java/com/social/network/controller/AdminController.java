@@ -4,6 +4,7 @@ import com.social.network.dto.AdminDashboardStats;
 import com.social.network.dto.AdminUserResponse;
 import com.social.network.dto.BanRequest;
 import com.social.network.dto.ReportResponse;
+import com.social.network.dto.SosResponseResponse;
 import com.social.network.entity.Role;
 import com.social.network.entity.ReportStatus;
 import com.social.network.security.UserDetailsImpl;
@@ -17,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import java.util.List;
 
 @RestController
 @RequestMapping("/admin")
@@ -138,6 +140,31 @@ public class AdminController {
         UserDetailsImpl admin = (UserDetailsImpl) authentication.getPrincipal();
         adminService.dismissReport(id, adminNotes, admin.getId());
         return ResponseEntity.ok("Report dismissed successfully");
+    }
+
+    @GetMapping("/sos-responses/pending")
+    public ResponseEntity<List<SosResponseResponse>> getPendingSosResponses() {
+        return ResponseEntity.ok(adminService.getPendingSosResponses());
+    }
+
+    @PutMapping("/sos-responses/{id}/approve")
+    public ResponseEntity<String> approveSosResponse(
+            @PathVariable Long id,
+            Authentication authentication) {
+
+        UserDetailsImpl admin = (UserDetailsImpl) authentication.getPrincipal();
+        adminService.approveSosResponse(id, admin.getId());
+        return ResponseEntity.ok("SOS response approved, points added successfully");
+    }
+
+    @PutMapping("/sos-responses/{id}/reject")
+    public ResponseEntity<String> rejectSosResponse(
+            @PathVariable Long id,
+            Authentication authentication) {
+
+        UserDetailsImpl admin = (UserDetailsImpl) authentication.getPrincipal();
+        adminService.rejectSosResponse(id, admin.getId());
+        return ResponseEntity.ok("SOS response rejected successfully");
     }
 }
 

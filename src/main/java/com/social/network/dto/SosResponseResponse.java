@@ -19,5 +19,10 @@ public class SosResponseResponse {
     private String message;
     private Integer pointsAwarded;
     private Boolean confirmedByAlertOwner;
+    private String status;
+    private String alertOwnerUsername;
+    private String alertEmergencyType;
+    private String alertDescription;
+    private String alertLocationAddress;
     private LocalDateTime createdAt;
 }

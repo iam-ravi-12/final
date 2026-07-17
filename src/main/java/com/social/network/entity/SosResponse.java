@@ -39,6 +39,9 @@ public class SosResponse {
     @Column(name = "confirmed_by_alert_owner")
     private Boolean confirmedByAlertOwner = false;
 
+    @Column(name = "status", nullable = false)
+    private String status = "PENDING"; // PENDING, APPROVED, REJECTED
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

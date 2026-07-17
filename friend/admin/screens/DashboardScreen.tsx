@@ -119,6 +119,34 @@ export default function DashboardScreen() {
             </TouchableOpacity>
           )}
 
+          {/* Action Required Banner for Pending SOS Reviews */}
+          {stats.pendingSosResponses > 0 && (
+            <TouchableOpacity
+              style={[
+                styles.reportAlertBanner,
+                {
+                  backgroundColor: isDark ? 'rgba(59, 130, 246, 0.12)' : 'rgba(59, 130, 246, 0.08)',
+                  borderColor: '#3B82F6',
+                  marginTop: 10,
+                },
+              ]}
+              onPress={() => router.push('/admin/sos-reviews')}
+              activeOpacity={0.8}
+            >
+              <View style={styles.alertHeader}>
+                <Ionicons name="shield-half" size={24} color="#3B82F6" />
+                <Text style={[styles.alertTitle, { color: colors.textPrimary }]}>SOS Response Review</Text>
+              </View>
+              <Text style={[styles.alertDescription, { color: colors.textSecondary }]}>
+                There are <Text style={{ fontWeight: 'bold', color: '#3B82F6' }}>{stats.pendingSosResponses}</Text> SOS reactions awaiting your review and point verification.
+              </Text>
+              <View style={styles.alertActionRow}>
+                <Text style={[styles.alertActionText, { color: '#3B82F6' }]}>Verify Responders</Text>
+                <Ionicons name="arrow-forward" size={16} color="#3B82F6" />
+              </View>
+            </TouchableOpacity>
+          )}
+
           {/* Quick Metrics Header */}
           <Text style={[styles.sectionTitle, { color: colors.textPrimary, marginTop: stats.pendingReports > 0 ? 10 : 0 }]}>
             Platform Activity
@@ -153,6 +181,13 @@ export default function DashboardScreen() {
               icon="flag"
               iconColor="#FCD34D"
               borderColor="rgba(252, 211, 77, 0.2)"
+            />
+            <StatCard
+              title="SOS Reviews"
+              value={stats.pendingSosResponses}
+              icon="shield-half"
+              iconColor="#3B82F6"
+              borderColor="rgba(59, 130, 246, 0.2)"
             />
             <StatCard
               title="Total Posts"
@@ -273,6 +308,16 @@ export default function DashboardScreen() {
                 <Ionicons name="document-text" size={20} color="#A78BFA" />
               </View>
               <Text style={[styles.actionText, { color: colors.textPrimary }]}>Post Feed</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.actionCard, { backgroundColor: colors.cardBg, borderColor: colors.cardBorder }]}
+              onPress={() => router.push('/admin/sos-reviews')}
+            >
+              <View style={[styles.actionIconBox, { backgroundColor: 'rgba(59, 130, 246, 0.1)' }]}>
+                <Ionicons name="shield-half" size={20} color="#3B82F6" />
+              </View>
+              <Text style={[styles.actionText, { color: colors.textPrimary }]}>SOS Reviews</Text>
             </TouchableOpacity>
           </View>
 

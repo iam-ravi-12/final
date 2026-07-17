@@ -138,6 +138,13 @@ export default function AdminLayout() {
             renderTabIcon('settings', focused, color),
         }}
       />
+      <Tabs.Screen
+        name="sos-reviews"
+        options={{
+          title: 'SOS Reviews',
+          href: null,
+        }}
+      />
     </Tabs>
   );
 }

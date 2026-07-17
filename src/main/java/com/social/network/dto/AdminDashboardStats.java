@@ -17,4 +17,5 @@ public class AdminDashboardStats {
     private long totalReports;
     private long pendingReports;
     private long totalBannedUsers;
+    private long pendingSosResponses;
 }

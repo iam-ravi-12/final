@@ -10,6 +10,7 @@ export interface AdminDashboardStats {
   totalReports: number;
   pendingReports: number;
   totalBannedUsers: number;
+  pendingSosResponses: number;
 }
 
 export interface AdminUser {
@@ -81,6 +82,24 @@ export interface AdminPost {
   reportCount?: number; // Optional, mapping custom frontend calculations or backend annotations
 }
 
+export interface AdminSosResponse {
+  id: number;
+  sosAlertId: number;
+  responderId: number;
+  responderUsername: string;
+  responderProfilePicture?: string;
+  responseType: string;
+  message: string;
+  pointsAwarded: number;
+  confirmedByAlertOwner: boolean;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  alertOwnerUsername: string;
+  alertEmergencyType: string;
+  alertDescription?: string;
+  alertLocationAddress?: string;
+  createdAt: string;
+}
+
 const adminService = {
   getDashboardStats: async (): Promise<AdminDashboardStats> => {
     const response = await api.get('/admin/dashboard');
@@ -148,6 +167,21 @@ const adminService = {
     const response = await api.put(`/admin/reports/${id}/dismiss`, null, {
       params: adminNotes ? { adminNotes } : undefined,
     });
+    return response.data;
+  },
+
+  getPendingSosResponses: async (): Promise<AdminSosResponse[]> => {
+    const response = await api.get('/admin/sos-responses/pending');
+    return response.data;
+  },
+
+  approveSosResponse: async (id: number): Promise<string> => {
+    const response = await api.put(`/admin/sos-responses/${id}/approve`);
+    return response.data;
+  },
+
+  rejectSosResponse: async (id: number): Promise<string> => {
+    const response = await api.put(`/admin/sos-responses/${id}/reject`);
     return response.data;
   },
 };
