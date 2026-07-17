@@ -23,8 +23,12 @@ public class ReportResponse {
     
     private Long reportedCommunityId;
     private String reportedCommunityName;
+
+    private Long reportedCommunityPostId;
+    private String reportedCommunityPostContent;
     
     private String reason;
+    private String adminNotes;
     private ReportStatus status;
     private LocalDateTime createdAt;
 }

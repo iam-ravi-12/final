@@ -261,3 +261,21 @@
     gap: 15px;
   }
 }
+
+.btn-danger-report {
+  background-color: var(--danger-color) !important;
+  color: white !important;
+  border: none !important;
+  padding: 12px 28px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-danger-report:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(229, 83, 75, 0.4);
+}
+

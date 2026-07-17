@@ -10,6 +10,7 @@ import { ChatProvider } from '../contexts/ChatContext';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'expo-router';
 import AppSplashScreen from '../components/AppSplashScreen';
+import FloatingSosButton from '../components/FloatingSosButton';
 
 // Global typography setup for SF Pro Display cross-platform
 const defaultFontStyle = {
@@ -93,6 +94,10 @@ function RootNavigator() {
           <Stack.Screen name="edit-profile" options={{ title: 'Edit Profile' }} />
           <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
         </Stack>
+        {/* Global floating draggable SOS button – visible for authenticated regular users */}
+        {user && user.role !== 'ADMIN' && user.profileCompleted && user.emailVerified && (
+          <FloatingSosButton />
+        )}
         <StatusBar style="light" />
       </ThemeProvider>
     </>

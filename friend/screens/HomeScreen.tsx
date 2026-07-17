@@ -28,6 +28,8 @@ import { router } from 'expo-router';
 import PostMediaAttachment from '../components/PostMediaAttachment';
 import { inferMediaType } from '../utils/media';
 import { useAppTheme } from '../constants/AppTheme';
+import ReportModal from '../components/ReportModal';
+import reportService from '../services/reportService';
 
 type PostSection = 'all' | 'professional' | 'help';
 
@@ -44,6 +46,7 @@ export default function HomeScreen() {
   const [showSosModal, setShowSosModal] = useState(false);
   const [showSearchBar, setShowSearchBar] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [reportPostId, setReportPostId] = useState<number | null>(null);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -254,19 +257,17 @@ export default function HomeScreen() {
             )}
         </View>
 
-          {user?.id === item.userId && (
-              <TouchableOpacity
-                  onPress={() => setMenuVisible(menuVisible === item.id ? null : item.id)}
-                  style={styles.menuButton}
-                  activeOpacity={0.6}
-              >
-                  <View style={styles.dotsContainer}>
-                      <View style={[styles.dot, { backgroundColor: colors.textSecondary }]} />
-                      <View style={[styles.dot, { backgroundColor: colors.textSecondary }]} />
-                      <View style={[styles.dot, { backgroundColor: colors.textSecondary }]} />
-                  </View>
-              </TouchableOpacity>
-          )}
+          <TouchableOpacity
+              onPress={() => setMenuVisible(menuVisible === item.id ? null : item.id)}
+              style={styles.menuButton}
+              activeOpacity={0.6}
+          >
+              <View style={styles.dotsContainer}>
+                  <View style={[styles.dot, { backgroundColor: colors.textSecondary }]} />
+                  <View style={[styles.dot, { backgroundColor: colors.textSecondary }]} />
+                  <View style={[styles.dot, { backgroundColor: colors.textSecondary }]} />
+              </View>
+          </TouchableOpacity>
       </View>
 
       {/* Menu Modal */}
@@ -282,23 +283,40 @@ export default function HomeScreen() {
             onPress={() => setMenuVisible(null)}
           >
             <View style={[styles.menuContainer, { backgroundColor: colors.surface, shadowColor: colors.shadow }]}>
-              <TouchableOpacity
-                style={styles.menuItem}
-                onPress={() => handleEditPost(item.id)}
-              >
-                <Ionicons name="create-outline" size={20} color={colors.accent} />
-                <Text style={[styles.menuItemText, { color: colors.textPrimary }]}>Edit Post</Text>
-              </TouchableOpacity>
-              <View style={[styles.menuDivider, { backgroundColor: colors.surfaceBorder }]} />
-              <TouchableOpacity
-                style={styles.menuItem}
-                onPress={() => handleDeletePost(item.id)}
-              >
-                <Ionicons name="trash-outline" size={20} color={colors.danger} />
-                <Text style={[styles.menuItemText, { color: colors.danger }]}>
-                  Delete Post
-                </Text>
-              </TouchableOpacity>
+              {user?.id === item.userId ? (
+                <>
+                  <TouchableOpacity
+                    style={styles.menuItem}
+                    onPress={() => handleEditPost(item.id)}
+                  >
+                    <Ionicons name="create-outline" size={20} color={colors.accent} />
+                    <Text style={[styles.menuItemText, { color: colors.textPrimary }]}>Edit Post</Text>
+                  </TouchableOpacity>
+                  <View style={[styles.menuDivider, { backgroundColor: colors.surfaceBorder }]} />
+                  <TouchableOpacity
+                    style={styles.menuItem}
+                    onPress={() => handleDeletePost(item.id)}
+                  >
+                    <Ionicons name="trash-outline" size={20} color={colors.danger} />
+                    <Text style={[styles.menuItemText, { color: colors.danger }]}>
+                      Delete Post
+                    </Text>
+                  </TouchableOpacity>
+                </>
+              ) : (
+                <TouchableOpacity
+                  style={styles.menuItem}
+                  onPress={() => {
+                    setMenuVisible(null);
+                    setReportPostId(item.id);
+                  }}
+                >
+                  <Ionicons name="flag-outline" size={20} color={colors.danger} />
+                  <Text style={[styles.menuItemText, { color: colors.danger }]}>
+                    Report Post
+                  </Text>
+                </TouchableOpacity>
+              )}
             </View>
           </Pressable>
         </Modal>
@@ -353,6 +371,14 @@ export default function HomeScreen() {
           <Text style={[styles.markSolvedButtonText, { color: colors.textInverse }]}>Mark as Solved</Text>
         </TouchableOpacity>
       )}
+
+      {/* Report Modal */}
+      <ReportModal
+        visible={reportPostId === item.id}
+        onClose={() => setReportPostId(null)}
+        onSubmit={(reason) => reportService.reportPost(item.id, reason)}
+        entityType="post"
+      />
     </View>
   );
 };

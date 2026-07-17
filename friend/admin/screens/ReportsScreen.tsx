@@ -7,6 +7,7 @@ import {
   SafeAreaView,
   TouchableOpacity,
   ScrollView,
+  Alert,
 } from 'react-native';
 import { useAppTheme } from '@/constants/AppTheme';
 import adminService, { AdminReport } from '../services/adminService';
@@ -28,7 +29,7 @@ export default function ReportsScreen() {
   const [error, setError] = useState<string | null>(null);
 
   // Filter State
-  const [statusFilter, setStatusFilter] = useState<'PENDING' | 'REVIEWED' | 'RESOLVED' | undefined>(undefined);
+  const [statusFilter, setStatusFilter] = useState<'PENDING' | 'REVIEWED' | 'RESOLVED' | 'DISMISSED' | undefined>(undefined);
 
   const fetchReports = useCallback(async (pageNum = page, isRefresh = false) => {
     if (isRefresh) setRefreshing(true);
@@ -67,60 +68,47 @@ export default function ReportsScreen() {
     fetchReports(newPageNum);
   };
 
+  const handleResolve = async (id: number, adminNotes?: string) => {
+    await adminService.resolveReport(id, adminNotes);
+    Alert.alert('Success', 'Report has been resolved');
+    fetchReports(page);
+  };
+
+  const handleDismiss = async (id: number, adminNotes?: string) => {
+    await adminService.dismissReport(id, adminNotes);
+    Alert.alert('Success', 'Report has been dismissed');
+    fetchReports(page);
+  };
+
+  const filterOptions: { label: string; value: typeof statusFilter }[] = [
+    { label: 'All Reports', value: undefined },
+    { label: 'PENDING', value: 'PENDING' },
+    { label: 'REVIEWED', value: 'REVIEWED' },
+    { label: 'RESOLVED', value: 'RESOLVED' },
+    { label: 'DISMISSED', value: 'DISMISSED' },
+  ];
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <AdminHeader title="Reports Management" subtitle="Review reported posts and users" />
+      <AdminHeader title="Reports Management" subtitle="Review reported posts, communities, and users" />
       
       {/* Filter Row */}
       <View style={styles.filterRow}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterScroll}>
-          <TouchableOpacity
-            style={[
-              styles.filterChip,
-              { backgroundColor: statusFilter === undefined ? colors.accentLight : colors.surface, borderColor: colors.surfaceBorder }
-            ]}
-            onPress={() => { setStatusFilter(undefined); setPage(0); }}
-          >
-            <Text style={[styles.filterChipText, { color: statusFilter === undefined ? colors.accent : colors.textSecondary }]}>
-              All Reports
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              styles.filterChip,
-              { backgroundColor: statusFilter === 'PENDING' ? colors.accentLight : colors.surface, borderColor: colors.surfaceBorder }
-            ]}
-            onPress={() => { setStatusFilter('PENDING'); setPage(0); }}
-          >
-            <Text style={[styles.filterChipText, { color: statusFilter === 'PENDING' ? colors.accent : colors.textSecondary }]}>
-              PENDING
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              styles.filterChip,
-              { backgroundColor: statusFilter === 'REVIEWED' ? colors.accentLight : colors.surface, borderColor: colors.surfaceBorder }
-            ]}
-            onPress={() => { setStatusFilter('REVIEWED'); setPage(0); }}
-          >
-            <Text style={[styles.filterChipText, { color: statusFilter === 'REVIEWED' ? colors.accent : colors.textSecondary }]}>
-              REVIEWED
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              styles.filterChip,
-              { backgroundColor: statusFilter === 'RESOLVED' ? colors.accentLight : colors.surface, borderColor: colors.surfaceBorder }
-            ]}
-            onPress={() => { setStatusFilter('RESOLVED'); setPage(0); }}
-          >
-            <Text style={[styles.filterChipText, { color: statusFilter === 'RESOLVED' ? colors.accent : colors.textSecondary }]}>
-              RESOLVED
-            </Text>
-          </TouchableOpacity>
+          {filterOptions.map((filter) => (
+            <TouchableOpacity
+              key={filter.label}
+              style={[
+                styles.filterChip,
+                { backgroundColor: statusFilter === filter.value ? colors.accentLight : colors.surface, borderColor: colors.surfaceBorder }
+              ]}
+              onPress={() => { setStatusFilter(filter.value); setPage(0); }}
+            >
+              <Text style={[styles.filterChipText, { color: statusFilter === filter.value ? colors.accent : colors.textSecondary }]}>
+                {filter.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
         </ScrollView>
       </View>
 
@@ -153,7 +141,11 @@ export default function ReportsScreen() {
           data={reports}
           keyExtractor={(item) => item.id.toString()}
           renderItem={({ item }) => (
-            <ReportCard report={item} />
+            <ReportCard
+              report={item}
+              onResolve={handleResolve}
+              onDismiss={handleDismiss}
+            />
           )}
           contentContainerStyle={styles.listContainer}
           refreshing={refreshing}

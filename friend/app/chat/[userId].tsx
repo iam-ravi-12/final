@@ -13,6 +13,7 @@ import {
   Image,
   Dimensions,
   Modal,
+  Keyboard,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, Stack, useFocusEffect } from 'expo-router';
@@ -63,6 +64,25 @@ export default function ChatScreen() {
   const flatListRef = useRef<FlatList>(null);
   const { colors, isDark } = useAppTheme();
   const isInitialLoad = useRef(true);
+
+  // ── Android keyboard height tracking (edge-to-edge workaround) ────
+  const [androidKeyboardHeight, setAndroidKeyboardHeight] = useState(0);
+
+  useEffect(() => {
+    if (Platform.OS !== 'android') return;
+
+    const showSub = Keyboard.addListener('keyboardDidShow', (e) => {
+      setAndroidKeyboardHeight(e.endCoordinates.height);
+    });
+    const hideSub = Keyboard.addListener('keyboardDidHide', () => {
+      setAndroidKeyboardHeight(0);
+    });
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
 
   // ── Load messages on mount ──────────────────────────────────────────
   const loadMessages = useCallback(async () => {
@@ -298,7 +318,7 @@ export default function ChatScreen() {
   const handleDownloadPdf = async (url: string, fileName: string) => {
     try {
       Alert.alert('Downloading', `Downloading ${fileName}...`);
-      const fileUri = `${FileSystem.documentDirectory}${fileName}`;
+      const fileUri = `${(FileSystem as any).documentDirectory}${fileName}`;
       const downloadResult = await FileSystem.downloadAsync(url, fileUri);
 
       if (downloadResult.status !== 200) {
@@ -458,113 +478,128 @@ export default function ChatScreen() {
     );
   };
 
+  // ── Shared chat content (used by both iOS and Android wrappers) ────
+  const renderChatContent = () => (
+    <>
+      {loading ? (
+        <View style={styles.centerContainer}>
+          <ActivityIndicator size="large" color={colors.accent} />
+        </View>
+      ) : (
+        <FlatList
+          ref={flatListRef}
+          data={messages}
+          renderItem={renderMessage}
+          keyExtractor={(item) => item.id.toString()}
+          contentContainerStyle={styles.messagesList}
+          onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: false })}
+          keyboardShouldPersistTaps="handled"
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <Text style={[styles.emptyText, { color: colors.textTertiary }]}>No messages yet</Text>
+              <Text style={[styles.emptySubtext, { color: colors.textTertiary }]}>Start the conversation!</Text>
+            </View>
+          }
+        />
+      )}
+
+      {/* Upload progress indicator */}
+      {uploadStatus ? (
+        <View style={[styles.uploadBar, { backgroundColor: colors.accentLight }]}>
+          <ActivityIndicator size="small" color={colors.accent} />
+          <Text style={[styles.uploadText, { color: colors.accent }]}>{uploadStatus}</Text>
+        </View>
+      ) : null}
+
+      {/* Attachment preview */}
+      {attachment && (
+        <View style={[styles.attachmentPreview, { backgroundColor: colors.surface, borderTopColor: colors.surfaceBorder }]}>
+          {attachment.mediaType === 'image' ? (
+            <Image source={{ uri: attachment.uri }} style={styles.attachmentThumb} />
+          ) : attachment.mediaType === 'video' ? (
+            <View style={[styles.attachmentIconBox, { backgroundColor: colors.inputBg }]}>
+              <Ionicons name="videocam" size={24} color={colors.accent} />
+              <Text style={[styles.attachmentLabel, { color: colors.textSecondary }]}>Video</Text>
+            </View>
+          ) : attachment.mediaType === 'document' ? (
+            <View style={[styles.attachmentIconBox, { backgroundColor: isDark ? 'rgba(239,68,68,0.15)' : '#fef2f2' }]}>
+              <Ionicons name="document-text" size={24} color="#EF4444" />
+              <Text style={[styles.attachmentLabel, { color: colors.textSecondary }]} numberOfLines={1}>
+                {attachment.fileName || 'PDF'}
+              </Text>
+            </View>
+          ) : (
+            <View style={[styles.attachmentIconBox, { backgroundColor: colors.inputBg }]}>
+              <Ionicons name="musical-notes" size={24} color={colors.accent} />
+              <Text style={[styles.attachmentLabel, { color: colors.textSecondary }]}>Audio</Text>
+            </View>
+          )}
+          <TouchableOpacity style={styles.attachmentRemove} onPress={removeAttachment}>
+            <Ionicons name="close-circle" size={22} color={colors.danger} />
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {/* Input bar */}
+      <View style={[styles.inputContainer, { backgroundColor: colors.surface, borderTopColor: colors.surfaceBorder }]}>
+        <TouchableOpacity
+          style={styles.attachButton}
+          onPress={() => setShowAttachMenu(true)}
+          disabled={sending}
+        >
+          <Ionicons name="add-circle" size={28} color={sending ? colors.textTertiary : colors.accent} />
+        </TouchableOpacity>
+
+        <TextInput
+          style={[styles.input, { backgroundColor: colors.inputBg, color: colors.inputText, borderColor: colors.inputBorder }]}
+          placeholder="Type a message..."
+          placeholderTextColor={colors.inputPlaceholder}
+          value={newMessage}
+          onChangeText={setNewMessage}
+          multiline
+          maxLength={500}
+          editable={!sending}
+        />
+
+        <TouchableOpacity
+          style={[
+            styles.sendButton,
+            { backgroundColor: colors.accent },
+            (!newMessage.trim() && !attachment || sending) && styles.sendButtonDisabled,
+          ]}
+          onPress={handleSend}
+          disabled={(!newMessage.trim() && !attachment) || sending}
+        >
+          {sending ? (
+            <ActivityIndicator size="small" color={colors.textInverse} />
+          ) : (
+            <Ionicons name="send" size={20} color={colors.textInverse} />
+          )}
+        </TouchableOpacity>
+      </View>
+    </>
+  );
+
   // ── Main render ─────────────────────────────────────────────────────
   return (
     <>
       <Stack.Screen options={{ title: getChatTitle() }} />
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['bottom']}>
-        <KeyboardAvoidingView
-          style={styles.flex}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
-        >
-          {loading ? (
-            <View style={styles.centerContainer}>
-              <ActivityIndicator size="large" color={colors.accent} />
-            </View>
-          ) : (
-            <FlatList
-              ref={flatListRef}
-              data={messages}
-              renderItem={renderMessage}
-              keyExtractor={(item) => item.id.toString()}
-              contentContainerStyle={styles.messagesList}
-              onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: false })}
-              keyboardShouldPersistTaps="handled"
-              ListEmptyComponent={
-                <View style={styles.emptyContainer}>
-                  <Text style={[styles.emptyText, { color: colors.textTertiary }]}>No messages yet</Text>
-                  <Text style={[styles.emptySubtext, { color: colors.textTertiary }]}>Start the conversation!</Text>
-                </View>
-              }
-            />
-          )}
-
-          {/* Upload progress indicator */}
-          {uploadStatus ? (
-            <View style={[styles.uploadBar, { backgroundColor: colors.accentLight }]}>
-              <ActivityIndicator size="small" color={colors.accent} />
-              <Text style={[styles.uploadText, { color: colors.accent }]}>{uploadStatus}</Text>
-            </View>
-          ) : null}
-
-          {/* Attachment preview */}
-          {attachment && (
-            <View style={[styles.attachmentPreview, { backgroundColor: colors.surface, borderTopColor: colors.surfaceBorder }]}>
-              {attachment.mediaType === 'image' ? (
-                <Image source={{ uri: attachment.uri }} style={styles.attachmentThumb} />
-              ) : attachment.mediaType === 'video' ? (
-                <View style={[styles.attachmentIconBox, { backgroundColor: colors.inputBg }]}>
-                  <Ionicons name="videocam" size={24} color={colors.accent} />
-                  <Text style={[styles.attachmentLabel, { color: colors.textSecondary }]}>Video</Text>
-                </View>
-              ) : attachment.mediaType === 'document' ? (
-                <View style={[styles.attachmentIconBox, { backgroundColor: isDark ? 'rgba(239,68,68,0.15)' : '#fef2f2' }]}>
-                  <Ionicons name="document-text" size={24} color="#EF4444" />
-                  <Text style={[styles.attachmentLabel, { color: colors.textSecondary }]} numberOfLines={1}>
-                    {attachment.fileName || 'PDF'}
-                  </Text>
-                </View>
-              ) : (
-                <View style={[styles.attachmentIconBox, { backgroundColor: colors.inputBg }]}>
-                  <Ionicons name="musical-notes" size={24} color={colors.accent} />
-                  <Text style={[styles.attachmentLabel, { color: colors.textSecondary }]}>Audio</Text>
-                </View>
-              )}
-              <TouchableOpacity style={styles.attachmentRemove} onPress={removeAttachment}>
-                <Ionicons name="close-circle" size={22} color={colors.danger} />
-              </TouchableOpacity>
-            </View>
-          )}
-
-          {/* Input bar */}
-          <View style={[styles.inputContainer, { backgroundColor: colors.surface, borderTopColor: colors.surfaceBorder }]}>
-            <TouchableOpacity
-              style={styles.attachButton}
-              onPress={() => setShowAttachMenu(true)}
-              disabled={sending}
-            >
-              <Ionicons name="add-circle" size={28} color={sending ? colors.textTertiary : colors.accent} />
-            </TouchableOpacity>
-
-            <TextInput
-              style={[styles.input, { backgroundColor: colors.inputBg, color: colors.inputText, borderColor: colors.inputBorder }]}
-              placeholder="Type a message..."
-              placeholderTextColor={colors.inputPlaceholder}
-              value={newMessage}
-              onChangeText={setNewMessage}
-              multiline
-              maxLength={500}
-              editable={!sending}
-            />
-
-            <TouchableOpacity
-              style={[
-                styles.sendButton,
-                { backgroundColor: colors.accent },
-                (!newMessage.trim() && !attachment || sending) && styles.sendButtonDisabled,
-              ]}
-              onPress={handleSend}
-              disabled={(!newMessage.trim() && !attachment) || sending}
-            >
-              {sending ? (
-                <ActivityIndicator size="small" color={colors.textInverse} />
-              ) : (
-                <Ionicons name="send" size={20} color={colors.textInverse} />
-              )}
-            </TouchableOpacity>
+        {Platform.OS === 'ios' ? (
+          /* iOS: KeyboardAvoidingView works reliably */
+          <KeyboardAvoidingView
+            style={styles.flex}
+            behavior="padding"
+            keyboardVerticalOffset={90}
+          >
+            {renderChatContent()}
+          </KeyboardAvoidingView>
+        ) : (
+          /* Android: manual padding via Keyboard events (edge-to-edge workaround) */
+          <View style={[styles.flex, { paddingBottom: androidKeyboardHeight }]}>
+            {renderChatContent()}
           </View>
-        </KeyboardAvoidingView>
+        )}
       </SafeAreaView>
 
       {/* ── Attachment picker menu ────────────────────────────────────── */}

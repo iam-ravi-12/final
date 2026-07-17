@@ -9,6 +9,7 @@ const Leaderboard = () => {
   const [leaderboard, setLeaderboard] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const currentUser = authService.getCurrentUser();
 
   useEffect(() => {
     loadLeaderboard();
@@ -95,6 +96,14 @@ const Leaderboard = () => {
                     <div
                       key={user.userId}
                       className={`podium-place podium-${index === 0 ? 'first' : index === 1 ? 'second' : 'third'}`}
+                      onClick={() => {
+                        if (user.userId === currentUser?.id) {
+                          navigate('/profile');
+                        } else {
+                          navigate(`/user/${user.userId}`);
+                        }
+                      }}
+                      style={{ cursor: 'pointer' }}
                     >
                       <div className="podium-badge">{getBadgeIcon(user.badge)}</div>
                       <div className="podium-avatar">
@@ -121,6 +130,14 @@ const Leaderboard = () => {
                     <div
                       key={user.userId}
                       className={`leaderboard-item ${getBadgeClass(user.badge)}`}
+                      onClick={() => {
+                        if (user.userId === currentUser?.id) {
+                          navigate('/profile');
+                        } else {
+                          navigate(`/user/${user.userId}`);
+                        }
+                      }}
+                      style={{ cursor: 'pointer' }}
                     >
                       <div className="rank-badge">#{user.rank}</div>
                       

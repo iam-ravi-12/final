@@ -25,6 +25,9 @@ import { copyToClipboard, formatRelativeDate, formatMemberCount } from '../utils
 import PostMediaAttachment from '../components/PostMediaAttachment';
 import { inferMediaType } from '../utils/media';
 import { useAppTheme } from '../constants/AppTheme';
+import { useAuth } from '../contexts/AuthContext';
+import ReportModal from '../components/ReportModal';
+import reportService from '../services/reportService';
 
 type TabType = 'approved' | 'pending' | 'members';
 
@@ -45,6 +48,9 @@ export default function CommunityPostsScreen() {
   const [showCreatePost, setShowCreatePost] = useState(false);
   const [postContent, setPostContent] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [reportCommunityPostId, setReportCommunityPostId] = useState<number | null>(null);
+  const [showReportCommunity, setShowReportCommunity] = useState(false);
+  const { user } = useAuth();
 
   useEffect(() => {
     loadCommunityData();
@@ -321,6 +327,26 @@ export default function CommunityPostsScreen() {
             </TouchableOpacity>
           </View>
         )}
+
+        {/* Report button for non-own posts */}
+        {!isPending && user?.id !== item.userId && (
+          <TouchableOpacity
+            style={styles.reportPostButton}
+            onPress={() => setReportCommunityPostId(item.id)}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="flag-outline" size={16} color={colors.danger} />
+            <Text style={[styles.reportPostButtonText, { color: colors.danger }]}>Report</Text>
+          </TouchableOpacity>
+        )}
+
+        {/* Report Modal for community post */}
+        <ReportModal
+          visible={reportCommunityPostId === item.id}
+          onClose={() => setReportCommunityPostId(null)}
+          onSubmit={(reason) => reportService.reportCommunityPost(item.id, reason)}
+          entityType="community post"
+        />
       </View>
     );
   };
@@ -457,6 +483,14 @@ export default function CommunityPostsScreen() {
           {!community.isAdmin && !community.isMember && (
             <TouchableOpacity style={[styles.joinButton, { backgroundColor: colors.accent }]} onPress={handleJoinCommunity}>
               <Text style={[styles.joinButtonText, { color: colors.textInverse }]}>Join</Text>
+            </TouchableOpacity>
+          )}
+          {!community.isAdmin && (
+            <TouchableOpacity
+              style={styles.shareIconButton}
+              onPress={() => setShowReportCommunity(true)}
+            >
+              <Ionicons name="flag-outline" size={22} color={colors.danger} />
             </TouchableOpacity>
           )}
         </View>
@@ -647,6 +681,14 @@ export default function CommunityPostsScreen() {
           </View>
         </KeyboardAvoidingView>
       </Modal>
+
+      {/* Report Community Modal */}
+      <ReportModal
+        visible={showReportCommunity}
+        onClose={() => setShowReportCommunity(false)}
+        onSubmit={(reason) => reportService.reportCommunity(communityId, reason)}
+        entityType="community"
+      />
     </SafeAreaView>
   );
 }
@@ -1070,5 +1112,18 @@ const styles = StyleSheet.create({
   },
   removeMemberButton: {
     padding: 8,
+  },
+  reportPostButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    alignSelf: 'flex-end',
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    marginTop: 8,
+  },
+  reportPostButtonText: {
+    fontSize: 12,
+    fontWeight: '600',
   },
 });

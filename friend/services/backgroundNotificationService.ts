@@ -192,7 +192,7 @@ if (TaskManager?.defineTask) {
 
             const lastIdsJson = await AsyncStorage.getItem(LAST_ALERT_IDS_KEY);
             const lastAlertIds = lastIdsJson
-                ? new Set<string>(JSON.parse(lastIdsJson))
+                ? new Set<string>(JSON.parse(lastIdsJson).map(String))
                 : new Set<string>();
 
             const alerts = await sosService.getActiveAlerts(
@@ -202,7 +202,7 @@ if (TaskManager?.defineTask) {
             );
 
             const newAlerts = alerts.filter(
-                a => !lastAlertIds.has(a.id) && !a.isCurrentUserAlertOwner
+                a => !lastAlertIds.has(String(a.id)) && !a.isCurrentUserAlertOwner
             );
 
             for (const alert of newAlerts) {

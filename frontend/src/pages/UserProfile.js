@@ -4,6 +4,7 @@ import { postService } from '../services/postService';
 import { authService } from '../services/authService';
 import { followService } from '../services/followService';
 import PostCard from '../components/PostCard';
+import ReportModal from '../components/ReportModal';
 import './UserProfile.css';
 
 const UserProfile = () => {
@@ -20,6 +21,7 @@ const UserProfile = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
   const currentUser = authService.getCurrentUser();
 
   const loadUserPosts = async () => {
@@ -149,6 +151,9 @@ const UserProfile = () => {
                   <button onClick={handleMessageUser} className="btn-message">
                     💬 Message
                   </button>
+                  <button onClick={() => setShowReportModal(true)} className="btn-secondary btn-danger-report" style={{ backgroundColor: 'var(--danger-color)', color: '#white', borderColor: 'transparent', marginLeft: '8px' }}>
+                    🚩 Report
+                  </button>
                 </div>
               )}
             </div>
@@ -189,6 +194,12 @@ const UserProfile = () => {
           </div>
         )}
       </div>
+      <ReportModal
+        isOpen={showReportModal}
+        onClose={() => setShowReportModal(false)}
+        targetType="user"
+        targetIds={{ reportedUserId: parseInt(userId) }}
+      />
     </div>
   );
 };

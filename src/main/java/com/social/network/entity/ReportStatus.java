@@ -3,5 +3,6 @@ package com.social.network.entity;
 public enum ReportStatus {
     PENDING,
     REVIEWED,
-    RESOLVED
+    RESOLVED,
+    DISMISSED
 }

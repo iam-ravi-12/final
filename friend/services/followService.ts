@@ -8,6 +8,9 @@ export interface FollowResponse {
   followingUsername: string;
   status: string;
   createdAt: string;
+  profilePicture?: string;
+  name?: string;
+  profession?: string;
 }
 
 export interface FollowStatsResponse {

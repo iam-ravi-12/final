@@ -117,4 +117,27 @@ public class AdminController {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
         return ResponseEntity.ok(adminService.getReports(status, pageable));
     }
+
+    @PutMapping("/reports/{id}/resolve")
+    public ResponseEntity<String> resolveReport(
+            @PathVariable Long id,
+            @RequestParam(required = false) String adminNotes,
+            Authentication authentication) {
+
+        UserDetailsImpl admin = (UserDetailsImpl) authentication.getPrincipal();
+        adminService.resolveReport(id, adminNotes, admin.getId());
+        return ResponseEntity.ok("Report resolved successfully");
+    }
+
+    @PutMapping("/reports/{id}/dismiss")
+    public ResponseEntity<String> dismissReport(
+            @PathVariable Long id,
+            @RequestParam(required = false) String adminNotes,
+            Authentication authentication) {
+
+        UserDetailsImpl admin = (UserDetailsImpl) authentication.getPrincipal();
+        adminService.dismissReport(id, adminNotes, admin.getId());
+        return ResponseEntity.ok("Report dismissed successfully");
+    }
 }
+

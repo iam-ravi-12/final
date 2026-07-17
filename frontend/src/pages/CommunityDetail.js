@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { communityService } from '../services/communityService';
+import { authService } from '../services/authService';
+import ReportModal from '../components/ReportModal';
 import './CommunityDetail.css';
 
 const CommunityDetail = () => {
@@ -14,6 +16,10 @@ const CommunityDetail = () => {
   const [showCreatePost, setShowCreatePost] = useState(false);
   const [postContent, setPostContent] = useState('');
   const [activeTab, setActiveTab] = useState('approved');
+  const [showReportCommunityModal, setShowReportCommunityModal] = useState(false);
+  const [showReportPostModal, setShowReportPostModal] = useState(false);
+  const [reportPostTarget, setReportPostTarget] = useState(null);
+  const currentUser = authService.getCurrentUser();
 
   useEffect(() => {
     loadCommunityData();
@@ -196,6 +202,11 @@ const CommunityDetail = () => {
                 Join Community
               </button>
             )}
+            {!community.isAdmin && (
+              <button className="btn-report" onClick={() => setShowReportCommunityModal(true)} style={{ backgroundColor: 'var(--danger-color)', color: 'white', border: 'none', padding: '10px 16px', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', transition: 'all 0.2s' }}>
+                🚩 Report
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -280,7 +291,7 @@ const CommunityDetail = () => {
                   <div className="posts-list">
                     {posts.map((post) => (
                       <div key={post.id} className="community-post-card">
-                        <div className="post-header">
+                        <div className="post-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <div className="post-author">
                             <div className="author-avatar">
                               {post.userProfilePicture ? (
@@ -296,6 +307,18 @@ const CommunityDetail = () => {
                               </span>
                             </div>
                           </div>
+                          {post.userId !== currentUser?.id && (
+                            <button 
+                              className="report-post-btn" 
+                              onClick={() => {
+                                setReportPostTarget(post.id);
+                                setShowReportPostModal(true);
+                              }}
+                              style={{ background: 'none', border: 'none', color: 'var(--danger-color)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', fontWeight: '600' }}
+                            >
+                              🚩 Report
+                            </button>
+                          )}
                         </div>
                         <div className="post-content">
                           <p>{post.content}</p>
@@ -359,6 +382,22 @@ const CommunityDetail = () => {
           </div>
         </div>
       )}
+      <ReportModal
+        isOpen={showReportCommunityModal}
+        onClose={() => setShowReportCommunityModal(false)}
+        targetType="community"
+        targetIds={{ reportedCommunityId: parseInt(communityId) }}
+      />
+
+      <ReportModal
+        isOpen={showReportPostModal}
+        onClose={() => {
+          setShowReportPostModal(false);
+          setReportPostTarget(null);
+        }}
+        targetType="community post"
+        targetIds={{ reportedCommunityPostId: reportPostTarget }}
+      />
     </div>
   );
 };

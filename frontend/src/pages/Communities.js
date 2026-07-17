@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { communityService } from '../services/communityService';
 import { authService } from '../services/authService';
+import ReportModal from '../components/ReportModal';
 import './Communities.css';
 
 const Communities = () => {
@@ -17,6 +18,8 @@ const Communities = () => {
     isPrivate: false,
     profilePicture: '',
   });
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportTarget, setReportTarget] = useState(null);
   const user = authService.getCurrentUser();
 
   useEffect(() => {
@@ -285,6 +288,20 @@ const Communities = () => {
                     >
                       🔗
                     </button>
+                    {!community.isAdmin && (
+                      <button
+                        className="btn-report-small"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setReportTarget(community.id);
+                          setShowReportModal(true);
+                        }}
+                        title="Report community"
+                        style={{ border: '1px solid var(--danger-color)', color: 'var(--danger-color)', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', background: 'none', fontWeight: 'bold', marginRight: '6px' }}
+                      >
+                        🚩
+                      </button>
+                    )}
                     {community.isMember ? (
                       <button
                         className="btn-view"
@@ -309,6 +326,16 @@ const Communities = () => {
           </div>
         </div>
       </main>
+
+      <ReportModal
+        isOpen={showReportModal}
+        onClose={() => {
+          setShowReportModal(false);
+          setReportTarget(null);
+        }}
+        targetType="community"
+        targetIds={{ reportedCommunityId: reportTarget }}
+      />
     </div>
   );
 };

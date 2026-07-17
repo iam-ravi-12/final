@@ -8,6 +8,7 @@ export interface AdminDashboardStats {
   totalMessages: number;
   totalSosAlerts: number;
   totalReports: number;
+  pendingReports: number;
   totalBannedUsers: number;
 }
 
@@ -33,8 +34,11 @@ export interface AdminReport {
   reportedPostContent?: string;
   reportedCommunityId?: number;
   reportedCommunityName?: string;
+  reportedCommunityPostId?: number;
+  reportedCommunityPostContent?: string;
   reason: string;
-  status: 'PENDING' | 'REVIEWED' | 'RESOLVED';
+  adminNotes?: string;
+  status: 'PENDING' | 'REVIEWED' | 'RESOLVED' | 'DISMISSED';
   createdAt: string;
 }
 
@@ -125,11 +129,25 @@ const adminService = {
   },
 
   getReports: async (params?: {
-    status?: 'PENDING' | 'REVIEWED' | 'RESOLVED';
+    status?: 'PENDING' | 'REVIEWED' | 'RESOLVED' | 'DISMISSED';
     page?: number;
     size?: number;
   }): Promise<{ content: AdminReport[]; totalPages: number; totalElements: number }> => {
     const response = await api.get('/admin/reports', { params });
+    return response.data;
+  },
+
+  resolveReport: async (id: number, adminNotes?: string): Promise<string> => {
+    const response = await api.put(`/admin/reports/${id}/resolve`, null, {
+      params: adminNotes ? { adminNotes } : undefined,
+    });
+    return response.data;
+  },
+
+  dismissReport: async (id: number, adminNotes?: string): Promise<string> => {
+    const response = await api.put(`/admin/reports/${id}/dismiss`, null, {
+      params: adminNotes ? { adminNotes } : undefined,
+    });
     return response.data;
   },
 };

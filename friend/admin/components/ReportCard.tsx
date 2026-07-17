@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, ActivityIndicator, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppTheme } from '@/constants/AppTheme';
 import { AdminReport } from '../services/adminService';
@@ -7,12 +7,20 @@ import { formatRelativeDate } from '@/utils/helpers';
 
 interface ReportCardProps {
   report: AdminReport;
+  onResolve?: (id: number, notes?: string) => Promise<void>;
+  onDismiss?: (id: number, notes?: string) => Promise<void>;
 }
 
 export default function ReportCard({
   report,
+  onResolve,
+  onDismiss,
 }: ReportCardProps) {
   const { colors } = useAppTheme();
+  const [showNotesInput, setShowNotesInput] = useState(false);
+  const [adminNotes, setAdminNotes] = useState('');
+  const [actionType, setActionType] = useState<'resolve' | 'dismiss' | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const getStatusColor = (status: AdminReport['status']) => {
     switch (status) {
@@ -22,12 +30,21 @@ export default function ReportCard({
         return colors.accent;
       case 'RESOLVED':
         return colors.success;
+      case 'DISMISSED':
+        return colors.textTertiary;
       default:
         return colors.textSecondary;
     }
   };
 
   const getReportedEntityDetails = () => {
+    if (report.reportedCommunityPostId) {
+      return {
+        type: 'Community Post',
+        icon: 'chatbox-outline',
+        details: report.reportedCommunityPostContent || `Community Post ID: ${report.reportedCommunityPostId}`,
+      };
+    }
     if (report.reportedPostId) {
       return {
         type: 'Post',
@@ -50,6 +67,30 @@ export default function ReportCard({
       };
     }
     return null;
+  };
+
+  const handleAction = async (type: 'resolve' | 'dismiss') => {
+    if (!showNotesInput || actionType !== type) {
+      setActionType(type);
+      setShowNotesInput(true);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      if (type === 'resolve' && onResolve) {
+        await onResolve(report.id, adminNotes.trim() || undefined);
+      } else if (type === 'dismiss' && onDismiss) {
+        await onDismiss(report.id, adminNotes.trim() || undefined);
+      }
+      setShowNotesInput(false);
+      setAdminNotes('');
+      setActionType(null);
+    } catch (err: any) {
+      Alert.alert('Error', err.message || `Failed to ${type} report`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const entity = getReportedEntityDetails();
@@ -83,6 +124,100 @@ export default function ReportCard({
         <Text style={[styles.reasonLabel, { color: colors.textSecondary }]}>Reason for Report</Text>
         <Text style={[styles.reasonText, { color: colors.textPrimary }]}>{report.reason}</Text>
       </View>
+
+      {/* Admin Notes (shown if resolved/dismissed) */}
+      {report.adminNotes && (
+        <View style={[styles.adminNotesContainer, { backgroundColor: colors.background, borderColor: colors.surfaceBorder }]}>
+          <Text style={[styles.reasonLabel, { color: colors.textSecondary }]}>Admin Notes</Text>
+          <Text style={[styles.reasonText, { color: colors.textPrimary }]}>{report.adminNotes}</Text>
+        </View>
+      )}
+
+      {/* Notes Input */}
+      {showNotesInput && (
+        <View style={styles.notesInputContainer}>
+          <TextInput
+            style={[
+              styles.notesInput,
+              {
+                backgroundColor: colors.background,
+                color: colors.textPrimary,
+                borderColor: colors.surfaceBorder,
+              },
+            ]}
+            placeholder="Add notes (optional)..."
+            placeholderTextColor={colors.textTertiary}
+            value={adminNotes}
+            onChangeText={setAdminNotes}
+            multiline
+            maxLength={500}
+          />
+        </View>
+      )}
+
+      {/* Action Buttons — only for PENDING reports */}
+      {report.status === 'PENDING' && (onResolve || onDismiss) && (
+        <View style={styles.actionsContainer}>
+          {onResolve && (
+            <TouchableOpacity
+              style={[
+                styles.actionButton,
+                { backgroundColor: colors.success },
+                actionType === 'resolve' && showNotesInput && styles.actionButtonActive,
+              ]}
+              onPress={() => handleAction('resolve')}
+              disabled={loading}
+            >
+              {loading && actionType === 'resolve' ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <>
+                  <Ionicons name="checkmark-circle" size={18} color="#fff" />
+                  <Text style={styles.actionButtonText}>
+                    {actionType === 'resolve' && showNotesInput ? 'Confirm Resolve' : 'Resolve'}
+                  </Text>
+                </>
+              )}
+            </TouchableOpacity>
+          )}
+
+          {onDismiss && (
+            <TouchableOpacity
+              style={[
+                styles.actionButton,
+                { backgroundColor: colors.textTertiary },
+                actionType === 'dismiss' && showNotesInput && styles.actionButtonActive,
+              ]}
+              onPress={() => handleAction('dismiss')}
+              disabled={loading}
+            >
+              {loading && actionType === 'dismiss' ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <>
+                  <Ionicons name="close-circle" size={18} color="#fff" />
+                  <Text style={styles.actionButtonText}>
+                    {actionType === 'dismiss' && showNotesInput ? 'Confirm Dismiss' : 'Dismiss'}
+                  </Text>
+                </>
+              )}
+            </TouchableOpacity>
+          )}
+
+          {showNotesInput && (
+            <TouchableOpacity
+              style={styles.cancelNotesButton}
+              onPress={() => {
+                setShowNotesInput(false);
+                setAdminNotes('');
+                setActionType(null);
+              }}
+            >
+              <Text style={[styles.cancelNotesText, { color: colors.textSecondary }]}>Cancel</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      )}
 
       <View style={[styles.footer, { borderTopColor: colors.surfaceBorder }]}>
         <Text style={[styles.date, { color: colors.textTertiary }]}>
@@ -168,6 +303,56 @@ const styles = StyleSheet.create({
   reasonText: {
     fontSize: 14,
     lineHeight: 20,
+  },
+  adminNotesContainer: {
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 12,
+  },
+  notesInputContainer: {
+    marginBottom: 12,
+  },
+  notesInput: {
+    minHeight: 60,
+    maxHeight: 100,
+    borderRadius: 8,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    fontSize: 13,
+    textAlignVertical: 'top',
+  },
+  actionsContainer: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 12,
+    flexWrap: 'wrap',
+    alignItems: 'center',
+  },
+  actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 8,
+  },
+  actionButtonActive: {
+    opacity: 0.9,
+  },
+  actionButtonText: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  cancelNotesButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+  },
+  cancelNotesText: {
+    fontSize: 13,
+    fontWeight: '500',
   },
   footer: {
     borderTopWidth: 1,

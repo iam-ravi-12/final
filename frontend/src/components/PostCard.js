@@ -4,6 +4,7 @@ import { formatDate } from '../utils/dateUtils';
 import { parseContentWithMentions } from '../utils/textUtils';
 import { authService } from '../services/authService';
 import { postService } from '../services/postService';
+import ReportModal from './ReportModal';
 import './PostCard.css';
 
 const PostCard = ({ post, onPostUpdate }) => {
@@ -18,6 +19,7 @@ const PostCard = ({ post, onPostUpdate }) => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editContent, setEditContent] = useState(post.content);
   const [isEditing, setIsEditing] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
 
   const isOwnPost = post.userId === currentUser?.id;
 
@@ -199,23 +201,36 @@ const PostCard = ({ post, onPostUpdate }) => {
           <div className="post-time">
             {formatDate(post.createdAt)}
           </div>
-          {isOwnPost && (
-            <div className="post-menu-container">
-              <button className="post-menu-btn" onClick={handleMenuToggle}>
-                ⋮
-              </button>
-              {showMenu && (
-                <div className="post-menu-dropdown">
-                  <button className="post-menu-item" onClick={handleEdit}>
-                    ✏️ Edit
+          <div className="post-menu-container">
+            <button className="post-menu-btn" onClick={handleMenuToggle}>
+              ⋮
+            </button>
+            {showMenu && (
+              <div className="post-menu-dropdown">
+                {isOwnPost ? (
+                  <>
+                    <button className="post-menu-item" onClick={handleEdit}>
+                      ✏️ Edit
+                    </button>
+                    <button className="post-menu-item delete" onClick={handleDelete}>
+                      🗑️ Delete
+                    </button>
+                  </>
+                ) : (
+                  <button 
+                    className="post-menu-item" 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowMenu(false);
+                      setShowReportModal(true);
+                    }}
+                  >
+                    🚩 Report Post
                   </button>
-                  <button className="post-menu-item delete" onClick={handleDelete}>
-                    🗑️ Delete
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
+                )}
+              </div>
+            )}
+          </div>
           {post.isHelpSection && (
             <div className="help-status-badge">
               {isSolved ? '✅ Solved' : '🆘 Help Request'}
@@ -307,6 +322,13 @@ const PostCard = ({ post, onPostUpdate }) => {
           </div>
         </div>
       )}
+
+      <ReportModal
+        isOpen={showReportModal}
+        onClose={() => setShowReportModal(false)}
+        targetType="post"
+        targetIds={{ reportedPostId: post.id }}
+      />
     </div>
   );
 };

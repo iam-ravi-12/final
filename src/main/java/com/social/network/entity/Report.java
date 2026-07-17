@@ -35,8 +35,15 @@ public class Report {
     @JoinColumn(name = "reported_community_id")
     private Community reportedCommunity;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "reported_community_post_id")
+    private CommunityPost reportedCommunityPost;
+
     @Column(nullable = false)
     private String reason;
+
+    @Column(name = "admin_notes")
+    private String adminNotes;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)

@@ -22,6 +22,8 @@ import { parseUTCDate } from '../utils/helpers';
 import PostMediaAttachment from '../components/PostMediaAttachment';
 import { inferMediaType } from '../utils/media';
 import { useAppTheme } from '../constants/AppTheme';
+import ReportModal from '../components/ReportModal';
+import reportService from '../services/reportService';
 
 const formatTimeAgo = (dateString: string): string => {
   const now = new Date();
@@ -55,6 +57,7 @@ export default function UserProfileScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [showAllPosts, setShowAllPosts] = useState(false);
   const [loadingAction, setLoadingAction] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
   const { colors, isDark } = useAppTheme();
 
   const loadUserData = useCallback(async () => {
@@ -242,6 +245,14 @@ export default function UserProfileScreen() {
                 <Ionicons name="chatbubble-outline" size={20} color={colors.textInverse} />
                 <Text style={[styles.messageButtonText, { color: colors.textInverse }]}>Message</Text>
               </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.messageButton, { backgroundColor: colors.danger }]}
+                onPress={() => setShowReportModal(true)}
+              >
+                <Ionicons name="flag-outline" size={20} color={colors.textInverse} />
+                <Text style={[styles.messageButtonText, { color: colors.textInverse }]}>Report</Text>
+              </TouchableOpacity>
             </View>
           )}
 
@@ -326,6 +337,16 @@ export default function UserProfileScreen() {
           )}
         </View>
       </ScrollView>
+
+      {/* Report User Modal */}
+      {userId && (
+        <ReportModal
+          visible={showReportModal}
+          onClose={() => setShowReportModal(false)}
+          onSubmit={(reason) => reportService.reportUser(userId, reason)}
+          entityType="user"
+        />
+      )}
     </SafeAreaView>
   );
 }

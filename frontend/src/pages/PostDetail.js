@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { authService } from '../services/authService';
 import { postService } from '../services/postService';
 import { formatDate } from '../utils/dateUtils';
+import ReportModal from '../components/ReportModal';
 import './PostDetail.css';
 
 const PostDetail = () => {
@@ -17,6 +18,8 @@ const PostDetail = () => {
   const [submitting, setSubmitting] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
+  const [showMenu, setShowMenu] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -144,8 +147,30 @@ const PostDetail = () => {
                 <p className="post-profession">{post.userProfession}</p>
               </div>
             </div>
-            <div className="post-time">
-              {formatDate(post.createdAt)}
+            <div className="post-right-section" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div className="post-time">
+                {formatDate(post.createdAt)}
+              </div>
+              {currentUser?.id !== post.userId && (
+                <div className="post-menu-container" style={{ position: 'relative' }}>
+                  <button className="post-menu-btn" onClick={() => setShowMenu(!showMenu)}>
+                    ⋮
+                  </button>
+                  {showMenu && (
+                    <div className="post-menu-dropdown" style={{ right: 0 }}>
+                      <button 
+                        className="post-menu-item" 
+                        onClick={() => {
+                          setShowMenu(false);
+                          setShowReportModal(true);
+                        }}
+                      >
+                        🚩 Report Post
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
@@ -248,6 +273,12 @@ const PostDetail = () => {
           </div>
         </div>
       </div>
+      <ReportModal
+        isOpen={showReportModal}
+        onClose={() => setShowReportModal(false)}
+        targetType="post"
+        targetIds={{ reportedPostId: post.id }}
+      />
     </div>
   );
 };

@@ -72,6 +72,7 @@ public class AdminService {
         long totalMessages = messageRepository.count();
         long totalSosAlerts = sosAlertRepository.count();
         long totalReports = reportRepository.count();
+        long pendingReports = reportRepository.countByStatus(ReportStatus.PENDING);
         long totalBannedUsers = userRepository.countByStatus(AccountStatus.BANNED);
 
         return new AdminDashboardStats(
@@ -82,6 +83,7 @@ public class AdminService {
                 totalMessages,
                 totalSosAlerts,
                 totalReports,
+                pendingReports,
                 totalBannedUsers
         );
     }
@@ -233,6 +235,7 @@ public class AdminService {
         CommunityPost post = communityPostRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("Community post not found with ID: " + postId));
 
+        reportRepository.deleteByReportedCommunityPost(post);
         deleteCommunityPostMedia(post);
         communityPostRepository.delete(post);
 
@@ -242,7 +245,39 @@ public class AdminService {
 
     public Page<ReportResponse> getReports(ReportStatus status, Pageable pageable) {
         Page<Report> reports = reportRepository.findByStatus(status, pageable);
-        return reports.map(r -> new ReportResponse(
+        return reports.map(this::mapReportToResponse);
+    }
+
+    public void resolveReport(Long reportId, String adminNotes, Long adminId) {
+        Report report = reportRepository.findById(reportId)
+                .orElseThrow(() -> new IllegalArgumentException("Report not found with ID: " + reportId));
+
+        report.setStatus(ReportStatus.RESOLVED);
+        if (adminNotes != null && !adminNotes.isBlank()) {
+            report.setAdminNotes(adminNotes);
+        }
+        reportRepository.save(report);
+
+        logger.info("Admin ID: {}, Action: Resolved report, Report ID: {}, Timestamp: {}",
+                adminId, reportId, java.time.LocalDateTime.now());
+    }
+
+    public void dismissReport(Long reportId, String adminNotes, Long adminId) {
+        Report report = reportRepository.findById(reportId)
+                .orElseThrow(() -> new IllegalArgumentException("Report not found with ID: " + reportId));
+
+        report.setStatus(ReportStatus.DISMISSED);
+        if (adminNotes != null && !adminNotes.isBlank()) {
+            report.setAdminNotes(adminNotes);
+        }
+        reportRepository.save(report);
+
+        logger.info("Admin ID: {}, Action: Dismissed report, Report ID: {}, Timestamp: {}",
+                adminId, reportId, java.time.LocalDateTime.now());
+    }
+
+    private ReportResponse mapReportToResponse(Report r) {
+        return new ReportResponse(
                 r.getId(),
                 r.getReporter().getId(),
                 r.getReporter().getName(),
@@ -252,10 +287,13 @@ public class AdminService {
                 r.getReportedPost() != null ? r.getReportedPost().getContent() : null,
                 r.getReportedCommunity() != null ? r.getReportedCommunity().getId() : null,
                 r.getReportedCommunity() != null ? r.getReportedCommunity().getName() : null,
+                r.getReportedCommunityPost() != null ? r.getReportedCommunityPost().getId() : null,
+                r.getReportedCommunityPost() != null ? r.getReportedCommunityPost().getContent() : null,
                 r.getReason(),
+                r.getAdminNotes(),
                 r.getStatus(),
                 r.getCreatedAt()
-        ));
+        );
     }
 
     // Helper methods for internal cascades
@@ -283,6 +321,7 @@ public class AdminService {
         // Find community posts and delete them
         List<CommunityPost> posts = communityPostRepository.findByCommunityId(community.getId());
         for (CommunityPost post : posts) {
+            reportRepository.deleteByReportedCommunityPost(post);
             deleteCommunityPostMedia(post);
         }
         communityPostRepository.deleteByCommunity(community);

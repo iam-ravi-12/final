@@ -21,6 +21,8 @@ import CreateCommunityModal from '../components/CreateCommunityModal';
 import { APP_URL } from '../constants/config';
 import { copyToClipboard, formatMemberCount } from '../utils/helpers';
 import { useAppTheme } from '../constants/AppTheme';
+import ReportModal from '../components/ReportModal';
+import reportService from '../services/reportService';
 
 type TabType = 'my' | 'public';
 
@@ -37,6 +39,7 @@ export default function CommunityScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [reportCommunityId, setReportCommunityId] = useState<number | null>(null);
 
   useEffect(() => {
     loadCommunities();
@@ -186,7 +189,27 @@ export default function CommunityScreen() {
               </TouchableOpacity>
             )
           )}
+
+          {!item.isAdmin && (
+            <TouchableOpacity
+              style={[styles.shareButton, { borderColor: colors.danger }]}
+              onPress={(e) => {
+                e.stopPropagation();
+                setReportCommunityId(item.id);
+              }}
+            >
+              <Ionicons name="flag-outline" size={18} color={colors.danger} />
+            </TouchableOpacity>
+          )}
         </View>
+
+        {/* Report Modal */}
+        <ReportModal
+          visible={reportCommunityId === item.id}
+          onClose={() => setReportCommunityId(null)}
+          onSubmit={(reason) => reportService.reportCommunity(item.id, reason)}
+          entityType="community"
+        />
       </TouchableOpacity>
     );
   };
