@@ -229,6 +229,13 @@ public class CommunityService {
             throw new RuntimeException("Only admin can reject posts");
         }
 
+        reportRepository.deleteByReportedCommunityPost(post);
+        if (post.getMediaUrls() != null && !post.getMediaUrls().isEmpty()) {
+            for (String url : post.getMediaUrls()) {
+                cloudinaryService.deleteMedia(url);
+            }
+        }
+
         communityPostRepository.delete(post);
     }
 

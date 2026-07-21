@@ -7,28 +7,33 @@ import com.social.network.entity.User;
 import com.social.network.repository.CommentRepository;
 import com.social.network.repository.LikeRepository;
 import com.social.network.repository.PostRepository;
+import com.social.network.repository.ReportRepository;
 import com.social.network.repository.UserRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional
 public class PostService {
 
     private final PostRepository postRepository;
     private final UserRepository userRepository;
     private final LikeRepository likeRepository;
     private final CommentRepository commentRepository;
+    private final ReportRepository reportRepository;
     private final CloudinaryService cloudinaryService;
 
     public PostService(PostRepository postRepository, UserRepository userRepository,
                        LikeRepository likeRepository, CommentRepository commentRepository,
-                       CloudinaryService cloudinaryService) {
+                       ReportRepository reportRepository, CloudinaryService cloudinaryService) {
         this.postRepository = postRepository;
         this.userRepository = userRepository;
         this.likeRepository = likeRepository;
         this.commentRepository = commentRepository;
+        this.reportRepository = reportRepository;
         this.cloudinaryService = cloudinaryService;
     }
 
@@ -68,6 +73,7 @@ public class PostService {
         return convertToResponse(savedPost, user);
     }
 
+    @Transactional(readOnly = true)
     public List<PostResponse> getAllPosts() {
         return postRepository.findByShowInHomeTrueOrderByCreatedAtDesc()
                 .stream()
@@ -75,6 +81,7 @@ public class PostService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public List<PostResponse> getAllPostsForUser(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -84,6 +91,7 @@ public class PostService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public List<PostResponse> getPostsByProfession(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -99,6 +107,7 @@ public class PostService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public List<PostResponse> getHelpPosts() {
         return postRepository.findByIsHelpSectionTrueOrderByCreatedAtDesc()
                 .stream()
@@ -106,6 +115,7 @@ public class PostService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public List<PostResponse> getHelpPostsForUser(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -115,6 +125,7 @@ public class PostService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public PostResponse getPostById(Long postId, String username) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new RuntimeException("Post not found"));
@@ -139,6 +150,7 @@ public class PostService {
         );
     }
 
+    @Transactional(readOnly = true)
     public List<PostResponse> getPostsByUserId(Long userId, String currentUsername) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -185,40 +197,50 @@ public class PostService {
             throw new RuntimeException("You can only update your own posts");
         }
 
-        post.setContent(postRequest.getContent());
-        post.setIsHelpSection(postRequest.getIsHelpSection());
-        post.setShowInHome(postRequest.getShowInHome());
-        post.setIsAnonymous(postRequest.getIsAnonymous() != null ? postRequest.getIsAnonymous() : false);
+        if (postRequest.getContent() != null) {
+            post.setContent(postRequest.getContent());
+        }
+        if (postRequest.getIsHelpSection() != null) {
+            post.setIsHelpSection(postRequest.getIsHelpSection());
+        }
+        if (postRequest.getShowInHome() != null) {
+            post.setShowInHome(postRequest.getShowInHome());
+        }
+        if (postRequest.getIsAnonymous() != null) {
+            post.setIsAnonymous(postRequest.getIsAnonymous());
+        }
         
         // Handle media URLs
-        if (postRequest.getMediaUrls() != null && !postRequest.getMediaUrls().isEmpty()) {
-            // Delete old media from Cloudinary if it exists
-            if (post.getMediaUrls() != null && !post.getMediaUrls().isEmpty()) {
-                String[] oldUrls = post.getMediaUrls().split("\\|\\|\\|MEDIA_SEPARATOR\\|\\|\\|");
-                for (String oldUrl : oldUrls) {
-                    cloudinaryService.deleteMedia(oldUrl);
+        if (postRequest.getMediaUrls() != null) {
+            if (!postRequest.getMediaUrls().isEmpty()) {
+                // Delete old media from Cloudinary if it exists
+                if (post.getMediaUrls() != null && !post.getMediaUrls().isEmpty()) {
+                    String[] oldUrls = post.getMediaUrls().split("\\|\\|\\|MEDIA_SEPARATOR\\|\\|\\|");
+                    for (String oldUrl : oldUrls) {
+                        cloudinaryService.deleteMedia(oldUrl);
+                    }
                 }
-            }
-            
-            // Upload new media to Cloudinary
-            java.util.List<String> uploadedUrls = new java.util.ArrayList<>();
-            for (String mediaUrl : postRequest.getMediaUrls()) {
-                String uploadedUrl = isDataUri(mediaUrl)
-                        ? cloudinaryService.uploadImage(mediaUrl, "posts")
-                        : mediaUrl;
-                uploadedUrls.add(uploadedUrl);
-            }
-            
-            post.setMediaUrls(String.join("|||MEDIA_SEPARATOR|||", uploadedUrls));
-        } else {
-            // If no new media provided, delete old media
-            if (post.getMediaUrls() != null && !post.getMediaUrls().isEmpty()) {
-                String[] oldUrls = post.getMediaUrls().split("\\|\\|\\|MEDIA_SEPARATOR\\|\\|\\|");
-                for (String oldUrl : oldUrls) {
-                    cloudinaryService.deleteMedia(oldUrl);
+                
+                // Upload new media to Cloudinary
+                java.util.List<String> uploadedUrls = new java.util.ArrayList<>();
+                for (String mediaUrl : postRequest.getMediaUrls()) {
+                    String uploadedUrl = isDataUri(mediaUrl)
+                            ? cloudinaryService.uploadImage(mediaUrl, "posts")
+                            : mediaUrl;
+                    uploadedUrls.add(uploadedUrl);
                 }
+                
+                post.setMediaUrls(String.join("|||MEDIA_SEPARATOR|||", uploadedUrls));
+            } else {
+                // If empty media array provided, delete old media
+                if (post.getMediaUrls() != null && !post.getMediaUrls().isEmpty()) {
+                    String[] oldUrls = post.getMediaUrls().split("\\|\\|\\|MEDIA_SEPARATOR\\|\\|\\|");
+                    for (String oldUrl : oldUrls) {
+                        cloudinaryService.deleteMedia(oldUrl);
+                    }
+                }
+                post.setMediaUrls(null);
             }
-            post.setMediaUrls(null);
         }
 
         Post updatedPost = postRepository.save(post);
@@ -231,12 +253,21 @@ public class PostService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // Only the post author can delete
-        if (!post.getUser().getId().equals(user.getId())) {
+        // Only the post author or an ADMIN can delete
+        if (!post.getUser().getId().equals(user.getId()) && user.getRole() != com.social.network.entity.Role.ADMIN) {
             throw new RuntimeException("You can only delete your own posts");
         }
 
-        // Delete media from Cloudinary if it exists
+        // 1. Delete associated comments first to prevent foreign key constraint violation
+        commentRepository.deleteByPost(post);
+
+        // 2. Delete associated likes first to prevent foreign key constraint violation
+        likeRepository.deleteByPost(post);
+
+        // 3. Delete associated reports first to prevent foreign key constraint violation
+        reportRepository.deleteByReportedPost(post);
+
+        // 4. Delete media from Cloudinary if it exists
         if (post.getMediaUrls() != null && !post.getMediaUrls().isEmpty()) {
             String[] mediaUrls = post.getMediaUrls().split("\\|\\|\\|MEDIA_SEPARATOR\\|\\|\\|");
             for (String mediaUrl : mediaUrls) {
@@ -244,6 +275,7 @@ public class PostService {
             }
         }
 
+        // 5. Delete post
         postRepository.delete(post);
     }
 
